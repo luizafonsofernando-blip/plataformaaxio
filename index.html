@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Axion Solutions | Inteligencia para crescer</title>
+    <meta
+      name="description"
+      content="Landing page da Axion Solutions para automatizacao de rotinas, criacao de sites, processos digitais e inteligencia para crescimento."
+    />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self'; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests" />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css?v=axion-titulo-20260620" />
+  </head>
+  <body>
+    <div class="cursor-glow" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="#inicio" aria-label="Axion Solutions">
+        <span class="brand-mark">A</span>
+        <span>
+          <strong>AXION</strong>
+          <small>SOLUTIONS</small>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="Principal">
+        <a href="#solucoes">Solucoes</a>
+        <a href="#processo">Processo</a>
+        <a href="#sites">Sites</a>
+        <a href="#contato">Contato</a>
+      </nav>
+      <button class="header-action" id="openLogin" type="button">Modulos</button>
+    </header>
+
+    <main id="inicio">
+      <section class="hero section-panel">
+        <div class="stars-wrapper" aria-hidden="true">
+          <svg class="stars stars-a" width="100%" height="100%" preserveAspectRatio="none"></svg>
+          <svg class="stars stars-b" width="100%" height="100%" preserveAspectRatio="none"></svg>
+          <svg class="stars stars-c" width="100%" height="100%" preserveAspectRatio="none"></svg>
+          <svg class="extras" width="100%" height="100%" preserveAspectRatio="none">
+            <defs>
+              <radialGradient id="comet-gradient" cx="0" cy=".5" r="0.5">
+                <stop offset="0%" stop-color="rgba(255,255,255,.82)" />
+                <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+              </radialGradient>
+            </defs>
+            <g transform="rotate(-135)">
+              <ellipse class="comet comet-a" fill="url(#comet-gradient)" cx="0" cy="0" rx="150" ry="2" />
+            </g>
+            <g transform="rotate(20)">
+              <ellipse class="comet comet-b" fill="url(#comet-gradient)" cx="100%" cy="0" rx="150" ry="2" />
+            </g>
+            <g transform="rotate(300)">
+              <ellipse class="comet comet-c" fill="url(#comet-gradient)" cx="40%" cy="100%" rx="150" ry="2" />
+            </g>
+          </svg>
+          <div class="star-field star-one"></div>
+          <div class="star-field star-two"></div>
+          <div class="star-field star-three"></div>
+        </div>
+
+        <canvas id="axonCanvas" class="axon-canvas" aria-hidden="true"></canvas>
+
+        <div class="hero-content">
+          <p class="eyebrow">Automacao, sites e inteligencia operacional</p>
+          <h1>AXION SOLUTIONS</h1>
+          <p class="hero-subtitle">
+            Transformamos rotinas repetitivas em sistemas digitais, fluxos automatizados e experiencias web que
+            fazem sua operacao crescer com mais controle.
+          </p>
+          <div class="hero-actions">
+            <a class="primary-button" href="#contato">Comecar projeto</a>
+            <a class="ghost-button" href="#solucoes">Ver solucoes</a>
+          </div>
+        </div>
+
+        <aside class="orbit-console" aria-label="Indicadores Axion">
+          <div>
+            <span>Rotinas</span>
+            <strong>+72%</strong>
+          </div>
+          <div>
+            <span>Tempo salvo</span>
+            <strong>36h/mes</strong>
+          </div>
+          <div>
+            <span>Sites</span>
+            <strong>Alta conversao</strong>
+          </div>
+        </aside>
+      </section>
+
+      <section id="solucoes" class="solutions section-panel">
+        <div class="section-heading reveal">
+          <p class="eyebrow">O que a Axion constroi</p>
+          <h2>Menos tarefas soltas. Mais sistemas trabalhando juntos.</h2>
+        </div>
+        <div class="solution-grid">
+          <article class="solution-card reveal">
+            <span class="card-icon">01</span>
+            <h3>Automatizacao de rotinas</h3>
+            <p>Fluxos para vendas, atendimento, financeiro, relatorios, planilhas, mensagens e aprovacoes internas.</p>
+          </article>
+          <article class="solution-card reveal">
+            <span class="card-icon">02</span>
+            <h3>Criacao de sites</h3>
+            <p>Landing pages, sites institucionais e paginas comerciais com narrativa clara, performance e contato rapido.</p>
+          </article>
+          <article class="solution-card reveal">
+            <span class="card-icon">03</span>
+            <h3>Facilitadores de processos</h3>
+            <p>Interfaces simples para organizar demandas, reduzir retrabalho e dar visibilidade para cada etapa.</p>
+          </article>
+          <article class="solution-card reveal">
+            <span class="card-icon">04</span>
+            <h3>Inteligencia aplicada</h3>
+            <p>Dados, dashboards e assistentes digitais para apoiar decisoes com velocidade e consistencia.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="processo" class="process section-panel">
+        <div class="process-track" aria-label="Processo Axion">
+          <div class="process-step reveal">
+            <span>Diagnostico</span>
+            <h3>Mapeamos o gargalo</h3>
+            <p>Entendemos onde tempo, dados e pessoas estao se perdendo na rotina.</p>
+          </div>
+          <div class="process-step reveal">
+            <span>Arquitetura</span>
+            <h3>Desenhamos o fluxo</h3>
+            <p>Definimos integracoes, telas, automacoes e pontos de controle.</p>
+          </div>
+          <div class="process-step reveal">
+            <span>Execucao</span>
+            <h3>Construimos com foco</h3>
+            <p>Entregas curtas, validacao visual e ajustes ate o processo ficar fluido.</p>
+          </div>
+          <div class="process-step reveal">
+            <span>Evolucao</span>
+            <h3>Medimos e melhoramos</h3>
+            <p>Monitoramos resultado e adicionamos novas camadas conforme a empresa cresce.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="sites" class="showcase section-panel">
+        <div class="showcase-copy reveal">
+          <p class="eyebrow">Presenca digital com operacao por tras</p>
+          <h2>Sites que capturam oportunidades e alimentam seus processos.</h2>
+          <p>
+            A pagina pode receber leads, acionar atendimento, registrar dados, enviar propostas e gerar visao de
+            performance. A Axion conecta a vitrine ao motor da empresa.
+          </p>
+        </div>
+        <div class="browser-frame reveal">
+          <div class="browser-bar">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="browser-body">
+            <div class="mini-hero"></div>
+            <div class="mini-lines">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="mini-cards">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="contato" class="cta section-panel">
+        <div class="cta-inner reveal">
+          <p class="eyebrow">Inteligencia para crescer</p>
+          <h2>Pronto para tirar tarefas repetitivas do caminho?</h2>
+          <p>Conte para a Axion qual rotina trava sua equipe e receba um plano objetivo para automatizar.</p>
+          <a class="primary-button" href="mailto:contato@axionsolutions.com.br">Falar com a Axion</a>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="access-dialog" id="accessDialog" aria-labelledby="accessTitle">
+      <div class="access-shell">
+        <div class="access-heading">
+          <div class="access-title-row">
+            <div>
+              <span class="access-kicker">AXION SOLUTIONS</span>
+              <h2 id="accessTitle">Modulos</h2>
+            </div>
+          </div>
+          <button class="icon-button" id="closeAccess" type="button" aria-label="Fechar">&times;</button>
+        </div>
+
+        <section class="module-catalog" id="moduleCatalog">
+          <a class="module-item" href="app/">
+            <span class="module-icon" aria-hidden="true">OC</span>
+            <span class="module-name">
+              <strong>Onboarding Contabil</strong>
+              <small>Disponivel</small>
+            </span>
+            <span class="module-arrow" aria-hidden="true">&rarr;</span>
+          </a>
+        </section>
+      </div>
+    </dialog>
+
+    <script src="script.js?v=axion-modulo-login-interno-20260620"></script>
+  </body>
+</html>
