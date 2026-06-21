@@ -287,7 +287,7 @@ async function authRequest(path, { method = "GET", body, accessToken } = {}) {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const error = new Error(data.msg || data.message || "Falha de autenticacao.");
+      const error = new Error(data.msg || data.message || "Falha de autenticação.");
       error.code = data.error_code || data.code || data.error;
       throw error;
     }
@@ -308,7 +308,7 @@ function isAdmin(user) {
 }
 
 function displayName(user) {
-  return user?.user_metadata?.display_name || user?.user_metadata?.name || user?.email || "Usuario autenticado";
+  return user?.user_metadata?.display_name || user?.user_metadata?.name || user?.email || "Usuário autenticado";
 }
 
 function setMessage(element, message = "", success = false) {
@@ -326,14 +326,14 @@ function showAuthenticated(user) {
   sessionPanel.hidden = false;
   adminPanel.hidden = !isAdmin(user);
   sessionName.textContent = displayName(user);
-  openLoginButton.textContent = "Modulos";
+  openLoginButton.textContent = "Módulos";
 }
 
 function showLoggedOut() {
   loginForm.hidden = false;
   sessionPanel.hidden = true;
   adminPanel.hidden = true;
-  openLoginButton.textContent = "Modulos";
+  openLoginButton.textContent = "Módulos";
   loginForm.reset();
   signupForm.reset();
   setMessage(loginMessage);
@@ -344,14 +344,14 @@ function showModuleCatalog() {
   moduleCatalog.hidden = false;
   moduleAccess.hidden = true;
   backToModulesButton.hidden = true;
-  accessTitle.textContent = "Modulos";
+  accessTitle.textContent = "Módulos";
 }
 
 function showOnboardingAccess() {
   moduleCatalog.hidden = true;
   moduleAccess.hidden = false;
   backToModulesButton.hidden = false;
-  accessTitle.textContent = "Onboarding Contabil";
+  accessTitle.textContent = "Onboarding Contábil";
   if (!loginForm.hidden) setTimeout(() => document.getElementById("loginIdentifier").focus(), 40);
 }
 
@@ -382,9 +382,9 @@ async function restoreSession() {
 
 function friendlyAuthError(error) {
   if (error?.name === "AbortError") return "O servidor demorou para responder. Tente novamente.";
-  if (error?.code === "invalid_credentials") return "Usuario, e-mail ou senha invalidos.";
+  if (error?.code === "invalid_credentials") return "Usuário, e-mail ou senha inválidos.";
   if (error?.code === "email_not_confirmed") return "Confirme o e-mail antes de entrar.";
-  return "Nao foi possivel concluir o acesso. Verifique os dados e a conexao.";
+  return "Não foi possível concluir o acesso. Verifique os dados e a conexão.";
 }
 
 openLoginButton.addEventListener("click", () => {
@@ -425,12 +425,12 @@ if (signupForm) signupForm.addEventListener("submit", async (event) => {
   const session = readSession();
   if (!session?.access_token) {
     showLoggedOut();
-    setMessage(loginMessage, "Sua sessao expirou. Entre novamente.");
+    setMessage(loginMessage, "Sua sessão expirou. Entre novamente.");
     return;
   }
 
   setMessage(signupMessage);
-  setButtonBusy(signupSubmit, true, "Cadastrar usuario", "Cadastrando...");
+  setButtonBusy(signupSubmit, true, "Cadastrar usuário", "Cadastrando...");
 
   try {
     const response = await fetch(`${SUPABASE_URL}/functions/v1/create-user`, {
@@ -449,13 +449,13 @@ if (signupForm) signupForm.addEventListener("submit", async (event) => {
       }),
     });
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.error || "Cadastro nao concluido.");
+    if (!response.ok) throw new Error(result.error || "Cadastro não concluído.");
     signupForm.reset();
-    setMessage(signupMessage, "Usuario cadastrado com sucesso.", true);
+    setMessage(signupMessage, "Usuário cadastrado com sucesso.", true);
   } catch (error) {
-    setMessage(signupMessage, error.message || "Nao foi possivel cadastrar o usuario.");
+    setMessage(signupMessage, error.message || "Não foi possível cadastrar o usuário.");
   } finally {
-    setButtonBusy(signupSubmit, false, "Cadastrar usuario", "Cadastrando...");
+    setButtonBusy(signupSubmit, false, "Cadastrar usuário", "Cadastrando...");
   }
 });
 
@@ -465,7 +465,7 @@ if (logoutButton) logoutButton.addEventListener("click", async () => {
     try {
       await authRequest("logout", { method: "POST", accessToken: session.access_token });
     } catch (_error) {
-      // O logout local deve funcionar mesmo quando a rede estiver indisponivel.
+      // O logout local deve funcionar mesmo quando a rede estiver indisponível.
     }
   }
   clearSession();
