@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-ip3wxUmW1v9Wzzhd8MNBQ0rMc+qC8Kq+/7/NynFTNME='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-9iKzMQQ87ha8KfuP5HrVMD2tXXv7YSeNk5vjmxZyW1s='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -2303,20 +2303,12 @@
     async function setupLogin() {
       const form = $("loginForm");
       if (!form) return;
-      setAuthenticated(false);
-      const restored = await restoreSupabaseSession();
-      if (restored) {
-        setAuthenticated(true, profileFromSupabaseUser(restored.user), usernameFromSupabaseUser(restored.user));
-        updateAdminAccess(restored.user);
-        await loadHistoryFromSupabase();
-        return;
-      }
       const user = $("loginUser");
       const password = $("loginPassword");
       const button = $("loginButton");
       const error = $("loginError");
       setTimeout(() => user && user.focus(), 80);
-      form.addEventListener("submit", async (event) => {
+      const submitLogin = async (event) => {
         event.preventDefault();
         if (error) error.textContent = "";
         if (button) {
@@ -2345,8 +2337,27 @@
             button.textContent = "Entrar";
           }
         }
-      });
+      };
+      if (form.dataset.loginReady !== "true") {
+        form.dataset.loginReady = "true";
+        form.addEventListener("submit", submitLogin);
+      }
+
+      setAuthenticated(false);
+      try {
+        const restored = await restoreSupabaseSession();
+        if (restored) {
+          setAuthenticated(true, profileFromSupabaseUser(restored.user), usernameFromSupabaseUser(restored.user));
+          updateAdminAccess(restored.user);
+          await loadHistoryFromSupabase();
+        }
+      } catch (_restoreError) {
+        clearSupabaseSession();
+        setAuthenticated(false);
+      }
     }
+
+    setupLogin();
 
     function setAccountStatus(element, message = "", success = false) {
       if (!element) return;
@@ -5905,7 +5916,6 @@
     });
 
     setupAccountManagement();
-    setupLogin();
     updateFlowState();
   </script>
 </body>
