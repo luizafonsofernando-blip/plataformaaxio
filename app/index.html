@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-ip3wxUmW1v9Wzzhd8MNBQ0rMc+qC8Kq+/7/NynFTNME='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -1585,8 +1585,8 @@
         <label>Nome<input id="registrationName" maxlength="80" autocomplete="name" required></label>
         <label>Usuário<input id="registrationUsername" maxlength="40" pattern="[A-Za-z0-9._-]+" autocomplete="username" required></label>
         <label class="span-all">E-mail<input id="registrationEmail" type="email" autocomplete="email" required></label>
-        <label>Senha<input id="registrationPassword" type="password" minlength="8" maxlength="128" autocomplete="new-password" required></label>
-        <label>Confirmar senha<input id="registrationPasswordConfirm" type="password" minlength="8" maxlength="128" autocomplete="new-password" required></label>
+        <label>Senha<input id="registrationPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password" required></label>
+        <label>Confirmar senha<input id="registrationPasswordConfirm" type="password" minlength="10" maxlength="128" autocomplete="new-password" required></label>
         <label class="span-all">Perfil<select id="registrationProfile"><option value="orteconte">Orteconte</option><option value="simao">Simão Contabilidade</option></select></label>
         <div class="account-dialog-actions"><button class="btn primary" id="registrationSubmit" type="submit">Enviar solicitação</button></div>
         <p class="account-status" id="registrationStatus" role="status" aria-live="polite"></p>
@@ -2242,6 +2242,7 @@
     function friendlyLoginError(error) {
       if (error?.name === "AbortError") return "O Supabase demorou para responder. Tente novamente.";
       if (error?.code === "account_pending") return "Cadastro aguardando aprovação do administrador.";
+      if (error?.code === "too_many_attempts") return "Muitas tentativas. Aguarde 15 minutos antes de tentar novamente.";
       if (error?.code === "invalid_credentials") return "E-mail, usuário ou senha inválidos.";
       if (error?.code === "email_not_confirmed") return "Confirme o e-mail antes de entrar.";
       return "Não foi possível entrar. Verifique os dados e a conexão.";
@@ -5233,17 +5234,6 @@
       contentHtml = sanitizeDocumentHtml(contentHtml);
       const styles = Array.from(document.querySelectorAll("style")).map((style) => style.textContent).join("\n");
       const baseUrl = new URL(".", window.location.href).href;
-      const printScript = autoPrint ? `
-        <script>
-          window.addEventListener("load", () => {
-            document.title = "";
-            setTimeout(() => {
-              window.focus();
-              window.print();
-            }, 350);
-          });
-        <\/script>
-      ` : "";
       return `<!doctype html>
         <html lang="pt-BR">
           <head>
@@ -5339,11 +5329,10 @@
             <div class="pdf-shell">
               <div class="pdf-toolbar">
                 <div class="pdf-print-tip">Para remover data, endereço, about:blank e paginação automática, desmarque <strong>Cabeçalhos e rodapés</strong> na janela de impressão.</div>
-                <button class="btn primary" type="button" onclick="window.print()">Gerar PDF</button>
+                <button class="btn primary" id="pdfPrintButton" type="button">Gerar PDF</button>
               </div>
               <article class="document">${contentHtml}</article>
             </div>
-            ${printScript}
           </body>
         </html>`;
     }
@@ -5365,6 +5354,13 @@
       pdfWindow.document.write(printableDocumentHtml(sanitizeDocumentHtml(contentHtml), true));
       pdfWindow.document.close();
       pdfWindow.focus();
+      const startPrint = () => {
+        pdfWindow.document.title = "";
+        pdfWindow.focus();
+        pdfWindow.print();
+      };
+      pdfWindow.document.getElementById("pdfPrintButton")?.addEventListener("click", startPrint);
+      setTimeout(startPrint, 350);
     }
 
     function openPdfBlobDocument(contentHtml) {
@@ -5376,6 +5372,15 @@
         openPdfDocument(contentHtml);
         return;
       }
+      pdfWindow.addEventListener("load", () => {
+        const startPrint = () => {
+          pdfWindow.document.title = "";
+          pdfWindow.focus();
+          pdfWindow.print();
+        };
+        pdfWindow.document.getElementById("pdfPrintButton")?.addEventListener("click", startPrint);
+        setTimeout(startPrint, 350);
+      }, { once: true });
       setTimeout(() => URL.revokeObjectURL(url), 60000);
     }
 
