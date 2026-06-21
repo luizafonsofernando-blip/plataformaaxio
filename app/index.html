@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-hSxqwbf7Ndj0d5hWma2z61Ubyc0DXK6NTNXLDtIjM3Q='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-XRrb3kciYpVpXw+0/Dp0Jt/liIXglj8gN2FbnlzTUfI='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -1685,6 +1685,16 @@
                 <option>Parcelado</option>
                 <option>Depósito em conta</option>
               </select></label>
+              <label>Valor de honorário<input id="aberturaValorHonorario" placeholder="R$ 0,00"></label>
+              <label>Data de pagamento<select id="aberturaDataPagamento">
+                <option value="">Selecione o dia</option>
+                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+                <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+                <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+                <option>21</option><option>22</option><option>23</option><option>24</option><option>25</option>
+                <option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option>
+              </select></label>
               <label>Razão Social<input id="aberturaRazao" placeholder="Nome empresarial pretendido"></label>
               <label>Nome fantasia<input id="aberturaFantasia" placeholder="Nome fantasia pretendido"></label>
               <label>Tipo jurídico<select id="aberturaTipoJuridico">
@@ -2553,6 +2563,7 @@
 
     const currencyFieldIds = new Set([
       "aberturaValorServico",
+      "aberturaValorHonorario",
       "aberturaCapitalSocial",
       "aberturaProlabore",
       "honorarioAnterior",
@@ -4154,9 +4165,9 @@
       setFieldValue("usuarioExterno", value("aberturaEmailGestta", ""));
       setFieldValue("govObs", value("aberturaPossuiSenhaGov", "") === "Sim" ? value("aberturaSenhaGov", "") : value("aberturaPossuiSenhaGov", ""));
       setFieldValue("socioQualificacaoObs", value("aberturaRepresentanteReceita", ""));
-      setFieldValue("honorario", value("aberturaValorServico", ""));
+      setFieldValue("honorario", value("aberturaValorHonorario", ""));
       setFieldValue("financeiroValor", value("aberturaValorServico", ""));
-      setFieldValue("financeiroHonorario", value("aberturaValorServico", ""));
+      setFieldValue("financeiroHonorario", value("aberturaValorHonorario", ""));
       setSelectValue("formaPagamento", value("aberturaFormaPagamento", ""));
       setSelectValue("regime", value("aberturaRegime", ""));
       document.querySelectorAll(".formaAtuacao").forEach((item) => {
@@ -4172,6 +4183,8 @@
       const aberturaRows = rowsFilled([
         ["Valor do serviço", value("aberturaValorServico", "")],
         ["Forma de pagamento", value("aberturaFormaPagamento", "")],
+        ["Valor de honorário", value("aberturaValorHonorario", "")],
+        ["Data de pagamento", value("aberturaDataPagamento", "") ? `Dia ${value("aberturaDataPagamento", "")}` : ""],
         ["Razão Social", value("aberturaRazao", "")],
         ["Nome fantasia", value("aberturaFantasia", "")],
         ["Tipo jurídico", value("aberturaTipoJuridico", "")],
@@ -4307,6 +4320,7 @@
             ["Valor dos serviços", value("financeiroValor")],
             ["Forma de pagamento", value("formaPagamento")],
             ["Honorário mensal", honorarioFinanceiro()],
+            ["Data de pagamento", value("aberturaDataPagamento", "") ? `Dia ${value("aberturaDataPagamento", "")}` : ""],
             ["Competência", competenciaFinanceira()],
             ["Observação financeira", value("financeiroObservacao", "")]
           ])}</table>
@@ -5760,6 +5774,8 @@
       $("tipoPessoa").value = "Pessoa jurídica";
       $("aberturaValorServico").value = "R$ 1.330,00";
       $("aberturaFormaPagamento").value = "Boleto";
+      $("aberturaValorHonorario").value = "R$ 1.330,00";
+      $("aberturaDataPagamento").value = "15";
       $("aberturaRazao").value = "ORTECONTE CONTABILIDADE LTDA";
       $("aberturaFantasia").value = "ORTECONTE CONTABILIDADE LTDA";
       $("aberturaTipoJuridico").value = "Sociedade Limitada (LTDA)";
