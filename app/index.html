@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-5q4f0LkJvgBbPdnfvnASKq+cYFxtfC9t6nGztg4itdc='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-cDQK4p/FDZAd9MHah3gqRuoHJkWiWOjwq8fEDzIUbTk='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -1736,7 +1736,6 @@
               <label>Área utilizada (m²)<input id="aberturaAreaUtilizada" placeholder="Ex.: 80"></label>
               <label>Atividade principal<input id="aberturaAtividadePrincipal" placeholder="Descrição da atividade principal"></label>
               <label>CNAE principal<input id="aberturaCnaePrincipal" placeholder="Ex.: 69.20-6-01"></label>
-              <label class="span-2">Atividades secundárias<textarea id="aberturaAtividadesSecundarias" placeholder="Informe as atividades secundárias"></textarea></label>
               <label class="span-2">CNAEs secundários<textarea id="aberturaCnaesSecundarios" placeholder="Informe um CNAE por linha"></textarea></label>
               <label class="span-2">Objeto social<textarea id="aberturaObjetoSocial" placeholder="Descreva o objeto social"></textarea></label>
               <label>Possui pró-labore?<select id="aberturaPossuiProlabore"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
@@ -4150,7 +4149,7 @@
       setFieldValue("areaTotal", value("aberturaAreaTotal", ""));
       setFieldValue("areaUtilizada", value("aberturaAreaUtilizada", ""));
       setFieldValue("cnaePrincipal", [value("aberturaCnaePrincipal", ""), value("aberturaAtividadePrincipal", "")].filter(Boolean).join(" - "));
-      setFieldValue("cnaesSecundarios", [value("aberturaCnaesSecundarios", ""), value("aberturaAtividadesSecundarias", "")].filter(Boolean).join("\n"));
+      setFieldValue("cnaesSecundarios", value("aberturaCnaesSecundarios", ""));
       setFieldValue("servicos", value("aberturaObjetoSocial", ""));
       setFieldValue("usuarioExterno", value("aberturaEmailGestta", ""));
       setFieldValue("govObs", value("aberturaPossuiSenhaGov", "") === "Sim" ? value("aberturaSenhaGov", "") : value("aberturaPossuiSenhaGov", ""));
@@ -4184,7 +4183,6 @@
         ["Área utilizada", areaUtilizada ? `${areaUtilizada} m²` : ""],
         ["Atividade principal", value("aberturaAtividadePrincipal", "")],
         ["CNAE principal", value("aberturaCnaePrincipal", "")],
-        ["Atividades secundárias", value("aberturaAtividadesSecundarias", "")],
         ["CNAEs secundários", value("aberturaCnaesSecundarios", "")],
         ["Objeto social", value("aberturaObjetoSocial", "")],
         ["Capital Social", value("aberturaCapitalSocial", "")],
@@ -5778,7 +5776,6 @@
       $("aberturaAreaUtilizada").value = "80";
       $("aberturaAtividadePrincipal").value = "Serviços contábeis";
       $("aberturaCnaePrincipal").value = "69.20-6-01";
-      $("aberturaAtividadesSecundarias").value = "Atividades de consultoria e assessoria empresarial";
       $("aberturaCnaesSecundarios").value = "70.20-4-00";
       $("aberturaObjetoSocial").value = "Prestação de serviços de contabilidade, consultoria, assessoria fiscal, contábil e trabalhista.";
       $("aberturaPossuiProlabore").value = "Sim";
