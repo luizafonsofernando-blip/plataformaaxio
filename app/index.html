@@ -1585,8 +1585,8 @@
         <label>Nome<input id="registrationName" maxlength="80" autocomplete="name" required></label>
         <label>Usuário<input id="registrationUsername" maxlength="40" pattern="[A-Za-z0-9._-]+" autocomplete="username" required></label>
         <label class="span-all">E-mail<input id="registrationEmail" type="email" autocomplete="email" required></label>
-        <label>Senha<input id="registrationPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password" required></label>
-        <label>Confirmar senha<input id="registrationPasswordConfirm" type="password" minlength="10" maxlength="128" autocomplete="new-password" required></label>
+        <label>Senha<input id="registrationPassword" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="6 dígitos" autocomplete="new-password" required></label>
+        <label>Confirmar senha<input id="registrationPasswordConfirm" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="Repita os 6 dígitos" autocomplete="new-password" required></label>
         <label class="span-all">Perfil<select id="registrationProfile"><option value="orteconte">Orteconte</option></select></label>
         <div class="account-dialog-actions"><button class="btn primary" id="registrationSubmit" type="submit">Enviar solicitação</button></div>
         <p class="account-status" id="registrationStatus" role="status" aria-live="polite"></p>
