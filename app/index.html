@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-XRrb3kciYpVpXw+0/Dp0Jt/liIXglj8gN2FbnlzTUfI='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-SLS9Iei1A+xZa0QIY/QvbaYJuZ7CxDd4e6XVbfp1h6I='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -1587,7 +1587,7 @@
         <label class="span-all">E-mail<input id="registrationEmail" type="email" autocomplete="email" required></label>
         <label>Senha<input id="registrationPassword" type="password" minlength="10" maxlength="128" autocomplete="new-password" required></label>
         <label>Confirmar senha<input id="registrationPasswordConfirm" type="password" minlength="10" maxlength="128" autocomplete="new-password" required></label>
-        <label class="span-all">Perfil<select id="registrationProfile"><option value="orteconte">Orteconte</option><option value="simao">Simão Contabilidade</option></select></label>
+        <label class="span-all">Perfil<select id="registrationProfile"><option value="orteconte">Orteconte</option></select></label>
         <div class="account-dialog-actions"><button class="btn primary" id="registrationSubmit" type="submit">Enviar solicitação</button></div>
         <p class="account-status" id="registrationStatus" role="status" aria-live="polite"></p>
       </form>
@@ -4177,6 +4177,20 @@
       if (value("aberturaLicitacoes", "")) setSelectValue("licitacoes", value("aberturaLicitacoes"));
     }
 
+    function aberturaAdministradoresDocumento() {
+      const items = aberturaAdministradores.map((admin) => ({ ...admin }));
+      const nome = value("aberturaAdminNome", "");
+      const cpf = value("aberturaAdminCpf", "");
+      if (nome || cpf) {
+        items.push({
+          nome: nome || "Não informado",
+          cpf: cpf || "Não informado",
+          socioAdministrador: value("aberturaAdminSocioAdministrador", "")
+        });
+      }
+      return items;
+    }
+
     function briefingAberturaInicial() {
       const areaTotal = value("aberturaAreaTotal", "");
       const areaUtilizada = value("aberturaAreaUtilizada", "");
@@ -4227,8 +4241,9 @@
       const observacao = value("aberturaObservacao", "");
       let sectionIndex = 2;
       const socioSection = socioRows ? `${sectionTitle(sectionIndex++, "Dados do sócio")}<table class="doc-table">${socioRows}</table>` : "";
-      const adminsSection = aberturaAdministradores.length
-        ? `${sectionTitle(sectionIndex++, "Sócios adicionados")}<table class="doc-table"><thead><tr><th>Sócio</th><th>CPF</th><th>Sócio administrador</th></tr></thead><tbody>${aberturaAdministradores.map((admin) => `<tr><td>${admin.nome}</td><td>${admin.cpf}</td><td>${admin.socioAdministrador || "Não informado"}</td></tr>`).join("")}</tbody></table>`
+      const administradoresDocumento = aberturaAdministradoresDocumento();
+      const adminsSection = administradoresDocumento.length
+        ? `${sectionTitle(sectionIndex++, "Sócios adicionados")}<table class="doc-table"><thead><tr><th>Sócio</th><th>CPF</th><th>Sócio administrador</th></tr></thead><tbody>${administradoresDocumento.map((admin) => `<tr><td>${admin.nome}</td><td>${admin.cpf}</td><td>${admin.socioAdministrador || "Não informado"}</td></tr>`).join("")}</tbody></table>`
         : "";
       const docsSection = docsRows ? `${sectionTitle(sectionIndex++, "Documentos e processos")}<table class="doc-table">${docsRows}</table>` : "";
       return `
@@ -4256,7 +4271,7 @@
           </tr>
         `);
       }
-      aberturaAdministradores.forEach((admin) => {
+      aberturaAdministradoresDocumento().forEach((admin) => {
         rowsList.push(`
           <tr>
             <td>${admin.nome}</td>
@@ -4284,6 +4299,18 @@
 
     function briefingAberturaOperacional() {
       syncOpeningBriefingToMainFields();
+      const areaTotal = value("aberturaAreaTotal", "");
+      const areaUtilizada = value("aberturaAreaUtilizada", "");
+      const socioComplementarRows = rowsFilled([
+        ["Certificado digital Pessoa Física", value("aberturaCertificadoPf", "")],
+        ["Possui senha GOV", value("aberturaPossuiSenhaGov", "")],
+        ["Senha GOV", value("aberturaSenhaGov", "")]
+      ]);
+      const documentosProcessosRows = rowsFilled([
+        ["Cópia de documentos", selectedAberturaDocumentos()],
+        ["Solicitar alvará", value("aberturaSolicitarAlvara", "")],
+        ["Licitações", value("aberturaLicitacoes", "")]
+      ]);
       return `
         ${docHero("Briefing Abertura")}
         <div class="doc-body">
@@ -4298,22 +4325,25 @@
             ["Tipo jurídico", value("aberturaTipoJuridico", "")],
             ["Enquadramento", value("aberturaEnquadramento", "")],
             ["Regime tributário", value("aberturaRegime", value("regime"))],
-            ["Endereço", value("endereco")],
-            ["CEP", value("cep")],
-            ["Município", value("municipio")],
-            ["Estado", value("estado")],
-            ["Capital social", value("capitalSocial")],
-            ["CNAE principal", value("cnaePrincipal")],
-            ["CNAEs secundários", value("cnaesSecundarios")],
-            ["Objeto social", value("servicos")],
+            ["Endereço empresa comercial", aberturaEnderecoCompleto()],
+            ["Forma de atuação", selectedAberturaFormaAtuacao()],
+            ["Área total da edificação", areaTotal ? `${areaTotal} m²` : ""],
+            ["Área utilizada", areaUtilizada ? `${areaUtilizada} m²` : ""],
+            ["Atividade principal", value("aberturaAtividadePrincipal", "")],
+            ["CNAE principal", value("aberturaCnaePrincipal", "")],
+            ["CNAEs secundários", value("aberturaCnaesSecundarios", "")],
+            ["Objeto social", value("aberturaObjetoSocial", "")],
+            ["Capital social", value("aberturaCapitalSocial", "")],
             ["Pró-labore", `${value("aberturaPossuiProlabore", "")} ${value("aberturaPossuiProlabore", "") === "Sim" ? "- " + value("aberturaProlabore", "") : ""}`],
             ["Contato e e-mail da empresa", value("aberturaContatoEmail", "")],
+            ["E-mail usuário externo Gestta", value("aberturaEmailGestta", "")],
             ["Representante perante a Receita Federal", value("aberturaRepresentanteReceita", "")],
             ["Observação", value("aberturaObservacao", "")]
           ])}</table>
 
           ${sectionTitle(2, "Sócios")}
           ${aberturaSociosRows()}
+          ${socioComplementarRows ? `<table class="doc-table">${socioComplementarRows}</table>` : ""}
 
           ${sectionTitle(3, "Informações financeiras")}
           <table class="doc-table">${rowsFilled([
@@ -4324,6 +4354,8 @@
             ["Competência", competenciaFinanceira()],
             ["Observação financeira", value("financeiroObservacao", "")]
           ])}</table>
+
+          ${documentosProcessosRows ? `${sectionTitle(4, "Documentos e processos")}<table class="doc-table">${documentosProcessosRows}</table>` : ""}
         </div>
       `;
     }
