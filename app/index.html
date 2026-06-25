@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-at3kdR6DVrIRmSvrSx+gvbt7XxgHy1tw8L5ojfd7izs='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-3g6kggzPjfuWj6Ky9Da2QNXPHOMNX2Fdkp2ZICI9gKQ='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -2540,7 +2540,7 @@
 
     function activeStepOrder() {
       if (!tipoBriefing()) return ["tipoBriefingSecao"];
-      if (isBriefingAberturaWorkflow() && !aberturaCompletaLiberada) return ["tipoBriefingSecao", "briefingAbertura"];
+      if (isBriefingAberturaWorkflow() && !aberturaCompletaLiberada) return ["tipoBriefingSecao", "briefingAbertura", "indicacaoClienteSecao"];
       if (isBaixaWorkflow()) return ["tipoBriefingSecao", "empresa", "socios", "financeiro"];
       if (isBriefingAberturaWorkflow()) return ["tipoBriefingSecao", "briefingAbertura", "indicacaoClienteSecao", "empresa", "socios", "financeiro", "informativo", "setores", "implantacao", "documentos"];
       if (isPortabilidadeEntradaWorkflow()) return ["tipoBriefingSecao", "indicacaoClienteSecao", "empresa", "socios", "financeiro", "informativo", "setores", "implantacao", "documentos"];
