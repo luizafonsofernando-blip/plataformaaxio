@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-SLS9Iei1A+xZa0QIY/QvbaYJuZ7CxDd4e6XVbfp1h6I='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-sq3b+rEKYq4YZm/bYU7JLJg1gihPILmsjiD8KzBdgrM='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -1811,8 +1811,8 @@
               <label class="conditional-field hidden" id="nomeGrupoCadastroWrap">Nome do grupo<input id="nomeGrupoCadastro" placeholder="Informe o nome do grupo"></label>
               <label id="identificacaoWrap"><span id="identificacaoLabel">CNPJ</span><div class="lookup-row"><input id="cnpj" placeholder="00.000.000/0000-00" title="CNPJ consulta dados públicos disponíveis. CPF/CEI é apenas formatado e validado quando aplicável."><button class="btn mini" type="button" id="buscarCnpj">Buscar CNPJ</button></div></label>
               <input id="constituicao" type="hidden">
-              <label class="abertura-field">Início dos serviços<input id="inicio" type="month"></label>
-              <label class="abertura-field">Competência de cobrança<input id="competencia" type="month"></label>
+              <input id="inicio" type="hidden">
+              <input id="competencia" type="hidden">
               <label>Endereço<input id="endereco" placeholder="Rua, número, bairro"></label>
               <label>CEP<div class="lookup-row"><input id="cep" placeholder="00.000-000" title="CEP consulta a base pública dos Correios/ViaCEP para preencher endereço, cidade e UF."><button class="btn mini" type="button" id="buscarCep">Buscar CEP</button></div></label>
               <label>Município<input id="municipio" placeholder="Cidade"></label>
@@ -1866,7 +1866,18 @@
                 <label class="check"><input type="checkbox" class="alteracaoEvento" value="Alteração do nome fantasia">Nome fantasia</label>
                 <label class="check"><input type="checkbox" class="alteracaoEvento" value="Outros">Outros</label>
               </div>
-              <label class="span-2 conditional-field alteracao-field hidden">Descreva as alterações<textarea id="alteracaoDescricao" placeholder="Informe quais alterações serão realizadas: entrada/saída de sócios, novo endereço, atividades incluídas/excluídas, novo objeto social, novo nome empresarial ou fantasia."></textarea></label>
+              <div class="grid span-2 conditional-field alteracao-field hidden" id="alteracaoEventosDetalhes">
+                <label class="span-2 hidden alteracao-evento-detalhe-wrap" data-event="Alteração do nome empresarial">Alteração do nome empresarial<textarea id="alteracaoDetalheNomeEmpresarial" class="alteracaoEventoDetalhe" data-event="Alteração do nome empresarial" placeholder="Descreva a alteração do nome empresarial"></textarea></label>
+                <label class="span-2 hidden alteracao-evento-detalhe-wrap" data-event="Alteração de capital social">Alteração de capital social<textarea id="alteracaoDetalheCapitalSocial" class="alteracaoEventoDetalhe" data-event="Alteração de capital social" placeholder="Descreva o novo capital social ou a alteração pretendida"></textarea></label>
+                <label class="span-2 hidden alteracao-evento-detalhe-wrap" data-event="Alteração do representante da pessoa jurídica">Alteração do representante<textarea id="alteracaoDetalheRepresentante" class="alteracaoEventoDetalhe" data-event="Alteração do representante da pessoa jurídica" placeholder="Informe o representante atual e o novo representante"></textarea></label>
+                <label class="span-2 hidden alteracao-evento-detalhe-wrap" data-event="Alteração de endereço">Alteração de endereço<textarea id="alteracaoDetalheEndereco" class="alteracaoEventoDetalhe" data-event="Alteração de endereço" placeholder="Informe o novo endereço completo"></textarea></label>
+                <label class="span-2 hidden alteracao-evento-detalhe-wrap" data-event="QSA">QSA<textarea id="alteracaoDetalheQsa" class="alteracaoEventoDetalhe" data-event="QSA" placeholder="Descreva a alteração no quadro societário"></textarea></label>
+                <label class="span-2 hidden alteracao-evento-detalhe-wrap" data-event="Alteração do código da natureza jurídica">Natureza jurídica<textarea id="alteracaoDetalheNaturezaJuridica" class="alteracaoEventoDetalhe" data-event="Alteração do código da natureza jurídica" placeholder="Informe a natureza jurídica atual e a pretendida"></textarea></label>
+                <label class="span-2 hidden alteracao-evento-detalhe-wrap" data-event="Alteração de atividades econômicas">Atividades econômicas<textarea id="alteracaoDetalheAtividadesEconomicas" class="alteracaoEventoDetalhe" data-event="Alteração de atividades econômicas" placeholder="Informe atividades/CNAEs a incluir, excluir ou alterar"></textarea></label>
+                <label class="span-2 hidden alteracao-evento-detalhe-wrap" data-event="Alteração do nome fantasia">Nome fantasia<textarea id="alteracaoDetalheNomeFantasia" class="alteracaoEventoDetalhe" data-event="Alteração do nome fantasia" placeholder="Informe o novo nome fantasia"></textarea></label>
+                <label class="span-2 hidden alteracao-evento-detalhe-wrap" data-event="Outros">Outros<textarea id="alteracaoDetalheOutros" class="alteracaoEventoDetalhe" data-event="Outros" placeholder="Descreva a alteração adicional"></textarea></label>
+              </div>
+              <label class="conditional-field alteracao-field hidden">Haverá alteração de sócios?<select id="alteracaoSocios"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
             </div>
           </section>
 
@@ -1943,24 +1954,24 @@
           <section class="section" id="informativo">
             <h2>Informativo</h2>
             <div class="section-body grid">
-              <label>Regime tributário<select id="regime">
+              <label class="alteracao-tributacao-field">Regime tributário<select id="regime">
                 <option>Simples Nacional</option>
                 <option>Lucro Presumido</option>
                 <option>Lucro Real</option>
                 <option>MEI</option>
               </select></label>
-              <label>Regime de caixa ou competência<select id="regimeContabil">
+              <label class="alteracao-tributacao-field">Regime de caixa ou competência<select id="regimeContabil">
                 <option>Competência</option>
                 <option>Caixa</option>
               </select></label>
-              <label>Retenção de INSS<select id="retencaoInss"><option>Não realiza</option><option>Realiza</option></select></label>
-              <label>Parcelamentos em aberto<select id="parcelamentos"><option>Não possui</option><option>Possui</option></select></label>
-              <label>Participação em licitações<select id="licitacoes"><option>Não</option><option>Sim</option></select></label>
-              <label>Certificado PF e PJ<input id="certificado" placeholder="Ex.: possui e-CPF, e-CNPJ pendente"></label>
-              <label>Cadastros ambientais<select id="ambientais"><option>Não</option><option>Sim</option><option>Verificar</option></select></label>
-              <label>Licenças específicas<input id="licencas" placeholder="Ex.: verificar registro profissional"></label>
-              <label>Forma de emissão de NF<input id="formaNf" placeholder="NFS-e Prefeitura, NFC-e, NF-e"></label>
-              <label>Mudança de tributação<select id="mudancaTributacao"><option>Não haverá</option><option>Haverá</option><option>Verificar</option></select></label>
+              <label class="alteracao-tributacao-field">Retenção de INSS<select id="retencaoInss"><option>Não realiza</option><option>Realiza</option></select></label>
+              <label class="alteracao-tributacao-field">Parcelamentos em aberto<select id="parcelamentos"><option>Não possui</option><option>Possui</option></select></label>
+              <label class="alteracao-tributacao-field">Participação em licitações<select id="licitacoes"><option>Não</option><option>Sim</option></select></label>
+              <label class="alteracao-tributacao-field">Certificado PF e PJ<input id="certificado" placeholder="Ex.: possui e-CPF, e-CNPJ pendente"></label>
+              <label class="alteracao-tributacao-field">Cadastros ambientais<select id="ambientais"><option>Não</option><option>Sim</option><option>Verificar</option></select></label>
+              <label class="alteracao-tributacao-field">Licenças específicas<input id="licencas" placeholder="Ex.: verificar registro profissional"></label>
+              <label class="alteracao-tributacao-field">Forma de emissão de NF<input id="formaNf" placeholder="NFS-e Prefeitura, NFC-e, NF-e"></label>
+              <label>Mudança de tributação<select id="mudancaTributacao"><option value="">Selecione</option><option>Sim</option><option>Não</option><option>Verificar</option></select></label>
             </div>
           </section>
 
@@ -2524,6 +2535,12 @@
       if (isBriefingAberturaWorkflow() && !aberturaCompletaLiberada) return ["tipoBriefingSecao", "briefingAbertura"];
       if (isBaixaWorkflow()) return ["tipoBriefingSecao", "empresa", "socios", "financeiro"];
       if (isBriefingAberturaWorkflow()) return ["tipoBriefingSecao", "briefingAbertura", "empresa", "socios", "financeiro", "informativo", "setores", "implantacao", "documentos"];
+      if (isAlteracaoWorkflow()) {
+        const steps = ["tipoBriefingSecao", "empresa"];
+        if (value("alteracaoSocios", "") === "Sim") steps.push("socios");
+        steps.push("financeiro", "informativo", "documentos");
+        return steps;
+      }
       return ["tipoBriefingSecao", "empresa", "socios", "financeiro", "informativo", "setores", "implantacao", "documentos"];
     }
 
@@ -3653,6 +3670,30 @@
           }
         });
       });
+      const eventosSelecionados = new Set(Array.from(document.querySelectorAll(".alteracaoEvento:checked")).map((item) => item.value));
+      document.querySelectorAll(".alteracao-evento-detalhe-wrap").forEach((field) => {
+        const active = isAlteracaoWorkflow() && eventosSelecionados.has(field.dataset.event);
+        field.classList.toggle("hidden", !active);
+        field.querySelectorAll("textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = active ? "false" : "true";
+          if (!active) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
+      const mudancaTributacao = $("mudancaTributacao");
+      const tributacaoDetalhada = !isAlteracaoWorkflow() || (mudancaTributacao && mudancaTributacao.value === "Sim");
+      document.querySelectorAll(".alteracao-tributacao-field").forEach((field) => {
+        field.classList.toggle("hidden", !tributacaoDetalhada);
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = tributacaoDetalhada ? "false" : "true";
+          if (!tributacaoDetalhada) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
       const honorariosSim = isSaidaWorkflow() && $("honorariosAberto") && $("honorariosAberto").value === "Sim";
       document.querySelectorAll(".honorarios-aberto-field").forEach((field) => {
         field.classList.toggle("hidden", !honorariosSim);
@@ -3729,7 +3770,7 @@
         if (requiredIds) controls.forEach((control) => setMissing(control, !controlFilled(control)));
         else markRequiredFields("empresa");
         stepNote("empresa", fieldsComplete && formaComplete && alteracaoComplete ? "" : (isAlteracaoWorkflow()
-          ? "Preencha todos os dados cadastrais, selecione ao menos um evento de alteração e descreva as alterações."
+          ? "Preencha os dados cadastrais, selecione ao menos um evento, detalhe cada evento marcado e informe se haverá alteração de sócios."
           : "Preencha todos os dados cadastrais e selecione ao menos uma forma de atuação."));
       }
       return fieldsComplete && formaComplete && alteracaoComplete;
@@ -3907,6 +3948,15 @@
       return items.length ? items.join(", ") : "Não informado";
     }
 
+    function alteracaoEventosDetalhesRows() {
+      const rowsData = Array.from(document.querySelectorAll(".alteracaoEvento:checked")).map((item) => {
+        const detalhe = Array.from(document.querySelectorAll(".alteracaoEventoDetalhe"))
+          .find((field) => field.dataset.event === item.value);
+        return [item.value, detalhe && detalhe.value.trim() ? detalhe.value.trim() : "Não informado"];
+      });
+      return rowsData.length ? rowsData : [["Eventos selecionados", "Não informado"]];
+    }
+
     function honorarioFinanceiro() {
       return value("financeiroHonorario", value("honorario"));
     }
@@ -3971,7 +4021,7 @@
             <div class="doc-meta">
               <span class="doc-chip">${identificacaoTitulo()}: ${value("cnpj")}</span>
               <span class="doc-chip">Regime: ${value("regime")}</span>
-              ${isSaidaWorkflow() ? "" : `<span class="doc-chip">Início: ${monthLabel($("inicio").value)}</span>`}
+              ${isSaidaWorkflow() || isAlteracaoWorkflow() ? "" : `<span class="doc-chip">Início: ${monthLabel($("inicio").value)}</span>`}
               <span class="doc-chip">Honorário: ${honorarioFinanceiro()}</span>
               ${serialMeta}
             </div>
@@ -4033,8 +4083,9 @@
         <table class="doc-table">${rows([
           ["Eventos selecionados", selectedAlteracaoEventos()],
           ["Observação inicial - quais estão sendo as alterações", value("observacaoInicial")],
-          ["Descrição das alterações", value("alteracaoDescricao")]
+          ["Haverá alteração de sócios", value("alteracaoSocios")]
         ])}</table>
+        <table class="doc-table">${rows(alteracaoEventosDetalhesRows())}</table>
       `;
     }
 
@@ -4072,6 +4123,28 @@
       return items;
     }
 
+    function alteracaoExigeSocios() {
+      return !isAlteracaoWorkflow() || value("alteracaoSocios", "") === "Sim";
+    }
+
+    function informativoRows() {
+      const items = [["Mudança de tributação", value("mudancaTributacao")]];
+      if (!isAlteracaoWorkflow() || value("mudancaTributacao", "") === "Sim") {
+        items.unshift(
+          ["Regime de caixa ou competência", value("regimeContabil")],
+          ["Retenção de INSS", value("retencaoInss")],
+          ["Parcelamentos em aberto", value("parcelamentos")],
+          ["Participação em licitações", value("licitacoes")],
+          ["Certificado PF e PJ", value("certificado")],
+          ["Cadastros ambientais", value("ambientais")],
+          ["Licenças específicas", value("licencas")],
+          ["Forma de emissão de NF", value("formaNf")]
+        );
+        if (!isAlteracaoWorkflow()) items.unshift(["Competência", monthLabel($("competencia").value)]);
+      }
+      return items;
+    }
+
     function briefingBaixaSaida() {
       return `
         ${docHero(tipoBriefing())}
@@ -4098,6 +4171,74 @@
 
           ${sectionTitle(3, "Informações financeiras")}
           <table class="doc-table">${rows(financeiroRows())}</table>
+        </div>
+      `;
+    }
+
+    function briefingAlteracaoContratual() {
+      let sectionIndex = 1;
+      const nextSection = (title) => sectionTitle(sectionIndex++, title);
+      const alteracaoEventosSection = () => `
+        ${nextSection("Eventos da alteração contratual")}
+        <table class="doc-table">${rows([
+          ["Eventos selecionados", selectedAlteracaoEventos()],
+          ["Observação inicial - quais estão sendo as alterações", value("observacaoInicial")],
+          ["Haverá alteração de sócios", value("alteracaoSocios")]
+        ])}</table>
+        <table class="doc-table">${rows(alteracaoEventosDetalhesRows())}</table>
+      `;
+      const sociosSection = () => alteracaoExigeSocios()
+        ? `
+          ${nextSection("Sócios")}
+          ${sociosRows()}
+          <table class="doc-table">${rows([
+            ["Data de nascimento", socios[0] ? dateLabel(socios[0].nascimento) : "Não informado"],
+            ["Sexo", socios[0] ? socios[0].sexo : "Não informado"],
+            ["Estado civil", socios[0] ? socios[0].estadoCivil : "Não informado"],
+            ["Regime de casamento", socios[0] ? socios[0].regimeCasamento : "Não informado"],
+            ["Qualificação", socios[0] ? socios[0].qualificacao : "Não informado"],
+            ["Observação sobre qualificação", value("socioQualificacaoObs")],
+            ["Acesso GOV / observação", value("govObs")]
+          ])}</table>
+        `
+        : "";
+      return `
+        ${docHero("Alteração contratual")}
+        <div class="doc-body">
+          <div class="notice">${value("observacaoInicial", "Observação inicial não informada.")}</div>
+
+          ${nextSection("Informações iniciais e cadastrais")}
+          <table class="doc-table">${rows([
+            ["Tipo de briefing", tipoBriefing()],
+            ["Nome", value("razao")],
+            ["Nome fantasia", value("fantasia")],
+            ["Tipo de pessoa", tipoPessoa()],
+            [identificacaoTitulo(), value("cnpj")],
+            ["Endereço", `${value("endereco")} - ${value("municipio")}/${value("estado", "UF")} - CEP ${value("cep")}`],
+            ["Atividade principal", value("cnaePrincipal")],
+            ["CNAEs secundários", value("cnaesSecundarios")],
+            ["Forma de atuação", selectedFormaAtuacao()],
+            ["Honorário acordado", `${honorarioFinanceiro()} | Cobrança a partir de ${competenciaFinanceira()}`]
+          ].concat(grupoCadastroRows()))}</table>
+
+          ${alteracaoEventosSection()}
+          ${sociosSection()}
+
+          ${nextSection("Informações financeiras")}
+          <table class="doc-table">${rows(financeiroRows())}</table>
+
+          ${nextSection("Informativo")}
+          <table class="doc-table">${rows(informativoRows())}</table>
+
+          ${nextSection("Pessoa física")}
+          <table class="doc-table">${rows([
+            ["Imposto de Renda para os sócios", value("irSocios")],
+            ["Propriedade rural para ITR", value("itr")]
+          ])}</table>
+
+          ${nextSection("Documentos enviados")}
+          <p>${value("docs")}</p>
+          <p><strong>Particularidades:</strong> ${value("observacoes")}</p>
         </div>
       `;
     }
@@ -4365,6 +4506,7 @@
       if (isBaixaWorkflow()) return briefingBaixaSaida();
       if (isBriefingAberturaWorkflow()) return briefingAberturaOperacional();
       if (isPessoaFisica()) return briefingPessoaFisica();
+      if (isAlteracaoWorkflow()) return briefingAlteracaoContratual();
       return `
         ${docHero(tipoBriefing() || "Briefing de implantação")}
         <div class="doc-body">
@@ -4392,17 +4534,19 @@
 
           ${alteracaoRows()}
 
-          ${sectionTitle(sectionNumber(2), "Sócios")}
-          ${sociosRows()}
-          <table class="doc-table">${rows([
-            ["Data de nascimento", socios[0] ? dateLabel(socios[0].nascimento) : "Não informado"],
-            ["Sexo", socios[0] ? socios[0].sexo : "Não informado"],
-            ["Estado civil", socios[0] ? socios[0].estadoCivil : "Não informado"],
-            ["Regime de casamento", socios[0] ? socios[0].regimeCasamento : "Não informado"],
-            ["Qualificação", socios[0] ? socios[0].qualificacao : "Não informado"],
-            ["Observação sobre qualificação", value("socioQualificacaoObs")],
-            ["Acesso GOV / observação", value("govObs")]
-          ])}</table>
+          ${alteracaoExigeSocios() ? `
+            ${sectionTitle(sectionNumber(2), "Sócios")}
+            ${sociosRows()}
+            <table class="doc-table">${rows([
+              ["Data de nascimento", socios[0] ? dateLabel(socios[0].nascimento) : "Não informado"],
+              ["Sexo", socios[0] ? socios[0].sexo : "Não informado"],
+              ["Estado civil", socios[0] ? socios[0].estadoCivil : "Não informado"],
+              ["Regime de casamento", socios[0] ? socios[0].regimeCasamento : "Não informado"],
+              ["Qualificação", socios[0] ? socios[0].qualificacao : "Não informado"],
+              ["Observação sobre qualificação", value("socioQualificacaoObs")],
+              ["Acesso GOV / observação", value("govObs")]
+            ])}</table>
+          ` : ""}
 
           ${sectionTitle(sectionNumber(3), "Informações financeiras")}
           <table class="doc-table">${rows([
@@ -4414,19 +4558,9 @@
           ])}</table>
 
           ${sectionTitle(sectionNumber(4), "Informativo")}
-          <table class="doc-table">${rows([
-            ["Competência", monthLabel($("competencia").value)],
-            ["Regime de caixa ou competência", value("regimeContabil")],
-            ["Retenção de INSS", value("retencaoInss")],
-            ["Parcelamentos em aberto", value("parcelamentos")],
-            ["Participação em licitações", value("licitacoes")],
-            ["Certificado PF e PJ", value("certificado")],
-            ["Cadastros ambientais", value("ambientais")],
-            ["Licenças específicas", value("licencas")],
-            ["Forma de emissão de NF", value("formaNf")],
-            ["Mudança de tributação", value("mudancaTributacao")]
-          ])}</table>
+          <table class="doc-table">${rows(informativoRows())}</table>
 
+          ${isAlteracaoWorkflow() ? "" : `
           ${sectionTitle(sectionNumber(5), "Contábil")}
           <table class="doc-table">${rows([
             ["Regime de apuração", value("apuracao")],
@@ -4459,6 +4593,7 @@
             ["Opção pelo Simples Nacional", value("opcaoSimples")],
             ["Processos internos", value("processos")]
           ])}</table>
+          `}
 
           ${sectionTitle(sectionNumber(9), "Pessoa física")}
           <table class="doc-table">${rows([
@@ -5773,7 +5908,7 @@
       $("ambientais").value = "Não";
       $("licencas").value = "Não aplicável";
       $("formaNf").value = "Não aplicável";
-      $("mudancaTributacao").value = "Não haverá";
+      $("mudancaTributacao").value = "Não";
       $("apuracao").value = "Mensal";
       $("emprestimos").value = "Não possui";
       $("particularidadesContabeis").value = "Atendimento pessoa física/doméstica.";
@@ -5902,10 +6037,13 @@
       $("observacaoInicial").value = "Empresa constituída em 24/06/2025 por outro escritório contábil e recentemente migrada para o atendimento.\n\nPor se tratar de uma empresa recém-aberta, até o momento não houve movimentação em nenhum setor. Cada setor deverá verificar os envios iniciais obrigatórios e criar as tarefas associadas ao fluxo, se necessário.\n\nDeverão ser criados os acessos: SIARE, procuração, código de acesso do Simples Nacional, login para emissão de NFS-e e demais credenciamentos. Ainda não foi identificada inscrição estadual ativa.";
       if (selectedType === "ALTERAÇÃO CONTRATUAL") {
         $("observacaoInicial").value = "Alteração contratual solicitada pelo cliente. Verificar os eventos selecionados e documentos anexados antes do protocolo.";
-        $("alteracaoDescricao").value = "Alteração de endereço, atualização do quadro societário e revisão das atividades econômicas, conforme documentos apresentados.";
+        $("alteracaoSocios").value = "Sim";
         document.querySelectorAll(".alteracaoEvento").forEach((item) => {
           item.checked = ["Alteração de endereço", "QSA", "Alteração de atividades econômicas"].includes(item.value);
         });
+        $("alteracaoDetalheEndereco").value = "Atualização do endereço empresarial conforme documentos apresentados.";
+        $("alteracaoDetalheQsa").value = "Atualização do quadro societário conforme alteração contratual.";
+        $("alteracaoDetalheAtividadesEconomicas").value = "Revisão das atividades econômicas e CNAEs.";
       }
       $("usuarioExterno").value = "academiablackgymevolution@gmail.com";
       $("govObs").value = "Possui verificação em duas etapas";
@@ -5936,7 +6074,7 @@
       $("ambientais").value = "Não";
       $("licencas").value = "Verificar registro profissional em relação às atividades da empresa";
       $("formaNf").value = "NFS-e Prefeitura de Lajinha-MG, NFC-e";
-      $("mudancaTributacao").value = "Não haverá";
+      $("mudancaTributacao").value = "Não";
       $("apuracao").value = "Mensal";
       $("emprestimos").value = "Não possui";
       $("particularidadesContabeis").value = "Não há";
