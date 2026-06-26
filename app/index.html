@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-5NHsqT+MSgQBcRzfWXsS0uWWh+XAZnG8tSH4efwz1LM='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-0FlIxfYqRQtjiB1Ilha4z1RM14rss6KvFeaFCLOXHDI='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -1678,7 +1678,14 @@
           <section class="section workflow-hidden" id="indicacaoClienteSecao">
             <h2>Indicação do cliente</h2>
             <div class="section-body grid">
-              <label class="span-2">QUEM INDICOU O CLIENTE?<input id="indicacaoCliente" placeholder="Informe o nome de quem indicou o cliente" title="Preencha a origem da indicação antes de seguir para os dados cadastrais."></label>
+              <label>Houve indicação?<select id="houveIndicacaoCliente" title="Informe se houve indicação antes de seguir."><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
+              <div class="checkbox-grid span-2 conditional-field hidden" id="origemIndicacaoWrap">
+                <label class="check"><input type="checkbox" class="origemIndicacaoCliente" value="Instagram">Instagram</label>
+                <label class="check"><input type="checkbox" class="origemIndicacaoCliente" value="Já conhecia a marca">Já conhecia a marca</label>
+                <label class="check"><input type="checkbox" class="origemIndicacaoCliente" value="Indicação de cliente">Indicação de cliente</label>
+                <label class="check"><input type="checkbox" class="origemIndicacaoCliente" value="Indicação de colaborador">Indicação de colaborador</label>
+              </div>
+              <label class="span-2 conditional-field hidden" id="indicacaoClienteWrap">QUEM INDICOU O CLIENTE?<input id="indicacaoCliente" placeholder="Informe o nome de quem indicou o cliente" title="Preencha quem indicou quando a origem for cliente ou colaborador."></label>
             </div>
           </section>
 
@@ -1705,6 +1712,9 @@
               </select></label>
               <label>Razão Social<input id="aberturaRazao" placeholder="Nome empresarial pretendido"></label>
               <label>Nome fantasia<input id="aberturaFantasia" placeholder="Nome fantasia pretendido"></label>
+              <label>Filial?<select id="aberturaFilial"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
+              <label>Pertence a grupo?<select id="aberturaGrupo"><option value="">Selecione</option><option>Não</option><option>Sim</option></select></label>
+              <label class="conditional-field hidden" id="aberturaNomeGrupoWrap">Nome do grupo<input id="aberturaNomeGrupo" placeholder="Informe o nome do grupo"></label>
               <label>Tipo jurídico<select id="aberturaTipoJuridico">
                 <option value="">Selecione</option>
                 <option>Microempreendedor Individual (MEI)</option>
@@ -1815,6 +1825,7 @@
             <div class="section-body grid">
               <label>Razão Social<input id="razao" placeholder="Ex.: Academia Black Gym Evolution LTDA"></label>
               <label>Nome Fantasia<input id="fantasia" placeholder="Ex.: Black Gym Evolution"></label>
+              <label class="entrada-abertura-field">Filial?<select id="filialCadastro"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
               <label>Pertence a grupo?<select id="grupoCadastro"><option>Não</option><option>Sim</option></select></label>
               <label class="conditional-field hidden" id="nomeGrupoCadastroWrap">Nome do grupo<input id="nomeGrupoCadastro" placeholder="Informe o nome do grupo"></label>
               <label id="identificacaoWrap"><span id="identificacaoLabel">CNPJ</span><div class="lookup-row"><input id="cnpj" placeholder="00.000.000/0000-00" title="CNPJ consulta dados públicos disponíveis. CPF/CEI é apenas formatado e validado quando aplicável."><button class="btn mini" type="button" id="buscarCnpj">Buscar CNPJ</button></div></label>
@@ -1846,8 +1857,8 @@
                 <option>Auxiliar</option>
                 <option>Produtiva e Auxiliar</option>
               </select></label>
-              <label class="abertura-field pf-optional-field">Área total da edificação (m²)<input id="areaTotal" placeholder="Ex.: 120 ou Desconsiderado"></label>
-              <label class="abertura-field pf-optional-field">Área utilizada (m²)<input id="areaUtilizada" placeholder="Ex.: 80 ou Desconsiderado"></label>
+              <label class="abertura-field pf-optional-field abertura-only-area-field">Área total da edificação (m²)<input id="areaTotal" placeholder="Ex.: 120 ou Desconsiderado"></label>
+              <label class="abertura-field pf-optional-field abertura-only-area-field">Área utilizada (m²)<input id="areaUtilizada" placeholder="Ex.: 80 ou Desconsiderado"></label>
               <label class="span-2 abertura-field pf-optional-field">CNAEs Secundários<textarea id="cnaesSecundarios" placeholder="Informe um por linha ou Desconsiderado"></textarea></label>
               <label class="span-2 abertura-field baixa-saida-hidden-field">Forma de atuação</label>
               <div class="checkbox-grid span-2 abertura-field baixa-saida-hidden-field">
@@ -1907,8 +1918,9 @@
                 <label>Telefone<input id="socioTelefone" placeholder="(00) 00000-0000"></label>
                 <label>Sexo<select id="socioSexo">
                   <option value="">Selecione</option>
-                  <option>Sim</option>
-                  <option>Não</option>
+                  <option>Masculino</option>
+                  <option>Feminino</option>
+                  <option>Não informado</option>
                 </select></label>
                 <label>Estado civil<select id="socioEstadoCivil">
                   <option value="">Selecione</option>
@@ -3670,6 +3682,62 @@
           nomeGrupo.classList.remove("missing");
         }
       }
+      const indicacaoSim = $("houveIndicacaoCliente") && $("houveIndicacaoCliente").value === "Sim";
+      const origemIndicacaoWrap = $("origemIndicacaoWrap");
+      if (origemIndicacaoWrap) {
+        origemIndicacaoWrap.classList.toggle("hidden", !indicacaoSim);
+        origemIndicacaoWrap.querySelectorAll("input").forEach((control) => {
+          control.dataset.conditionalDisabled = indicacaoSim ? "false" : "true";
+          if (!indicacaoSim) {
+            control.checked = false;
+            control.classList.remove("missing");
+          }
+        });
+      }
+      const indicacaoPrecisaNome = indicacaoSim && Array.from(document.querySelectorAll(".origemIndicacaoCliente:checked")).some((item) => ["Indicação de cliente", "Indicação de colaborador"].includes(item.value));
+      const indicacaoWrap = $("indicacaoClienteWrap");
+      const indicacaoCliente = $("indicacaoCliente");
+      if (indicacaoWrap && indicacaoCliente) {
+        indicacaoWrap.classList.toggle("hidden", !indicacaoPrecisaNome);
+        indicacaoCliente.dataset.conditionalDisabled = indicacaoPrecisaNome ? "false" : "true";
+        if (!indicacaoPrecisaNome) {
+          indicacaoCliente.value = "";
+          indicacaoCliente.classList.remove("missing");
+        }
+      }
+      const aberturaGrupoSim = $("aberturaGrupo") && $("aberturaGrupo").value === "Sim";
+      const aberturaGrupoWrap = $("aberturaNomeGrupoWrap");
+      const aberturaNomeGrupo = $("aberturaNomeGrupo");
+      if (aberturaGrupoWrap && aberturaNomeGrupo) {
+        aberturaGrupoWrap.classList.toggle("hidden", !aberturaGrupoSim);
+        aberturaNomeGrupo.dataset.conditionalDisabled = aberturaGrupoSim ? "false" : "true";
+        if (!aberturaGrupoSim) {
+          aberturaNomeGrupo.value = "";
+          aberturaNomeGrupo.classList.remove("missing");
+        }
+      }
+      document.querySelectorAll(".entrada-abertura-field").forEach((field) => {
+        const active = isPortabilidadeEntradaWorkflow() || isBriefingAberturaWorkflow();
+        field.classList.toggle("hidden", !active);
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = active ? "false" : "true";
+          if (!active) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
+      document.querySelectorAll(".abertura-only-area-field").forEach((field) => {
+        const active = !isPortabilidadeEntradaWorkflow();
+        field.classList.toggle("hidden", !active);
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = active ? "false" : "true";
+          if (!active) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
       const aberturaSenhaGovSim = $("aberturaPossuiSenhaGov") && $("aberturaPossuiSenhaGov").value === "Sim";
       const aberturaSenhaGovWrap = $("aberturaSenhaGovWrap");
       const aberturaSenhaGov = $("aberturaSenhaGov");
@@ -3729,6 +3797,17 @@
           if (isBaixaWorkflow()) {
             if (control.type === "checkbox") control.checked = false;
             else control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
+      document.querySelectorAll(".abertura-only-area-field").forEach((field) => {
+        const active = !isPortabilidadeEntradaWorkflow() && !isBaixaWorkflow();
+        field.classList.toggle("hidden", !active);
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = active ? "false" : "true";
+          if (!active) {
+            control.value = "";
             control.classList.remove("missing");
           }
         });
@@ -3925,16 +4004,51 @@
     }
 
     function isGenericStepComplete(stepId, showMissing = false) {
+      if (stepId === "indicacaoClienteSecao") return isIndicacaoClienteComplete(showMissing);
       const fieldsComplete = requiredControls(stepId).every(controlFilled);
       const checkboxComplete = stepId === "implantacao" ? checkboxGroupComplete(".task") : true;
       if (showMissing) {
         markRequiredFields(stepId);
-        const label = stepId === "indicacaoClienteSecao"
-          ? "Informe quem indicou o cliente para liberar os dados cadastrais."
-          : (stepId === "implantacao" ? "Preencha os campos e selecione ao menos uma tarefa de processo." : "Preencha todos os campos deste módulo.");
+        const label = stepId === "implantacao" ? "Preencha os campos e selecione ao menos uma tarefa de processo." : "Preencha todos os campos deste módulo.";
         stepNote(stepId, fieldsComplete && checkboxComplete ? "" : label);
       }
       return fieldsComplete && checkboxComplete;
+    }
+
+    function indicacaoOrigensSelecionadas() {
+      return Array.from(document.querySelectorAll(".origemIndicacaoCliente:checked")).map((item) => item.value);
+    }
+
+    function indicacaoExigeNome() {
+      return indicacaoOrigensSelecionadas().some((item) => ["Indicação de cliente", "Indicação de colaborador"].includes(item));
+    }
+
+    function indicacaoClienteResumo() {
+      const houve = value("houveIndicacaoCliente", "");
+      if (!houve) return "";
+      if (houve === "Não") return "Não";
+      const origens = indicacaoOrigensSelecionadas();
+      const nome = value("indicacaoCliente", "");
+      return [
+        "Sim",
+        origens.length ? `Origem: ${origens.join(", ")}` : "",
+        nome ? `Quem indicou: ${nome}` : ""
+      ].filter(Boolean).join(" | ");
+    }
+
+    function isIndicacaoClienteComplete(showMissing = false) {
+      const houve = $("houveIndicacaoCliente");
+      const houveComplete = controlFilled(houve);
+      const origens = indicacaoOrigensSelecionadas();
+      const origemComplete = value("houveIndicacaoCliente", "") !== "Sim" || origens.length > 0;
+      const nomeComplete = !indicacaoExigeNome() || controlFilled($("indicacaoCliente"));
+      if (showMissing) {
+        setMissing(houve, !houveComplete);
+        document.querySelectorAll(".origemIndicacaoCliente").forEach((item) => setMissing(item, value("houveIndicacaoCliente", "") === "Sim" && !origemComplete));
+        setMissing($("indicacaoCliente"), !nomeComplete);
+        stepNote("indicacaoClienteSecao", houveComplete && origemComplete && nomeComplete ? "" : "Informe se houve indicação. Se sim, marque a origem; para indicação de cliente ou colaborador, informe quem indicou.");
+      }
+      return houveComplete && origemComplete && nomeComplete;
     }
 
     function isBriefingAberturaComplete(showMissing = false) {
@@ -4202,6 +4316,7 @@
 
     function grupoCadastroRows() {
       return [
+        ...(isPortabilidadeEntradaWorkflow() || isBriefingAberturaWorkflow() ? [["Filial", value("filialCadastro", "Não informado")]] : []),
         ["Pertence a grupo", value("grupoCadastro")],
         ["Nome do grupo", value("nomeGrupoCadastro", value("grupoCadastro") === "Sim" ? "Não informado" : "Não aplicável")]
       ];
@@ -4424,6 +4539,9 @@
     function syncOpeningBriefingToMainFields() {
       setFieldValue("razao", value("aberturaRazao", ""));
       setFieldValue("fantasia", value("aberturaFantasia", ""));
+      setSelectValue("filialCadastro", value("aberturaFilial", ""));
+      setSelectValue("grupoCadastro", value("aberturaGrupo", ""));
+      setFieldValue("nomeGrupoCadastro", value("aberturaNomeGrupo", ""));
       setFieldValue("cep", value("aberturaCep", ""));
       setFieldValue("endereco", [value("aberturaRua", ""), value("aberturaNumero", ""), value("aberturaComplemento", "")].filter(Boolean).join(", "));
       setFieldValue("municipio", value("aberturaCidade", ""));
@@ -4467,13 +4585,16 @@
       const areaTotal = value("aberturaAreaTotal", "");
       const areaUtilizada = value("aberturaAreaUtilizada", "");
       const aberturaRows = rowsFilled([
-        ["Quem indicou o cliente", value("indicacaoCliente", "")],
+        ["Indicação do cliente", indicacaoClienteResumo()],
         ["Valor do serviço", value("aberturaValorServico", "")],
         ["Forma de pagamento", value("aberturaFormaPagamento", "")],
         ["Valor de honorário", value("aberturaValorHonorario", "")],
         ["Data de pagamento", value("aberturaDataPagamento", "") ? `Dia ${value("aberturaDataPagamento", "")}` : ""],
         ["Razão Social", value("aberturaRazao", "")],
         ["Nome fantasia", value("aberturaFantasia", "")],
+        ["Filial", value("aberturaFilial", "")],
+        ["Pertence a grupo", value("aberturaGrupo", "")],
+        ["Nome do grupo", value("aberturaNomeGrupo", value("aberturaGrupo", "") === "Sim" ? "Não informado" : "Não aplicável")],
         ["Tipo jurídico", value("aberturaTipoJuridico", "")],
         ["Enquadramento", value("aberturaEnquadramento", "")],
         ["Regime tributário", value("aberturaRegime", "")],
@@ -4591,11 +4712,14 @@
           <table class="doc-table">${rowsFilled([
             ["Tipo de briefing", tipoBriefing()],
             ["Tipo de pessoa", tipoPessoa()],
-            ["Quem indicou o cliente", value("indicacaoCliente", "")],
+            ["Indicação do cliente", indicacaoClienteResumo()],
             ["Valor do serviço", value("aberturaValorServico", "")],
             ["Forma de pagamento", value("aberturaFormaPagamento", "")],
             ["Razão Social", value("razao")],
             ["Nome fantasia", value("fantasia")],
+            ["Filial", value("filialCadastro", "")],
+            ["Pertence a grupo", value("aberturaGrupo", "")],
+            ["Nome do grupo", value("aberturaNomeGrupo", value("aberturaGrupo", "") === "Sim" ? "Não informado" : "Não aplicável")],
             ["Tipo jurídico", value("aberturaTipoJuridico", "")],
             ["Enquadramento", value("aberturaEnquadramento", "")],
             ["Regime tributário", value("aberturaRegime", value("regime"))],
@@ -4649,7 +4773,7 @@
           ${sectionTitle(1, "Informações iniciais e cadastrais")}
           <table class="doc-table">${rows([
             ["Tipo de briefing", tipoBriefing()],
-            ["Quem indicou o cliente", value("indicacaoCliente", "")],
+            ["Indicação do cliente", indicacaoClienteResumo()],
             ["Nome", value("razao")],
             ["Nome fantasia", value("fantasia")],
             ["Tipo de pessoa", tipoPessoa()],
@@ -6073,6 +6197,8 @@
     function fillOpeningBriefingExample() {
       resetForExample("BRIEFING ABERTURA");
       $("tipoPessoa").value = "Pessoa jurídica";
+      $("houveIndicacaoCliente").value = "Sim";
+      document.querySelectorAll(".origemIndicacaoCliente").forEach((item) => item.checked = item.value === "Indicação de cliente");
       $("indicacaoCliente").value = "Indicação exemplo";
       $("aberturaValorServico").value = "R$ 1.330,00";
       $("aberturaFormaPagamento").value = "Boleto";
@@ -6080,6 +6206,9 @@
       $("aberturaDataPagamento").value = "15";
       $("aberturaRazao").value = "ORTECONTE CONTABILIDADE LTDA";
       $("aberturaFantasia").value = "ORTECONTE CONTABILIDADE LTDA";
+      $("aberturaFilial").value = "Não";
+      $("aberturaGrupo").value = "Sim";
+      $("aberturaNomeGrupo").value = "Grupo exemplo";
       $("aberturaTipoJuridico").value = "Sociedade Limitada (LTDA)";
       $("aberturaEnquadramento").value = "ME";
       $("aberturaRegime").value = "Simples Nacional";
@@ -6144,9 +6273,14 @@
       }
       resetForExample(selectedType);
       $("tipoPessoa").value = "Pessoa jurídica";
-      if (isEntradaAberturaWorkflow()) $("indicacaoCliente").value = "Indicação exemplo";
+      if (isEntradaAberturaWorkflow()) {
+        $("houveIndicacaoCliente").value = "Sim";
+        document.querySelectorAll(".origemIndicacaoCliente").forEach((item) => item.checked = item.value === "Indicação de cliente");
+        $("indicacaoCliente").value = "Indicação exemplo";
+      }
       $("razao").value = "ACADEMIA BLACK GYM EVOLUTION LTDA";
       $("fantasia").value = "Black Gym Evolution";
+      if (isEntradaAberturaWorkflow()) $("filialCadastro").value = "Não";
       $("cnpj").value = "61.422.810/0001-20";
       $("constituicao").value = "2025-06-24";
       $("inicio").value = "2025-06";
