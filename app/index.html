@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-3g6kggzPjfuWj6Ky9Da2QNXPHOMNX2Fdkp2ZICI9gKQ='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-M1mgFFrOR1cFTm557481IUrMjpuWD5ifjDF8aPGKQK0='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -1615,8 +1615,8 @@
       </div>
       <nav>
         <button class="nav-button active" type="button" data-jump="tipoBriefingSecao">Tipo de briefing</button>
-        <button class="nav-button workflow-hidden" type="button" data-jump="briefingAbertura">Briefing abertura</button>
         <button class="nav-button workflow-hidden" type="button" data-jump="indicacaoClienteSecao">Indicação</button>
+        <button class="nav-button workflow-hidden" type="button" data-jump="briefingAbertura">Briefing abertura</button>
         <button class="nav-button" type="button" data-jump="empresa">Dados cadastrais</button>
         <button class="nav-button" type="button" data-jump="socios">Sócios</button>
         <button class="nav-button" type="button" data-jump="financeiro">Financeiro</button>
@@ -1672,6 +1672,13 @@
                 <div class="upload-actions" id="documentUploadActions"></div>
                 <div class="upload-status" id="documentUploadStatus"></div>
               </div>
+            </div>
+          </section>
+
+          <section class="section workflow-hidden" id="indicacaoClienteSecao">
+            <h2>Indicação do cliente</h2>
+            <div class="section-body grid">
+              <label class="span-2">QUEM INDICOU O CLIENTE?<input id="indicacaoCliente" placeholder="Informe o nome de quem indicou o cliente" title="Preencha a origem da indicação antes de seguir para os dados cadastrais."></label>
             </div>
           </section>
 
@@ -1800,13 +1807,6 @@
               </div>
               <div class="socios-list span-2" id="aberturaAdminsList"></div>
               <label class="span-2">Observação<textarea id="aberturaObservacao" placeholder="Informe observações da abertura, pendências, particularidades e orientações relevantes."></textarea></label>
-            </div>
-          </section>
-
-          <section class="section workflow-hidden" id="indicacaoClienteSecao">
-            <h2>Indicação do cliente</h2>
-            <div class="section-body grid">
-              <label class="span-2">QUEM INDICOU O CLIENTE?<input id="indicacaoCliente" placeholder="Informe o nome de quem indicou o cliente" title="Preencha a origem da indicação antes de seguir para os dados cadastrais."></label>
             </div>
           </section>
 
@@ -2089,7 +2089,7 @@
     const SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
     const SUPABASE_SESSION_KEY = "onboardContabilSupabaseSession";
-    const allSteps = ["tipoBriefingSecao", "briefingAbertura", "indicacaoClienteSecao", "empresa", "socios", "financeiro", "informativo", "setores", "implantacao", "documentos"];
+    const allSteps = ["tipoBriefingSecao", "indicacaoClienteSecao", "briefingAbertura", "empresa", "socios", "financeiro", "informativo", "setores", "implantacao", "documentos"];
     let highestUnlockedIndex = 0;
 
     function tipoBriefing() {
@@ -2540,9 +2540,9 @@
 
     function activeStepOrder() {
       if (!tipoBriefing()) return ["tipoBriefingSecao"];
-      if (isBriefingAberturaWorkflow() && !aberturaCompletaLiberada) return ["tipoBriefingSecao", "briefingAbertura", "indicacaoClienteSecao"];
+      if (isBriefingAberturaWorkflow() && !aberturaCompletaLiberada) return ["tipoBriefingSecao", "indicacaoClienteSecao", "briefingAbertura"];
       if (isBaixaWorkflow()) return ["tipoBriefingSecao", "empresa", "socios", "financeiro"];
-      if (isBriefingAberturaWorkflow()) return ["tipoBriefingSecao", "briefingAbertura", "indicacaoClienteSecao", "empresa", "socios", "financeiro", "informativo", "setores", "implantacao", "documentos"];
+      if (isBriefingAberturaWorkflow()) return ["tipoBriefingSecao", "indicacaoClienteSecao", "briefingAbertura", "empresa", "socios", "financeiro", "informativo", "setores", "implantacao", "documentos"];
       if (isPortabilidadeEntradaWorkflow()) return ["tipoBriefingSecao", "indicacaoClienteSecao", "empresa", "socios", "financeiro", "informativo", "setores", "implantacao", "documentos"];
       if (isAlteracaoWorkflow()) {
         const steps = ["tipoBriefingSecao", "empresa"];
