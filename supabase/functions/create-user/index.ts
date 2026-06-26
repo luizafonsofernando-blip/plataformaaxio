@@ -50,13 +50,13 @@ Deno.serve(async (request) => {
   }
 
   const name = String(input.name || "").trim();
-  const username = String(input.username || "").trim();
+  const username = String(input.username || "").trim().replace(/\s+/g, " ");
   const email = String(input.email || "").trim().toLowerCase();
   const password = String(input.password || "");
   const profile = input.profile === "simao" ? "simao" : "orteconte";
 
   if (name.length < 2 || name.length > 80) return json({ error: "Nome invalido." }, 400);
-  if (!/^[A-Za-z0-9._-]{3,40}$/.test(username)) return json({ error: "Usuario invalido." }, 400);
+  if (!/^[\p{L}\p{N}._ -]{3,60}$/u.test(username)) return json({ error: "Usuario invalido." }, 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "E-mail invalido." }, 400);
   if (!/^\d{6}$/.test(password)) {
     return json({ error: "A senha deve conter exatamente 6 digitos numericos." }, 400);

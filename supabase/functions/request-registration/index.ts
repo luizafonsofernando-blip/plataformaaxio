@@ -56,13 +56,14 @@ Deno.serve(async (request) => {
   }
 
   const name = String(input.name || "").trim();
-  const username = String(input.username || "").trim().toLowerCase();
+  const username = String(input.username || "").trim().replace(/\s+/g, " ");
+  const usernameKey = username.toLowerCase();
   const email = String(input.email || "").trim().toLowerCase();
   const password = String(input.password || "");
   const profile = input.profile === "simao" ? "simao" : "orteconte";
 
   if (name.length < 2 || name.length > 80) return json(request, { error: "Nome invalido." }, 400);
-  if (!/^[a-z0-9._-]{3,40}$/.test(username)) return json(request, { error: "Usuario invalido." }, 400);
+  if (!/^[\p{L}\p{N}._ -]{3,60}$/u.test(username)) return json(request, { error: "Usuario invalido." }, 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json(request, { error: "E-mail invalido." }, 400);
   if (!/^\d{6}$/.test(password)) {
     return json(request, { error: "A senha deve conter exatamente 6 digitos numericos." }, 400);
@@ -73,7 +74,7 @@ Deno.serve(async (request) => {
     if (error) return json(request, { error: "Nao foi possivel verificar o cadastro." }, 500);
     const duplicate = data.users.some(
       (user) => user.email?.toLowerCase() === email ||
-        String(user.user_metadata?.username || "").toLowerCase() === username,
+        String(user.user_metadata?.username || "").trim().replace(/\s+/g, " ").toLowerCase() === usernameKey,
     );
     if (duplicate) return json(request, { error: "E-mail ou usuario ja cadastrado." }, 409);
     if (data.users.length < 100) break;

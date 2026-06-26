@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-M1mgFFrOR1cFTm557481IUrMjpuWD5ifjDF8aPGKQK0='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-5NHsqT+MSgQBcRzfWXsS0uWWh+XAZnG8tSH4efwz1LM='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -1583,7 +1583,7 @@
       </div>
       <form class="account-form" id="registrationForm">
         <label>Nome<input id="registrationName" maxlength="80" autocomplete="name" required></label>
-        <label>Usuário<input id="registrationUsername" maxlength="40" pattern="[A-Za-z0-9._-]+" autocomplete="username" required></label>
+        <label>Usuário<input id="registrationUsername" maxlength="60" pattern="[A-Za-zÀ-ÿ0-9._ -]+" autocomplete="username" placeholder="Ex.: Luiz Fernando" required></label>
         <label class="span-all">E-mail<input id="registrationEmail" type="email" autocomplete="email" required></label>
         <label>Senha<input id="registrationPassword" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="6 dígitos" autocomplete="new-password" required></label>
         <label>Confirmar senha<input id="registrationPasswordConfirm" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="Repita os 6 dígitos" autocomplete="new-password" required></label>
@@ -2832,7 +2832,7 @@
       actions.innerHTML = definitions.map(([kind, label]) => `
         <label class="upload-btn">
           ${label}
-          <input type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*" data-upload-kind="${kind}">
+          <input type="file" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*" data-upload-kind="${kind}">
         </label>
       `).join("");
     }
@@ -3041,6 +3041,7 @@
       setSelectValue("honorariosAberto", "Sim");
       setFieldValue("valorHonorariosAberto", formatted);
       setFieldValue("financeiroObservacao", `Relatório financeiro por imagem: ${formatted} em aberto, calculado por ${source}. Linhas consideradas: ${matched.length || "não identificadas individualmente"}. Itens verdes foram desconsiderados.`);
+      ["honorariosAberto", "valorHonorariosAberto", "financeiroObservacao"].forEach((id) => registerAutofillField(id));
       updateFlowState();
       return { total, formatted, count: matched.length, source };
     }
@@ -3094,6 +3095,74 @@
         if (found) return found.replace(/\s{2,}/g, " ").trim();
       }
       return "";
+    }
+
+    function extractLongTextAfter(text, labels, stopLabels = []) {
+      const clean = normalizedText(text);
+      for (const label of labels) {
+        const regex = new RegExp(`${label}\\s*[:\\-]?\\s*([\\s\\S]{10,900})`, "i");
+        const match = clean.match(regex);
+        if (!match) continue;
+        let value = match[1];
+        const stops = stopLabels.length ? stopLabels : [
+          "capital social", "administrador", "sócio", "socio", "cláusula", "clausula", "endereço", "endereco",
+          "cnae", "atividade", "foro", "documentos", "testemunhas", "assinatura"
+        ];
+        const stopRegex = new RegExp(`\\b(${stops.join("|")})\\b`, "i");
+        const stopIndex = value.search(stopRegex);
+        if (stopIndex > 0) value = value.slice(0, stopIndex);
+        value = value.replace(/\s{2,}/g, " ").trim();
+        if (value.length > 8) return value;
+      }
+      return "";
+    }
+
+    function extractEmailFromText(text) {
+      return firstMatch(text, /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i);
+    }
+
+    function extractPhoneFromText(text) {
+      return firstMatch(text, /\(?\d{2}\)?\s?\d{4,5}-?\d{4}\b/);
+    }
+
+    function setFieldValueIfEmpty(id, text) {
+      if (!value(id, "") && text) setFieldValue(id, text);
+    }
+
+    function setSelectValueIfEmpty(id, text) {
+      if (!value(id, "") && text) setSelectValue(id, text);
+    }
+
+    function registerAutofillField(id, filledIds) {
+      const field = $(id);
+      if (!field) return;
+      field.dataset.autofilled = "true";
+      field.classList.add("filled");
+      if (filledIds && !filledIds.includes(id)) filledIds.push(id);
+    }
+
+    function setAutofillValue(id, text, filledIds, overwrite = false) {
+      if (!text) return false;
+      if (!overwrite && value(id, "")) return false;
+      setFieldValue(id, text);
+      registerAutofillField(id, filledIds);
+      return true;
+    }
+
+    function setAutofillSelect(id, text, filledIds, overwrite = false) {
+      if (!text) return false;
+      if (!overwrite && value(id, "")) return false;
+      setSelectValue(id, text);
+      registerAutofillField(id, filledIds);
+      return true;
+    }
+
+    function appendDocumentNote(kind, fileName = "") {
+      const label = fileName ? `${kind}: ${fileName}` : kind;
+      setFieldValue("docs", [value("docs", ""), `Arquivo lido automaticamente: ${label}`].filter(Boolean).join("\n"));
+      if (isBriefingAberturaWorkflow()) {
+        setFieldValue("aberturaObservacao", [value("aberturaObservacao", ""), `Arquivo lido automaticamente: ${label}`].filter(Boolean).join("\n"));
+      }
     }
 
     function cleanAddressText(text) {
@@ -3250,65 +3319,94 @@
       renderSocios();
     }
 
-    async function autofillFromUploadedText(text, kind) {
+    async function autofillFromUploadedText(text, kind, fileName = "") {
       const clean = normalizedText(text);
+      const filledIds = [];
       let filled = 0;
       const cnpj = extractCnpjFromText(clean);
       const cpf = extractCpfFromText(clean);
       const cep = extractCepFromText(clean);
+      const razao = extractLineAfter(clean, ["Nome empresarial", "Razão social", "Razao social", "Denominação social", "Denominacao social", "Nome"]);
+      const fantasia = extractCnpjCardFantasyName(clean) || extractLineAfter(clean, ["Nome fantasia", "Título do estabelecimento", "Titulo do estabelecimento"]);
+      const email = extractEmailFromText(clean);
+      const telefone = extractPhoneFromText(clean);
+      const municipio = extractLineAfter(clean, ["Município", "Municipio", "Cidade"]);
+      const uf = extractUfFromText(clean);
+      const capital = extractMoneyNear(clean, "capital social|capital");
+      const objetoSocial = extractLongTextAfter(clean, ["objeto social", "objeto", "atividade empresarial"], ["capital social", "sócios", "socios", "administração", "administracao"]);
+      const atividadePrincipal = extractLineAfter(clean, ["Atividade principal", "Atividade econômica principal", "Atividade economica principal", "Código e descrição da atividade econômica principal", "Codigo e descricao da atividade economica principal"]);
       if (cnpj && !isPessoaFisica()) {
-        setFieldValue("cnpj", formatCnpjDigits(cnpj));
+        setAutofillValue("cnpj", formatCnpjDigits(cnpj), filledIds);
         normalizeIdentificacao();
         filled += 1;
         try { await consultarCnpjPublico(); } catch (error) {}
       }
       if (cpf && isPessoaFisica()) {
-        setFieldValue("cnpj", formatCpfDigits(cpf));
+        setAutofillValue("cnpj", formatCpfDigits(cpf), filledIds);
         normalizeIdentificacao();
         filled += 1;
       }
       if (cpf && kind.includes("cpf")) {
-        setFieldValue("socioCpf", formatCpfDigits(cpf));
+        setAutofillValue("socioCpf", formatCpfDigits(cpf), filledIds);
         filled += 1;
       }
       if (cep) {
-        setFieldValue("cep", cep.replace(/^(\d{5})(\d{3})$/, "$1-$2"));
+        setAutofillValue("cep", cep.replace(/^(\d{5})(\d{3})$/, "$1-$2"), filledIds);
         filled += 1;
       }
       const headquartersAddress = extractHeadquartersAddress(clean);
       if (headquartersAddress) {
-        setFieldValue("endereco", headquartersAddress);
+        setAutofillValue("endereco", headquartersAddress, filledIds);
         filled += 1;
       }
-      const razao = extractLineAfter(clean, ["Nome empresarial", "Razão social", "Denominação social", "Nome"]);
       if (razao && !value("razao", "")) {
-        setFieldValue("razao", razao);
+        setAutofillValue("razao", razao, filledIds);
         filled += 1;
       }
-      const fantasia = extractCnpjCardFantasyName(clean);
       if (fantasia) {
-        setFieldValue("fantasia", fantasia);
+        setAutofillValue("fantasia", fantasia, filledIds);
         filled += 1;
       }
       const endereco = extractLineAfter(clean, ["Logradouro", "Endereço", "Endereco"]);
       if (!headquartersAddress && endereco && !value("endereco", "")) {
-        setFieldValue("endereco", endereco);
+        setAutofillValue("endereco", endereco, filledIds);
         filled += 1;
       }
       if (cep) {
         const usedCep = await preencherEnderecoPorCep(cep, !headquartersAddress && !endereco);
         if (usedCep) filled += 1;
       }
-      const municipio = extractLineAfter(clean, ["Município", "Municipio", "Cidade"]);
-      if (municipio) setFieldValue("municipio", municipio);
-      const uf = extractUfFromText(clean);
-      if (uf) setSelectValue("estado", uf);
-      const capital = extractMoneyNear(clean, "capital social|capital");
-      if (capital) setFieldValue("capitalSocial", capital.startsWith("R$") ? capital : `R$ ${capital}`);
+      if (municipio && setAutofillValue("municipio", municipio, filledIds)) filled += 1;
+      if (uf && setAutofillSelect("estado", uf, filledIds)) filled += 1;
+      if (capital && setAutofillValue("capitalSocial", capital.startsWith("R$") ? capital : `R$ ${capital}`, filledIds)) filled += 1;
       const cnaes = extractCnaesFromText(clean);
       if (cnaes.length) {
-        setFieldValue("cnaePrincipal", cnaes[0]);
-        if (cnaes.length > 1) setFieldValue("cnaesSecundarios", cnaes.slice(1).join("\n"));
+        if (setAutofillValue("cnaePrincipal", cnaes[0], filledIds)) filled += 1;
+        if (cnaes.length > 1 && setAutofillValue("cnaesSecundarios", cnaes.slice(1).join("\n"), filledIds)) filled += 1;
+      }
+      if (email && setAutofillValue("usuarioExterno", email, filledIds)) filled += 1;
+      if (telefone && setAutofillValue("telefoneEmpresa", telefone, filledIds)) filled += 1;
+      if (isBriefingAberturaWorkflow()) {
+        if (setAutofillValue("aberturaRazao", razao, filledIds)) filled += 1;
+        if (setAutofillValue("aberturaFantasia", fantasia, filledIds)) filled += 1;
+        if (setAutofillValue("aberturaCep", cep ? cep.replace(/^(\d{5})(\d{3})$/, "$1-$2") : "", filledIds)) filled += 1;
+        if (setAutofillValue("aberturaRua", headquartersAddress || endereco, filledIds)) filled += 1;
+        if (setAutofillValue("aberturaCidade", municipio, filledIds)) filled += 1;
+        if (setAutofillSelect("aberturaEstado", uf, filledIds)) filled += 1;
+        if (setAutofillValue("aberturaCapitalSocial", capital ? (capital.startsWith("R$") ? capital : `R$ ${capital}`) : "", filledIds)) filled += 1;
+        if (setAutofillValue("aberturaAtividadePrincipal", atividadePrincipal || (cnaes[0] || ""), filledIds)) filled += 1;
+        if (setAutofillValue("aberturaCnaePrincipal", cnaes[0] || "", filledIds)) filled += 1;
+        if (setAutofillValue("aberturaCnaesSecundarios", cnaes.slice(1).join("\n"), filledIds)) filled += 1;
+        if (setAutofillValue("aberturaObjetoSocial", objetoSocial, filledIds)) filled += 1;
+        const contato = [telefone, email].filter(Boolean).join(" / ");
+        if (setAutofillValue("aberturaContatoEmail", contato, filledIds)) filled += 1;
+        if (setAutofillValue("aberturaEmailGestta", email, filledIds)) filled += 1;
+        if (cep) {
+          const usedAberturaCep = await preencherAberturaEnderecoPorCep(cep, !value("aberturaRua", ""));
+          if (usedAberturaCep) {
+            ["aberturaCep", "aberturaRua", "aberturaCidade", "aberturaEstado"].forEach((id) => registerAutofillField(id, filledIds));
+          }
+        }
       }
       if (kind.includes("contrato") || kind.includes("alteracao") || kind.includes("cpf")) {
         const beforeCount = socios.length;
@@ -3318,9 +3416,9 @@
       if (kind === "relatorio-financeiro") {
         const aberto = extractMoneyNear(clean, "em aberto|inadimpl[êe]ncia|saldo|d[ée]bito|valor");
         if (aberto) {
-          setSelectValue("honorariosAberto", "Sim");
-          setFieldValue("valorHonorariosAberto", aberto.startsWith("R$") ? aberto : `R$ ${aberto}`);
-          setFieldValue("financeiroObservacao", `Relatório financeiro indica valor em aberto de ${aberto.startsWith("R$") ? aberto : `R$ ${aberto}`}.`);
+          setAutofillSelect("honorariosAberto", "Sim", filledIds, true);
+          setAutofillValue("valorHonorariosAberto", aberto.startsWith("R$") ? aberto : `R$ ${aberto}`, filledIds, true);
+          setAutofillValue("financeiroObservacao", `Relatório financeiro indica valor em aberto de ${aberto.startsWith("R$") ? aberto : `R$ ${aberto}`}.`, filledIds, true);
           filled += 1;
         }
       }
@@ -3328,32 +3426,54 @@
         const baixa = firstMatch(clean, /(\d{2}\/\d{2}\/\d{4})/);
         if (baixa) {
           const [dia, mes, ano] = baixa.split("/");
-          setFieldValue("dataBaixa", `${ano}-${mes}-${dia}`);
+          setAutofillValue("dataBaixa", `${ano}-${mes}-${dia}`, filledIds);
         }
       }
-      setFieldValue("docs", [value("docs", ""), `Arquivo lido automaticamente: ${kind}`].filter(Boolean).join("\n"));
+      appendDocumentNote(kind, fileName);
       updateFlowState();
-      return filled;
+      return { filled, filledIds };
     }
 
     async function handleDocumentUpload(input) {
-      const file = input.files && input.files[0];
+      const files = Array.from(input.files || []);
       const kind = input.dataset.uploadKind;
-      if (!file) return;
-      setUploadStatus(`Lendo ${file.name}...`);
+      if (!files.length) return;
+      setUploadStatus(`Lendo ${files.length} arquivo(s)...`);
+      let totalFilled = 0;
+      let readCount = 0;
+      let failedCount = 0;
+      const allFilledIds = [];
       try {
-        if (kind === "relatorio-financeiro" && isImageFile(file)) {
-          setUploadStatus("Lendo imagem e somando valores em vermelho/laranja...");
-          const result = await processFinancialImage(file);
-          setUploadStatus(`Relatório processado: ${result.formatted} em aberto (${result.source}).`, "success");
+        for (const file of files) {
+          try {
+            if (kind === "relatorio-financeiro" && isImageFile(file)) {
+              setUploadStatus(`Lendo ${file.name} e somando valores em vermelho/laranja...`);
+              const result = await processFinancialImage(file);
+              readCount += 1;
+              totalFilled += 1;
+              appendDocumentNote(kind, file.name);
+              continue;
+            }
+            const text = await extractDocumentText(file);
+            if (!text || text.trim().length < 10) throw new Error("Não foi possível extrair texto suficiente do arquivo.");
+            const result = await autofillFromUploadedText(text, kind, file.name);
+            readCount += 1;
+            totalFilled += result.filled;
+            result.filledIds.forEach((id) => {
+              if (!allFilledIds.includes(id)) allFilledIds.push(id);
+            });
+          } catch (error) {
+            failedCount += 1;
+          }
+        }
+        if (!readCount) {
+          setUploadStatus("Não foi possível ler o documento", "error");
           return;
         }
-        const text = await extractDocumentText(file);
-        if (!text || text.trim().length < 10) throw new Error("Não foi possível extrair texto suficiente do arquivo.");
-        const filled = await autofillFromUploadedText(text, kind);
-        setUploadStatus(`Arquivo processado. ${filled ? "Dados preenchidos automaticamente." : "Texto lido, mas nenhum campo foi identificado com segurança."}`, filled ? "success" : "neutral");
+        const summary = `${readCount} arquivo(s) lido(s). ${totalFilled ? `${totalFilled} preenchimento(s) automático(s).` : "Nenhum campo foi identificado com segurança."}${failedCount ? ` ${failedCount} arquivo(s) com erro: Não foi possível ler o documento.` : ""}`;
+        setUploadStatus(summary, totalFilled ? "success" : (failedCount ? "error" : "neutral"));
       } catch (error) {
-        setUploadStatus("Não foi possível ler esse arquivo. Tente enviar uma imagem nítida, um PDF com texto selecionável ou um Word .docx.", "error");
+        setUploadStatus("Não foi possível ler o documento", "error");
       } finally {
         input.value = "";
       }
