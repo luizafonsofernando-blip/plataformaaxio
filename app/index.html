@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-0FlIxfYqRQtjiB1Ilha4z1RM14rss6KvFeaFCLOXHDI='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-LLxh93mSTSnu0ySn8KvSmI4U875RJYS0xdwzHIX7LYg='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -1956,7 +1956,7 @@
           <section class="section" id="financeiro">
             <h2>Informações financeiras</h2>
             <div class="section-body grid">
-              <label class="saida-hidden-field">Valor dos serviços<input id="financeiroValor" placeholder="Ex.: R$ 1.200,00"></label>
+              <label class="saida-hidden-field entrada-hidden-field">Valor dos serviços<input id="financeiroValor" placeholder="Ex.: R$ 1.200,00"></label>
               <label>Forma de pagamento<select id="formaPagamento">
                 <option>Boleto</option>
                 <option>Pix</option>
@@ -1964,6 +1964,15 @@
                 <option>Depósito em conta</option>
               </select></label>
               <label>Honorário mensal<input id="financeiroHonorario" placeholder="R$ 0,00"></label>
+              <label class="conditional-field entrada-field hidden">Data de pagamento<select id="financeiroDataPagamento">
+                <option value="">Selecione o dia</option>
+                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+                <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+                <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+                <option>21</option><option>22</option><option>23</option><option>24</option><option>25</option>
+                <option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option>
+              </select></label>
               <label>Competência<input id="financeiroCompetencia" type="month"></label>
               <label class="conditional-field saida-field hidden">Honorários em aberto?<select id="honorariosAberto"><option>Não</option><option>Sim</option></select></label>
               <label class="conditional-field honorarios-aberto-field hidden">Valor em aberto<input id="valorHonorariosAberto" placeholder="R$ 0,00"></label>
@@ -3822,6 +3831,16 @@
           }
         });
       });
+      document.querySelectorAll(".entrada-field").forEach((field) => {
+        field.classList.toggle("hidden", !isPortabilidadeEntradaWorkflow());
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = isPortabilidadeEntradaWorkflow() ? "false" : "true";
+          if (!isPortabilidadeEntradaWorkflow()) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
       document.querySelectorAll(".baixa-saida-hidden-field").forEach((field) => {
         field.classList.toggle("hidden", isBaixaWorkflow());
         field.querySelectorAll("input, select, textarea").forEach((control) => {
@@ -3852,6 +3871,17 @@
         field.querySelectorAll("input, select, textarea").forEach((control) => {
           control.dataset.conditionalDisabled = isSaidaWorkflow() ? "true" : "false";
           if (isSaidaWorkflow()) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
+      document.querySelectorAll(".entrada-hidden-field").forEach((field) => {
+        const hidden = isPortabilidadeEntradaWorkflow() || isSaidaWorkflow();
+        field.classList.toggle("hidden", hidden);
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = hidden ? "true" : "false";
+          if (hidden) {
             control.value = "";
             control.classList.remove("missing");
           }
@@ -4356,9 +4386,10 @@
 
     function financeiroRows() {
       const items = [
-        ...isSaidaWorkflow() ? [] : [["Valor dos serviços", value("financeiroValor")]],
+        ...(isSaidaWorkflow() || isPortabilidadeEntradaWorkflow() ? [] : [["Valor dos serviços", value("financeiroValor")]]),
         ["Forma de pagamento", value("formaPagamento")],
         ["Honorário mensal", honorarioFinanceiro()],
+        ...(isPortabilidadeEntradaWorkflow() ? [["Data de pagamento", value("financeiroDataPagamento", "") ? `Dia ${value("financeiroDataPagamento", "")}` : "Não informado"]] : []),
         ["Competência", competenciaFinanceira()],
         ["Observação financeira", value("financeiroObservacao", "Dependendo do processo, esse valor pode ser reajustado.")]
       ];
@@ -4807,13 +4838,7 @@
           ` : ""}
 
           ${sectionTitle(sectionNumber(3), "Informações financeiras")}
-          <table class="doc-table">${rows([
-            ["Valor dos serviços", value("financeiroValor")],
-            ["Forma de pagamento", value("formaPagamento")],
-            ["Honorário mensal", honorarioFinanceiro()],
-            ["Competência", competenciaFinanceira()],
-            ["Observação financeira", value("financeiroObservacao", "Dependendo do processo, esse valor pode ser reajustado.")]
-          ])}</table>
+          <table class="doc-table">${rows(financeiroRows())}</table>
 
           ${sectionTitle(sectionNumber(4), "Informativo")}
           <table class="doc-table">${rows(informativoRows())}</table>
@@ -5475,11 +5500,36 @@
         <div class="socio-card">
           <div class="socio-header">
             <strong>${escapeHtml(socio.nome)}</strong>
+            <button class="btn mini" type="button" data-edit="${index}">Editar</button>
             <button class="btn mini" type="button" data-remove="${index}">Remover</button>
           </div>
           <div>${escapeHtml(socio.cpf)} | ${escapeHtml(socio.participacao)} | ${escapeHtml(socio.email)}</div>
         </div>
       `).join("");
+      document.querySelectorAll("[data-edit]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const socio = socios.splice(Number(button.dataset.edit), 1)[0];
+          if (!socio) return;
+          $("socioNome").value = socio.nome || "";
+          $("socioCpf").value = socio.cpf || "";
+          $("socioParticipacao").value = socio.participacao || "";
+          if ($("socioProlabore")) $("socioProlabore").value = socio.prolabore || "Sim";
+          if ($("socioValorProlabore")) $("socioValorProlabore").value = socio.valorProlabore || "";
+          $("socioNascimento").value = socio.nascimento || "";
+          $("socioEmail").value = socio.email || "";
+          $("socioTelefone").value = socio.telefone || "";
+          $("socioSexo").value = socio.sexo || "";
+          $("socioEstadoCivil").value = socio.estadoCivil || "";
+          $("socioRegimeCasamento").value = socio.regimeCasamento === "Não aplicável" ? "" : (socio.regimeCasamento || "");
+          $("socioQualificacao").value = socio.qualificacao || "Sócio administrador";
+          if ($("socioMae")) $("socioMae").value = socio.mae || "";
+          if ($("socioTitulo")) $("socioTitulo").value = socio.titulo || "";
+          renderSocios();
+          syncAllFieldsFilled();
+          updateFlowState();
+          $("socios").scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
       document.querySelectorAll("[data-remove]").forEach((button) => {
         button.addEventListener("click", () => {
           socios.splice(Number(button.dataset.remove), 1);
@@ -5496,11 +5546,25 @@
         <div class="socio-card">
           <div class="socio-header">
             <strong>${escapeHtml(admin.nome)}</strong>
+            <button class="btn mini" type="button" data-edit-abertura-admin="${index}">Editar</button>
             <button class="btn mini" type="button" data-remove-abertura-admin="${index}">Remover</button>
           </div>
           <div>${escapeHtml(admin.cpf)}<br>Sócio administrador: ${escapeHtml(admin.socioAdministrador || "Não informado")}</div>
         </div>
       `).join("");
+      document.querySelectorAll("[data-edit-abertura-admin]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const admin = aberturaAdministradores.splice(Number(button.dataset.editAberturaAdmin), 1)[0];
+          if (!admin) return;
+          $("aberturaAdminNome").value = admin.nome || "";
+          $("aberturaAdminCpf").value = admin.cpf || "";
+          $("aberturaAdminSocioAdministrador").value = admin.socioAdministrador || "Sim";
+          renderAberturaAdministradores();
+          syncAllFieldsFilled();
+          updateFlowState();
+          $("briefingAbertura").scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
       document.querySelectorAll("[data-remove-abertura-admin]").forEach((button) => {
         button.addEventListener("click", () => {
           aberturaAdministradores.splice(Number(button.dataset.removeAberturaAdmin), 1);
@@ -6295,6 +6359,7 @@
       $("financeiroValor").value = "R$ 380,00";
       $("formaPagamento").value = "Boleto";
       $("financeiroHonorario").value = "R$ 380,00";
+      if (isPortabilidadeEntradaWorkflow()) $("financeiroDataPagamento").value = "15";
       $("financeiroCompetencia").value = "2025-06";
       $("financeiroObservacao").value = "Dependendo do processo, esse valor pode ser reajustado. Cobrança a partir da competência 06/2025, com vencimento no dia 15.";
       $("capitalSocial").value = "R$ 10.000,00";
