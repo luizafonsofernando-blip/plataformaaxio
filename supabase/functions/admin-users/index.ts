@@ -15,10 +15,17 @@ const corsHeaders = (request: Request) => ({
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 });
 
+const securityHeaders = {
+  "Cache-Control": "no-store",
+  "Content-Type": "application/json",
+  "Referrer-Policy": "no-referrer",
+  "X-Content-Type-Options": "nosniff",
+};
+
 const json = (request: Request, body: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders(request), "Content-Type": "application/json", "Cache-Control": "no-store" },
+    headers: { ...corsHeaders(request), ...securityHeaders },
   });
 
 Deno.serve(async (request) => {
@@ -26,6 +33,8 @@ Deno.serve(async (request) => {
   if (request.method !== "GET" && request.method !== "POST") {
     return json(request, { error: "Metodo nao permitido." }, 405);
   }
+  const contentLength = Number(request.headers.get("content-length") || "0");
+  if (contentLength > 10_000) return json(request, { error: "Solicitacao muito grande." }, 413);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const publishableKey = Deno.env.get("SUPABASE_ANON_KEY");

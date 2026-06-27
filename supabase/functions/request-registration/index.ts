@@ -15,10 +15,17 @@ const corsHeaders = (request: Request) => ({
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 });
 
+const securityHeaders = {
+  "Cache-Control": "no-store",
+  "Content-Type": "application/json",
+  "Referrer-Policy": "no-referrer",
+  "X-Content-Type-Options": "nosniff",
+};
+
 const json = (request: Request, body: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders(request), "Content-Type": "application/json", "Cache-Control": "no-store" },
+    headers: { ...corsHeaders(request), ...securityHeaders },
   });
 
 const hash = async (value: string) => {
@@ -29,6 +36,8 @@ const hash = async (value: string) => {
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(request) });
   if (request.method !== "POST") return json(request, { error: "Metodo nao permitido." }, 405);
+  const contentLength = Number(request.headers.get("content-length") || "0");
+  if (contentLength > 10_000) return json(request, { error: "Solicitacao muito grande." }, 413);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -60,7 +69,7 @@ Deno.serve(async (request) => {
   const usernameKey = username.toLowerCase();
   const email = String(input.email || "").trim().toLowerCase();
   const password = String(input.password || "");
-  const profile = input.profile === "simao" ? "simao" : "orteconte";
+  const profile = "orteconte";
 
   if (name.length < 2 || name.length > 80) return json(request, { error: "Nome invalido." }, 400);
   if (!/^[\p{L}\p{N}._ -]{3,60}$/u.test(username)) return json(request, { error: "Usuario invalido." }, 400);
@@ -90,7 +99,7 @@ Deno.serve(async (request) => {
   if (error) return json(request, { error: "Nao foi possivel enviar a solicitacao." }, 400);
 
   await adminClient.from("security_audit_log").insert({
-    event_type: "registration_requested", ip_hash: ipHash, metadata: { username },
+    event_type: "registration_requested", ip_hash: ipHash, metadata: { username, profile },
   });
 
   return json(request, { message: "Solicitacao enviada." }, 201);
