@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-XHdgM4VACOQskpB+q+7lmzokHi264v8QuG90mQE+U9k='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-zbg2oTdIyafLWh2sjUK3Kbj4KNe1zhbkT6S2EnMKtbc='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -358,10 +358,19 @@
       color: #86efac;
     }
 
+    .admin-users-section {
+      margin-top: 20px;
+    }
+
+    .admin-users-section h3 {
+      margin: 0 0 10px;
+      color: #f8fafc;
+      font-size: 14px;
+    }
+
     .pending-users {
       display: grid;
       gap: 10px;
-      margin-top: 20px;
     }
 
     .pending-user {
@@ -384,6 +393,9 @@
     }
 
     .pending-user-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       justify-content: flex-start;
       margin-top: 12px;
     }
@@ -1608,11 +1620,18 @@
   <dialog class="account-dialog" id="adminUsersDialog" aria-labelledby="adminUsersTitle">
     <div class="account-dialog-inner">
       <div class="account-dialog-head">
-        <h2 id="adminUsersTitle">Aprovação de usuários</h2>
+        <h2 id="adminUsersTitle">Gerenciamento de usuários</h2>
         <button class="account-close" id="closeAdminUsers" type="button" aria-label="Fechar">&times;</button>
       </div>
       <p class="account-status" id="adminUsersStatus" role="status" aria-live="polite"></p>
-      <div class="pending-users" id="pendingUsersList"></div>
+      <section class="admin-users-section">
+        <h3>Solicitações pendentes</h3>
+        <div class="pending-users" id="pendingUsersList"></div>
+      </section>
+      <section class="admin-users-section">
+        <h3>Usuários ativos</h3>
+        <div class="pending-users" id="activeUsersList"></div>
+      </section>
     </div>
   </dialog>
   <div class="app-shell">
@@ -2445,16 +2464,38 @@
       `).join("");
     }
 
-    async function loadPendingUsers() {
+    function renderActiveUsers(users = []) {
+      const list = $("activeUsersList");
+      if (!list) return;
+      if (!users.length) {
+        list.innerHTML = '<div class="pending-user"><strong>Nenhum usuário ativo encontrado.</strong></div>';
+        return;
+      }
+      list.innerHTML = users.map((user) => `
+        <article class="pending-user">
+          <strong>${escapeHtml(user.name || "Nome não informado")}</strong>
+          <span>@${escapeHtml(user.username || "sem-usuario")} · ${escapeHtml(user.email || "")}</span>
+          <span>Perfil: ${escapeHtml(user.profile || "orteconte")} · Tipo: ${escapeHtml(user.role === "admin" ? "Administrador" : "Usuário")}</span>
+          <div class="pending-user-actions">
+            ${user.canDelete === false
+              ? '<button class="btn mini" type="button" disabled>Usuário atual</button>'
+              : `<button class="btn danger" type="button" data-user-action="delete" data-user-id="${escapeHtml(user.id)}">Excluir</button>`}
+          </div>
+        </article>
+      `).join("");
+    }
+
+    async function loadAdminUsers() {
       const session = storedSupabaseSession();
       const status = $("adminUsersStatus");
       if (!session?.access_token) throw new Error("Sessão expirada.");
-      setAccountStatus(status, "Carregando solicitações...");
+      setAccountStatus(status, "Carregando usuários...");
       const data = await supabaseFunctionRequest("admin-users", {
         method: "GET",
         accessToken: session.access_token
       });
-      renderPendingUsers(data.users || []);
+      renderPendingUsers(data.pendingUsers || data.users || []);
+      renderActiveUsers(data.activeUsers || []);
       setAccountStatus(status, "");
     }
 
@@ -2510,17 +2551,18 @@
       $("adminUsersButton")?.addEventListener("click", async () => {
         adminDialog?.showModal();
         try {
-          await loadPendingUsers();
+          await loadAdminUsers();
         } catch (error) {
           setAccountStatus($("adminUsersStatus"), error.message || "Não foi possível carregar os usuários.");
         }
       });
 
-      $("pendingUsersList")?.addEventListener("click", async (event) => {
+      $("adminUsersDialog")?.addEventListener("click", async (event) => {
         const button = event.target.closest("button[data-user-action]");
         if (!button) return;
         const action = button.dataset.userAction;
         if (action === "reject" && !window.confirm("Rejeitar e excluir esta solicitação?")) return;
+        if (action === "delete" && !window.confirm("Excluir este usuário ativo? Esta ação remove o acesso ao sistema.")) return;
         const session = storedSupabaseSession();
         if (!session?.access_token) return;
         button.disabled = true;
@@ -2529,7 +2571,7 @@
             body: { userId: button.dataset.userId, action },
             accessToken: session.access_token
           });
-          await loadPendingUsers();
+          await loadAdminUsers();
         } catch (error) {
           button.disabled = false;
           setAccountStatus($("adminUsersStatus"), error.message || "Não foi possível atualizar o usuário.");
