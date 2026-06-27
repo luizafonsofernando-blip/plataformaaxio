@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-BMF0stdWGjaYlnr3zdBftQ6HgaULkYH5HHgPKG3/elM='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-wz94s8wPF/FZYD1bJc8FzOEHjcaPY4mjpB3FF+R8zGc='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -2245,35 +2245,6 @@
           error.code = data.error_code || data.code || data.error;
           throw error;
         }
-        return data;
-      } finally {
-        clearTimeout(timeout);
-      }
-    }
-
-    async function supabaseDataRequest(path, { method = "GET", body, prefer = "" } = {}) {
-      let session = storedSupabaseSession();
-      if (!session?.access_token) throw new Error("Sessão expirada. Entre novamente.");
-      if (!session.expires_at_ms || session.expires_at_ms <= Date.now() + 60000) {
-        session = await refreshSupabaseSession(session);
-      }
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-      try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-          method,
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${session.access_token}`,
-            "Content-Type": "application/json",
-            ...(prefer ? { Prefer: prefer } : {})
-          },
-          body: body === undefined ? undefined : JSON.stringify(body),
-          signal: controller.signal
-        });
-        const text = await response.text();
-        const data = text ? JSON.parse(text) : null;
-        if (!response.ok) throw new Error(data?.message || data?.details || "Não foi possível acessar o histórico.");
         return data;
       } finally {
         clearTimeout(timeout);

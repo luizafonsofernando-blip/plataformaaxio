@@ -97,6 +97,20 @@ Deno.serve(async (request) => {
 
   const id = cleanText(input.id, 80).trim();
   if (!/^[a-z0-9._:-]{8,80}$/i.test(id)) return json(request, { error: "Documento invalido." }, 400);
+  const { data: existing, error: existingError } = await adminClient
+    .from("onboarding_documents")
+    .select("id, owner_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (existingError) return json(request, { error: "Nao foi possivel validar o documento." }, 400);
+  if (existing && existing.owner_id !== caller.id) {
+    await adminClient.from("security_audit_log").insert({
+      actor_id: caller.id,
+      event_type: "onboarding_document_forbidden_update",
+      target_id: id,
+    });
+    return json(request, { error: "Documento nao pertence ao usuario." }, 403);
+  }
   const now = new Date().toISOString();
   const row = {
     id,
