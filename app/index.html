@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-wz94s8wPF/FZYD1bJc8FzOEHjcaPY4mjpB3FF+R8zGc='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-DFpfn3WSAzZd5VUJkY0tkKrBtf3exhFv+XsL94/OPd8='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -2206,6 +2206,10 @@
       else sessionStorage.removeItem(ROLE_KEY);
       if ($("adminUsersButton")) $("adminUsersButton").hidden = !isAdmin;
       if (!isAdmin && $("adminUsersDialog")?.open) $("adminUsersDialog").close();
+    }
+
+    function isCurrentUserAdmin() {
+      return sessionStorage.getItem(ROLE_KEY) === "admin";
     }
 
     function storedSupabaseSession() {
@@ -5370,9 +5374,12 @@
       list.innerHTML = filtered.map((item) => {
         const date = item.createdAt ? new Date(item.createdAt).toLocaleString("pt-BR") : "Data não informada";
         const isDraft = item.status === "rascunho";
+        const deleteAction = isCurrentUserAdmin()
+          ? `<button class="btn mini" type="button" data-history-action="delete">Excluir</button>`
+          : "";
         const actions = isDraft
-          ? `<button class="btn mini" type="button" data-history-action="edit">Editar</button><button class="btn mini" type="button" data-history-action="delete">Excluir</button>`
-          : `<button class="btn mini" type="button" data-history-action="open">Abrir</button><button class="btn mini" type="button" data-history-action="edit">Editar</button><button class="btn mini" type="button" data-history-action="delete">Excluir</button>`;
+          ? `<button class="btn mini" type="button" data-history-action="edit">Editar</button>${deleteAction}`
+          : `<button class="btn mini" type="button" data-history-action="open">Abrir</button><button class="btn mini" type="button" data-history-action="edit">Editar</button>${deleteAction}`;
         return `
           <div class="history-item" data-id="${escapeHtml(item.id)}">
             <div>
@@ -5498,6 +5505,7 @@
     }
 
     async function deleteHistoryDocument(id, refresh = true) {
+      if (!isCurrentUserAdmin()) throw new Error("Somente o administrador pode excluir documentos.");
       const session = storedSupabaseSession();
       await supabaseFunctionRequest("onboarding-documents", {
         method: "DELETE",

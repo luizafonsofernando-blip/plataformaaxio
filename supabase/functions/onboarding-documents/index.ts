@@ -39,6 +39,14 @@ const cleanObject = (value: unknown) => {
   return value as Record<string, unknown>;
 };
 
+const callerAuditMetadata = (caller: {
+  email?: string;
+  user_metadata?: Record<string, unknown>;
+}) => ({
+  actor_email: caller.email || null,
+  actor_name: caller.user_metadata?.display_name || caller.user_metadata?.name || caller.user_metadata?.username || null,
+});
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(request) });
   if (!["GET", "POST", "DELETE"].includes(request.method)) {
@@ -64,18 +72,20 @@ Deno.serve(async (request) => {
   if (callerError || !caller || caller.app_metadata?.status !== "approved") {
     return json(request, { error: "Sessao invalida ou usuario nao aprovado." }, 403);
   }
+  const isAdmin = caller.app_metadata?.role === "admin";
 
   const adminClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
   if (request.method === "GET") {
-    const { data, error } = await adminClient
+    const query = adminClient
       .from("onboarding_documents")
       .select("*")
-      .eq("owner_id", caller.id)
       .order("updated_at", { ascending: false })
       .limit(200);
+    if (!isAdmin) query.eq("owner_id", caller.id);
+    const { data, error } = await query;
     if (error) return json(request, { error: "Nao foi possivel carregar o historico." }, 500);
     return json(request, data || []);
   }
@@ -90,16 +100,38 @@ Deno.serve(async (request) => {
   if (request.method === "DELETE") {
     const id = cleanText(input.id, 80).trim();
     if (!/^[a-z0-9._:-]{8,80}$/i.test(id)) return json(request, { error: "Documento invalido." }, 400);
+    if (!isAdmin) {
+      await adminClient.from("security_audit_log").insert({
+        actor_id: caller.id,
+        event_type: "onboarding_document_forbidden_delete",
+        target_id: id,
+        metadata: callerAuditMetadata(caller),
+      });
+      return json(request, { error: "Somente o administrador pode excluir documentos." }, 403);
+    }
+    const { data: existingDelete, error: existingDeleteError } = await adminClient
+      .from("onboarding_documents")
+      .select("id, owner_id, serial, kind, procedimento")
+      .eq("id", id)
+      .maybeSingle();
+    if (existingDeleteError) return json(request, { error: "Nao foi possivel validar o documento." }, 400);
+    if (!existingDelete) return json(request, { error: "Documento nao encontrado." }, 404);
     const { error } = await adminClient
       .from("onboarding_documents")
       .delete()
-      .eq("id", id)
-      .eq("owner_id", caller.id);
+      .eq("id", id);
     if (error) return json(request, { error: "Nao foi possivel excluir o documento." }, 400);
     await adminClient.from("security_audit_log").insert({
       actor_id: caller.id,
       event_type: "onboarding_document_deleted",
       target_id: id,
+      metadata: {
+        ...callerAuditMetadata(caller),
+        owner_id: existingDelete.owner_id,
+        serial: existingDelete.serial,
+        kind: existingDelete.kind,
+        procedimento: existingDelete.procedimento,
+      },
     });
     return json(request, { message: "Documento excluido." });
   }
@@ -112,18 +144,19 @@ Deno.serve(async (request) => {
     .eq("id", id)
     .maybeSingle();
   if (existingError) return json(request, { error: "Nao foi possivel validar o documento." }, 400);
-  if (existing && existing.owner_id !== caller.id) {
+  if (existing && existing.owner_id !== caller.id && !isAdmin) {
     await adminClient.from("security_audit_log").insert({
       actor_id: caller.id,
       event_type: "onboarding_document_forbidden_update",
       target_id: id,
+      metadata: callerAuditMetadata(caller),
     });
     return json(request, { error: "Documento nao pertence ao usuario." }, 403);
   }
   const now = new Date().toISOString();
   const row = {
     id,
-    owner_id: caller.id,
+    owner_id: existing?.owner_id || caller.id,
     serial: cleanText(input.serial, 80),
     emitente: cleanText(input.emitente, 120),
     kind: cleanText(input.kind, 40),
@@ -146,9 +179,17 @@ Deno.serve(async (request) => {
   if (error) return json(request, { error: "Nao foi possivel salvar o documento." }, 400);
   await adminClient.from("security_audit_log").insert({
     actor_id: caller.id,
-    event_type: row.status === "rascunho" ? "onboarding_draft_saved" : "onboarding_document_saved",
+    event_type: existing
+      ? "onboarding_document_updated"
+      : row.status === "rascunho" ? "onboarding_draft_saved" : "onboarding_document_saved",
     target_id: id,
-    metadata: { serial: row.serial, kind: row.kind, procedimento: row.procedimento },
+    metadata: {
+      ...callerAuditMetadata(caller),
+      serial: row.serial,
+      kind: row.kind,
+      procedimento: row.procedimento,
+      edited_at: now,
+    },
   });
   return json(request, [data]);
 });
