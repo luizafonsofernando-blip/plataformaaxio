@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-zbg2oTdIyafLWh2sjUK3Kbj4KNe1zhbkT6S2EnMKtbc='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-BMF0stdWGjaYlnr3zdBftQ6HgaULkYH5HHgPKG3/elM='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -5203,10 +5203,10 @@
     }
 
     async function persistHistoryItem(item) {
-      const rows = await supabaseDataRequest("onboarding_documents?on_conflict=id", {
-        method: "POST",
+      const session = storedSupabaseSession();
+      const rows = await supabaseFunctionRequest("onboarding-documents", {
         body: historyRowFromItem(item),
-        prefer: "resolution=merge-duplicates,return=representation"
+        accessToken: session?.access_token
       });
       const saved = historyItemFromRow(rows[0]);
       historyCache = [saved, ...historyCache.filter((entry) => entry.id !== saved.id)]
@@ -5228,7 +5228,11 @@
       historyLoaded = false;
       renderHistory();
       try {
-        const rows = await supabaseDataRequest("onboarding_documents?select=*&order=updated_at.desc&limit=200");
+        const session = storedSupabaseSession();
+        const rows = await supabaseFunctionRequest("onboarding-documents", {
+          method: "GET",
+          accessToken: session?.access_token
+        });
         historyCache = (rows || []).map(historyItemFromRow);
         await migrateLegacyHistory();
         historyLoaded = true;
@@ -5523,7 +5527,12 @@
     }
 
     async function deleteHistoryDocument(id, refresh = true) {
-      await supabaseDataRequest(`onboarding_documents?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
+      const session = storedSupabaseSession();
+      await supabaseFunctionRequest("onboarding-documents", {
+        method: "DELETE",
+        body: { id },
+        accessToken: session?.access_token
+      });
       historyCache = historyItems().filter((entry) => entry.id !== id);
       if (activeDraftId === id) activeDraftId = "";
       if (refresh) renderHistory();
