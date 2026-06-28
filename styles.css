@@ -726,15 +726,19 @@ h2 {
 
 .showcase {
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(300px, 1.05fr);
+  grid-template-columns: minmax(520px, 1fr) minmax(300px, 0.88fr);
   align-items: center;
-  gap: clamp(48px, 6vw, 88px);
+  gap: clamp(72px, 7vw, 110px);
 }
 
 .showcase-copy {
   max-width: 560px;
   position: relative;
   z-index: 2;
+}
+
+.showcase-copy h2 {
+  font-size: clamp(2.2rem, 4.4vw, 4.15rem);
 }
 
 .browser-frame {
@@ -748,7 +752,7 @@ h2 {
 
 .showcase-image-frame {
   justify-self: end;
-  width: min(100%, 640px);
+  width: min(100%, 560px);
   transform: none;
 }
 
@@ -913,6 +917,17 @@ h2 {
 
   to {
     transform: translateX(min(0px, calc(100vw - 1560px)));
+  }
+}
+
+@media (max-width: 1100px) {
+  .showcase {
+    grid-template-columns: 1fr;
+  }
+
+  .showcase-image-frame {
+    justify-self: stretch;
+    width: 100%;
   }
 }
 
