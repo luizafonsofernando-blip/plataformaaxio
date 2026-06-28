@@ -1,8 +1,5 @@
 import fs from "node:fs";
-import path from "node:path";
-import { pathToFileURL } from "node:url";
 import formidable from "formidable";
-import { PDFParse } from "pdf-parse";
 
 export const config = {
   api: {
@@ -38,26 +35,23 @@ export default async function handler(request, response) {
     }
 
     const buffer = fs.readFileSync(uploaded.filepath);
-    PDFParse.setWorker(pathToFileURL(resolvePdfWorkerPath()).toString());
-    const parser = new PDFParse({ data: buffer });
-    const result = await parser.getText();
-    await parser.destroy();
+    const text = await extractPdfText(buffer);
 
-    if (!result.text.trim()) {
+    if (!text.trim()) {
       return response.status(422).json({
         error: "Nao foi possivel extrair texto deste PDF. Ele pode ser escaneado e exigir OCR.",
       });
     }
 
     const extraction = extractWithHeuristics(
-      result.text.replace(/\s+/g, " ").trim(),
+      text.replace(/\s+/g, " ").trim(),
       uploaded.originalFilename || "convencao.pdf",
     );
 
     return response.status(200).json({
       agreementId: null,
       pdfPath: null,
-      textCharacters: result.text.length,
+      textCharacters: text.length,
       extraction,
     });
   } catch (error) {
@@ -86,27 +80,28 @@ function parseForm(request) {
   });
 }
 
-function resolvePdfWorkerPath() {
-  const candidates = [];
-  const pnpmRoot = path.join(process.cwd(), "node_modules/.pnpm");
+async function extractPdfText(buffer) {
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const loadingTask = pdfjs.getDocument({
+    data: new Uint8Array(buffer),
+    disableWorker: true,
+    useSystemFonts: true,
+  });
+  const document = await loadingTask.promise;
+  const pages = [];
 
-  candidates.push(
-    path.join(process.cwd(), "node_modules/pdf-parse/dist/worker/pdf.worker.mjs"),
-    path.join(process.cwd(), "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs"),
-  );
-
-  if (fs.existsSync(pnpmRoot)) {
-    for (const folder of fs.readdirSync(pnpmRoot)) {
-      candidates.push(
-        path.join(pnpmRoot, folder, "node_modules/pdf-parse/dist/worker/pdf.worker.mjs"),
-        path.join(pnpmRoot, folder, "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs"),
-      );
+  try {
+    for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+      const page = await document.getPage(pageNumber);
+      const content = await page.getTextContent();
+      pages.push(content.items.map((item) => item.str || "").join(" "));
+      page.cleanup();
     }
+  } finally {
+    await loadingTask.destroy();
   }
 
-  const workerPath = candidates.find((candidate) => fs.existsSync(candidate));
-  if (!workerPath) throw new Error("PDF worker nao encontrado em node_modules.");
-  return workerPath;
+  return pages.join("\n");
 }
 
 function extractWithHeuristics(text, fileName) {
