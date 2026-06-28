@@ -10,6 +10,7 @@ const navItems = [
 ];
 
 const clauseTopics = [
+  "vigencia",
   "piso salarial",
   "reajuste salarial",
   "vale alimentacao",
@@ -26,6 +27,7 @@ const clauseTopics = [
 let view = "dashboard";
 let editingClientId = null;
 let dashboardFilter = "total";
+let selectedAgreementId = null;
 let state = loadState();
 
 function loadState() {
@@ -196,9 +198,20 @@ function renderClients() {
 }
 
 function renderAgreements() {
+  if (!selectedAgreementId || !state.agreements.some((item) => item.id === selectedAgreementId)) {
+    selectedAgreementId = state.agreements[0]?.id || null;
+  }
+  const selected = state.agreements.find((item) => item.id === selectedAgreementId);
   return `
-    <section class="grid">
-      ${state.agreements.length ? state.agreements.map(agreementCard).join("") : `<article class="card"><h2>Nenhuma convencao importada</h2><p class="muted">Use Upload Mediador para importar uma CCT.</p></article>`}
+    <section class="grid two-cols agreements-layout">
+      <article class="card">
+        <h2>Convenções cadastradas</h2>
+        <p class="muted">A lista exibe a categoria. Clique para abrir a revisão completa.</p>
+        <div class="list" style="margin-top:16px">
+          ${state.agreements.length ? state.agreements.map(agreementSummaryCard).join("") : `<div class="empty-state">Nenhuma convenção importada. Use Upload Mediador para importar uma CCT.</div>`}
+        </div>
+      </article>
+      ${selected ? agreementDetailCard(selected) : `<article class="card"><h2>Detalhes da convenção</h2><p class="muted">Selecione uma convenção para revisar os dados extraídos.</p></article>`}
     </section>
   `;
 }
@@ -277,11 +290,25 @@ function bindViewEvents() {
   document.querySelectorAll("[data-remove-client]").forEach((button) => {
     button.addEventListener("click", () => removeClient(button.dataset.removeClient));
   });
+  document.querySelectorAll("[data-select-agreement]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedAgreementId = button.dataset.selectAgreement;
+      render();
+    });
+  });
+  document.getElementById("agreementForm")?.addEventListener("submit", saveAgreementReview);
   document.querySelectorAll("[data-confirm-agreement]").forEach((button) => {
-    button.addEventListener("click", () => confirmAgreement(button.dataset.confirmAgreement));
+    button.addEventListener("click", () => {
+      const form = document.getElementById("agreementForm");
+      if (form) persistAgreementForm(form);
+      confirmAgreement(button.dataset.confirmAgreement);
+    });
   });
   document.querySelectorAll("[data-reject-agreement]").forEach((button) => {
     button.addEventListener("click", () => rejectAgreement(button.dataset.rejectAgreement));
+  });
+  document.querySelectorAll("[data-delete-agreement]").forEach((button) => {
+    button.addEventListener("click", () => deleteAgreement(button.dataset.deleteAgreement));
   });
 
   document.getElementById("linkForm")?.addEventListener("submit", createLink);
@@ -373,6 +400,45 @@ function removeClient(id) {
   render();
 }
 
+function saveAgreementReview(event) {
+  event.preventDefault();
+  persistAgreementForm(event.currentTarget);
+  saveState();
+  render();
+}
+
+function persistAgreementForm(form) {
+  const id = form.elements.agreementId.value;
+  state.agreements = state.agreements.map((item) => item.id === id ? {
+    ...item,
+    title: form.elements.title.value,
+    category: form.elements.category.value,
+    city: form.elements.city.value,
+    state: form.elements.state.value.toUpperCase(),
+    baseDate: form.elements.baseDate.value,
+    startsAt: form.elements.startsAt.value,
+    endsAt: form.elements.endsAt.value,
+    employerUnion: form.elements.employerUnion.value,
+    employerUnionCnpj: form.elements.employerUnionCnpj.value,
+    laborUnion: form.elements.laborUnion.value,
+    laborUnionCnpj: form.elements.laborUnionCnpj.value,
+    mteRegistrationNumber: form.elements.mteRegistrationNumber.value,
+    requestNumber: form.elements.requestNumber.value,
+    processNumber: form.elements.processNumber.value,
+    territorialCoverage: form.elements.territorialCoverage.value,
+    executiveSummary: form.elements.executiveSummary.value,
+  } : item);
+
+  state.clauses = state.clauses.map((clause) => clause.agreementId === id ? {
+    ...clause,
+    title: form.elements[`clauseTitle-${clause.id}`]?.value || clause.title,
+    summary: form.elements[`clauseSummary-${clause.id}`]?.value || clause.summary,
+    rawExcerpt: form.elements[`clauseExcerpt-${clause.id}`]?.value || clause.rawExcerpt,
+    confidence: Math.max(0, Math.min(1, Number(form.elements[`clauseConfidence-${clause.id}`]?.value || 0) / 100)),
+    requiresReview: true,
+  } : clause);
+}
+
 function confirmAgreement(id) {
   state.agreements = state.agreements.map((item) => item.id === id ? { ...item, status: "vigente", validatedAt: new Date().toISOString() } : item);
   state.clauses = state.clauses.map((item) => item.agreementId === id ? { ...item, requiresReview: false, confidence: Math.max(item.confidence, 0.8) } : item);
@@ -381,9 +447,20 @@ function confirmAgreement(id) {
 }
 
 function rejectAgreement(id) {
+  if (!confirm("Recusar esta revisao e remover a convencao da lista?")) return;
+  removeAgreement(id);
+}
+
+function deleteAgreement(id) {
+  if (!confirm("Excluir esta convencao e seus vinculos da base?")) return;
+  removeAgreement(id);
+}
+
+function removeAgreement(id) {
   state.agreements = state.agreements.filter((item) => item.id !== id);
   state.clauses = state.clauses.filter((item) => item.agreementId !== id);
   state.links = state.links.filter((item) => item.agreementId !== id);
+  if (selectedAgreementId === id) selectedAgreementId = state.agreements[0]?.id || null;
   saveState();
   render();
 }
@@ -531,7 +608,7 @@ function clientCard(client) {
   </div>`;
 }
 
-function agreementCard(agreement) {
+function agreementDetailCard(agreement) {
   const related = state.clauses.filter((clause) => clause.agreementId === agreement.id);
   return `<article class="card">
     <div class="list-item">
@@ -557,6 +634,69 @@ function clauseCard(clause) {
       <span class="badge ${missing ? "danger" : clause.requiresReview ? "warn" : "ok"}">${Math.round(clause.confidence * 100)}%</span>
     </div>
     <p class="${missing ? "" : "muted"}" style="margin-top:10px">${escapeHtml(clause.summary)}</p>
+  </div>`;
+}
+
+function agreementSummaryCard(agreement) {
+  const active = selectedAgreementId === agreement.id ? "active" : "";
+  return `<button class="agreement-summary ${active}" data-select-agreement="${agreement.id}" type="button">
+    <span>${escapeHtml(agreement.category || "Categoria a revisar")}</span>
+    ${statusBadge(agreement.status)}
+  </button>`;
+}
+
+function agreementCard(agreement) {
+  const related = state.clauses.filter((clause) => clause.agreementId === agreement.id);
+  return `<article class="card">
+    <form id="agreementForm" class="grid">
+      <input type="hidden" name="agreementId" value="${agreement.id}">
+      <div class="list-item">
+        <div>
+          <h2>${escapeHtml(agreement.category || agreement.title)}</h2>
+          <p class="muted">${escapeHtml(agreement.city)}/${escapeHtml(agreement.state)} | Vigencia ${formatDate(agreement.startsAt)} a ${formatDate(agreement.endsAt)}</p>
+        </div>
+        <div class="actions">
+          ${statusBadge(agreement.status)}
+          <button class="button secondary" type="submit">Salvar edicoes</button>
+          ${agreement.status === "em validacao" ? `<button class="button" type="button" data-confirm-agreement="${agreement.id}">Confirmar revisao</button><button class="button danger" type="button" data-reject-agreement="${agreement.id}">Recusar revisao</button>` : ""}
+          <button class="button danger" type="button" data-delete-agreement="${agreement.id}">Excluir</button>
+        </div>
+      </div>
+      <div class="form-grid agreement-fields">
+        ${field("title", "Titulo", agreement.title, "full")}
+        ${field("category", "Categoria", agreement.category)}
+        ${field("city", "Cidade", agreement.city)}
+        ${field("state", "UF", agreement.state)}
+        ${field("baseDate", "Data-base", agreement.baseDate, "", "date")}
+        ${field("startsAt", "Vigencia inicial", agreement.startsAt, "", "date")}
+        ${field("endsAt", "Vigencia final", agreement.endsAt, "", "date")}
+        ${field("mteRegistrationNumber", "Registro MTE", agreement.mteRegistrationNumber)}
+        ${field("requestNumber", "Numero da solicitacao", agreement.requestNumber)}
+        ${field("processNumber", "Numero do processo", agreement.processNumber)}
+        ${field("employerUnion", "Sindicato patronal", agreement.employerUnion)}
+        ${field("employerUnionCnpj", "CNPJ sindicato patronal", agreement.employerUnionCnpj)}
+        ${field("laborUnion", "Sindicato laboral", agreement.laborUnion)}
+        ${field("laborUnionCnpj", "CNPJ sindicato laboral", agreement.laborUnionCnpj)}
+        ${field("territorialCoverage", "Abrangencia territorial", agreement.territorialCoverage, "full")}
+        ${textareaField("executiveSummary", "Resumo executivo", agreement.executiveSummary, "full")}
+      </div>
+      <h3>Campos extraidos para revisao</h3>
+      <div class="clause-grid">${related.map(clauseReviewCard).join("")}</div>
+    </form>
+  </article>`;
+}
+
+function clauseReviewCard(clause) {
+  const missing = Number(clause.confidence) === 0;
+  const confidence = Math.round(Number(clause.confidence || 0) * 100);
+  return `<div class="card clause ${missing ? "missing" : ""}">
+    <div class="actions" style="justify-content:space-between">
+      <label class="field clause-title">Campo<input name="clauseTitle-${clause.id}" value="${escapeAttribute(clause.title)}"></label>
+      <label class="field confidence-field">Confianca<input name="clauseConfidence-${clause.id}" type="number" min="0" max="100" value="${confidence}"></label>
+    </div>
+    <label class="field">Resumo<textarea name="clauseSummary-${clause.id}">${escapeHtml(clause.summary)}</textarea></label>
+    <label class="field">Trecho identificado<textarea name="clauseExcerpt-${clause.id}">${escapeHtml(clause.rawExcerpt || "")}</textarea></label>
+    <span class="badge ${missing ? "danger" : clause.requiresReview ? "warn" : "ok"}">${confidence}%</span>
   </div>`;
 }
 
@@ -605,6 +745,10 @@ function expiringAgreements() {
 
 function field(name, label, value = "", className = "", type = "text") {
   return `<label class="field ${className}">${label}<input name="${name}" type="${type}" value="${escapeAttribute(value)}"></label>`;
+}
+
+function textareaField(name, label, value = "", className = "") {
+  return `<label class="field ${className}">${label}<textarea name="${name}">${escapeHtml(value)}</textarea></label>`;
 }
 
 function statusBadge(status) {

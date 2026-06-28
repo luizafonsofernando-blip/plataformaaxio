@@ -8,6 +8,7 @@ export const config = {
 };
 
 const clauseTopics = [
+  "vigencia",
   "piso salarial",
   "reajuste salarial",
   "vale alimentacao",
@@ -242,6 +243,7 @@ function findSnippet(text, topic) {
     "hora extra": ["hora extra", "horas extras"],
     "adicional noturno": ["adicional noturno"],
     "contribuicoes sindicais": ["contribuicao sindical", "contribuicoes sindicais", "taxa negocial"],
+    vigencia: ["vigencia", "vigencia inicial", "vigencia final", "periodo de vigencia"],
   };
   const lower = text.toLowerCase();
   const alias = aliases[topic]?.find((item) => lower.includes(item));
