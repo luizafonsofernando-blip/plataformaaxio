@@ -1,0 +1,10 @@
+{
+  "name": "plataformaaxio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "formidable": "^3.5.4",
+    "pdf-parse": "^2.4.5"
+  }
+}
