@@ -130,8 +130,8 @@ function renderDashboard() {
       </article>
     </section>
     <section class="card">
-      <h2>Indicativos totais</h2>
-      ${selectableTotalsPanel(stats)}
+      <h2>Visão geral da plataforma</h2>
+      ${platformChart()}
     </section>
     <section class="grid two-cols">
       <article class="card"><h2>Mapa operacional</h2>${mapTable(mapRows().slice(0, 5))}</article>
@@ -211,7 +211,7 @@ function renderAgreements() {
           ${state.agreements.length ? state.agreements.map(agreementSummaryCard).join("") : `<div class="empty-state">Nenhuma convenção importada. Use Upload Mediador para importar uma CCT.</div>`}
         </div>
       </article>
-      ${selected ? agreementDetailCard(selected) : `<article class="card"><h2>Detalhes da convenção</h2><p class="muted">Selecione uma convenção para revisar os dados extraídos.</p></article>`}
+      ${selected ? agreementCard(selected) : `<article class="card"><h2>Detalhes da convenção</h2><p class="muted">Selecione uma convenção para revisar os dados extraídos.</p></article>`}
     </section>
   `;
 }
@@ -507,12 +507,12 @@ function dashboardFilterData() {
       items: state.agreements.map((agreement) => agreementIndicator(agreement)),
     },
     active: {
-      description: "Convencoes com status vigente.",
-      items: state.agreements.filter((agreement) => agreement.status === "vigente").map((agreement) => agreementIndicator(agreement)),
+      description: "Convencoes com vigencia final posterior a data atual.",
+      items: state.agreements.filter((agreement) => effectiveAgreementStatus(agreement) === "vigente").map((agreement) => agreementIndicator(agreement)),
     },
     expired: {
-      description: "Convencoes vencidas que exigem revisao antes de novas rotinas trabalhistas.",
-      items: state.agreements.filter((agreement) => agreement.status === "vencida").map((agreement) => agreementIndicator(agreement)),
+      description: "Convencoes com vigencia final igual ou anterior a data atual.",
+      items: state.agreements.filter((agreement) => effectiveAgreementStatus(agreement) === "vencida").map((agreement) => agreementIndicator(agreement)),
     },
     expiringSoon: {
       description: "Convencoes com vigencia final nos proximos 90 dias.",
@@ -543,11 +543,12 @@ function indicatorItem(item) {
 
 function agreementIndicator(agreement, detail = "") {
   const days = daysUntil(agreement.endsAt);
+  const status = effectiveAgreementStatus(agreement);
   return {
     title: agreement.title,
     description: `${agreement.city}/${agreement.state} | Vigencia ate ${formatDate(agreement.endsAt)}${detail ? ` | ${detail}` : ""}`,
-    badge: agreement.status,
-    badgeClass: badgeClass(agreement.status === "vigente" ? "baixo" : agreement.status === "vencida" ? "alto" : "medio"),
+    badge: status,
+    badgeClass: badgeClass(status === "vigente" ? "baixo" : status === "vencida" ? "alto" : "medio"),
     days,
   };
 }
@@ -567,6 +568,23 @@ function expiringSoonPanel() {
     return `<div class="empty-state selectable-empty ${dashboardFilter === "expiringSoon" ? "active" : ""}" data-dashboard-filter="expiringSoon" role="button" tabindex="0">Nenhum instrumento coletivo vence nos proximos 90 dias.</div>`;
   }
   return `<div class="list selectable-panel ${dashboardFilter === "expiringSoon" ? "active" : ""}" data-dashboard-filter="expiringSoon" role="button" tabindex="0">${expiring.map((agreement) => indicatorItem(agreementIndicator(agreement, `${daysUntil(agreement.endsAt)} dias restantes`))).join("")}</div>`;
+}
+
+function platformChart() {
+  const clients = state.clients.length;
+  const agreements = state.agreements.length;
+  const max = Math.max(clients, agreements, 1);
+  const bars = [
+    ["Clientes cadastrados", clients, "clients"],
+    ["Convenções cadastradas", agreements, "agreements"],
+  ];
+  return `<div class="platform-chart">${bars.map(([label, value, type]) => `
+    <button class="chart-row" type="button" data-view-button="${type === "clients" ? "clients" : "agreements"}">
+      <span class="chart-label">${label}</span>
+      <span class="chart-track"><span class="chart-bar ${type}" style="width:${Math.max(8, (value / max) * 100)}%"></span></span>
+      <strong>${value}</strong>
+    </button>
+  `).join("")}</div>`;
 }
 
 function totalsPanel(stats) {
@@ -641,7 +659,7 @@ function agreementSummaryCard(agreement) {
   const active = selectedAgreementId === agreement.id ? "active" : "";
   return `<button class="agreement-summary ${active}" data-select-agreement="${agreement.id}" type="button">
     <span>${escapeHtml(agreement.category || "Categoria a revisar")}</span>
-    ${statusBadge(agreement.status)}
+    ${agreementStatusBadge(agreement)}
   </button>`;
 }
 
@@ -656,7 +674,7 @@ function agreementCard(agreement) {
           <p class="muted">${escapeHtml(agreement.city)}/${escapeHtml(agreement.state)} | Vigencia ${formatDate(agreement.startsAt)} a ${formatDate(agreement.endsAt)}</p>
         </div>
         <div class="actions">
-          ${statusBadge(agreement.status)}
+          ${agreementStatusBadge(agreement)}
           <button class="button secondary" type="submit">Salvar edicoes</button>
           ${agreement.status === "em validacao" ? `<button class="button" type="button" data-confirm-agreement="${agreement.id}">Confirmar revisao</button><button class="button danger" type="button" data-reject-agreement="${agreement.id}">Recusar revisao</button>` : ""}
           <button class="button danger" type="button" data-delete-agreement="${agreement.id}">Excluir</button>
@@ -710,8 +728,9 @@ function mapRows() {
   return state.clients.map((client) => {
     const link = state.links.find((item) => item.clientId === client.id);
     const agreement = state.agreements.find((item) => item.id === link?.agreementId);
-    const risk = !agreement || agreement.status === "vencida" ? "alto" : !link?.humanValidated || agreement.status === "em validacao" ? "medio" : "baixo";
-    return { client, agreement, status: agreement?.status || "sem vinculo", risk };
+    const status = agreement ? effectiveAgreementStatus(agreement) : "sem vinculo";
+    const risk = !agreement || status === "vencida" ? "alto" : !link?.humanValidated || status === "em validacao" ? "medio" : "baixo";
+    return { client, agreement, status, risk };
   });
 }
 
@@ -723,14 +742,14 @@ function buildStats() {
   const unlinked = state.clients.filter((client) => !state.links.some((link) => link.clientId === client.id && link.humanValidated)).length;
   return {
     total: state.agreements.length,
-    active: state.agreements.filter((item) => item.status === "vigente").length,
-    expired: state.agreements.filter((item) => item.status === "vencida").length,
+    active: state.agreements.filter((item) => effectiveAgreementStatus(item) === "vigente").length,
+    expired: state.agreements.filter((item) => effectiveAgreementStatus(item) === "vencida").length,
     expiringSoon: state.agreements.filter((item) => {
       const days = daysUntil(item.endsAt);
-      return days !== null && days >= 0 && days <= 90;
+      return days !== null && days > 0 && days <= 90;
     }).length,
     unlinkedClients: unlinked,
-    riskyClients: unlinked + state.agreements.filter((item) => item.status === "em validacao").length,
+    riskyClients: mapRows().filter((row) => row.risk !== "baixo").length,
   };
 }
 
@@ -738,7 +757,7 @@ function expiringAgreements() {
   return state.agreements
     .filter((item) => {
       const days = daysUntil(item.endsAt);
-      return days !== null && days >= 0 && days <= 90;
+      return days !== null && days > 0 && days <= 90;
     })
     .sort((a, b) => daysUntil(a.endsAt) - daysUntil(b.endsAt));
 }
@@ -756,6 +775,40 @@ function statusBadge(status) {
   return `<span class="badge ${cls}">${escapeHtml(status)}</span>`;
 }
 
+function agreementStatusBadge(agreement) {
+  return statusBadge(effectiveAgreementStatus(agreement));
+}
+
+function effectiveAgreementStatus(agreement) {
+  if (!agreement) return "sem vinculo";
+  const end = parseDateOnly(agreement.endsAt);
+  if (!end) return agreement.status === "vencida" ? "vencida" : "em validacao";
+  if (end.getTime() <= todayDateOnly().getTime()) return "vencida";
+  if (agreement.status === "em validacao") return "em validacao";
+  if (agreement.status === "aguardando nova CCT") return "aguardando nova CCT";
+  return "vigente";
+}
+
+function isAgreementExpired(agreement) {
+  const end = parseDateOnly(agreement.endsAt);
+  if (!end) return false;
+  return end.getTime() <= todayDateOnly().getTime();
+}
+
+function todayDateOnly() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+function parseDateOnly(date) {
+  if (!date) return null;
+  const value = String(date).trim();
+  const parts = value.includes("/") ? value.split("/").reverse() : value.slice(0, 10).split("-");
+  const [year, month, day] = parts.map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+}
+
 function badgeClass(risk) {
   return risk === "baixo" ? "ok" : risk === "medio" ? "warn" : "danger";
 }
@@ -766,7 +819,9 @@ function riskClass(risk) {
 
 function daysUntil(date) {
   if (!date) return null;
-  return Math.ceil((new Date(`${date}T00:00:00`).getTime() - Date.now()) / 86400000);
+  const end = parseDateOnly(date);
+  if (!end) return null;
+  return Math.ceil((end.getTime() - todayDateOnly().getTime()) / 86400000);
 }
 
 function formatDate(date) {
