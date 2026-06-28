@@ -171,6 +171,7 @@ function ensurePdfEnvironment() {
 function extractWithHeuristics(text, fileName) {
   const cnpjs = [...text.matchAll(/\b\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}\b/g)].map((item) => item[0]);
   const dates = [...text.matchAll(/\b(\d{2}\/\d{2}\/20\d{2})\b/g)].map((item) => toIsoDate(item[1]));
+  const validity = extractValidity(text, dates);
   const state = match(text, /\b(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)\b/);
   const mteRegistrationNumber =
     match(text, /(Registro\s+MTE|Numero\s+de\s+Registro)\D*([A-Z]{2}\d{4,6}\/\d{4})/i) ||
@@ -179,12 +180,12 @@ function extractWithHeuristics(text, fileName) {
   return {
     agreement: {
       title: fileName.replace(/\.pdf$/i, ""),
-      category: findNear(text, ["categoria economica", "categoria profissional"]) || "A revisar",
+      category: extractCategory(text) || "A revisar",
       city: findNear(text, ["abrangencia", "municipio"]) || "A revisar",
       state: state || "UF",
-      baseDate: dates[0] || new Date().toISOString().slice(0, 10),
-      startsAt: dates[1] || dates[0] || new Date().toISOString().slice(0, 10),
-      endsAt: dates[2] || dates[1] || new Date().toISOString().slice(0, 10),
+      baseDate: extractBaseDate(text) || dates[0] || new Date().toISOString().slice(0, 10),
+      startsAt: validity.startsAt,
+      endsAt: validity.endsAt,
       employerUnion: findNear(text, ["sindicato patronal", "sindicato das empresas"]) || "A revisar",
       employerUnionCnpj: cnpjs[0] || "",
       laborUnion: findNear(text, ["sindicato laboral", "sindicato dos empregados"]) || "A revisar",
@@ -228,6 +229,63 @@ function findNear(text, labels) {
   if (!label) return "";
   const index = lower.indexOf(label);
   return text.slice(index + label.length, index + label.length + 140).split(/[.;\n]/)[0].trim();
+}
+
+function extractValidity(text, dates) {
+  const fallback = sortedDateRange(dates);
+  const patterns = [
+    /vig[eê]ncia(?:\s+inicial|\s+final)?\D{0,80}(\d{2}\/\d{2}\/20\d{2})\D{0,80}(?:a|ate|até|-)\D{0,40}(\d{2}\/\d{2}\/20\d{2})/i,
+    /per[ií]odo\s+de\s+vig[eê]ncia\D{0,80}(\d{2}\/\d{2}\/20\d{2})\D{0,80}(?:a|ate|até|-)\D{0,40}(\d{2}\/\d{2}\/20\d{2})/i,
+    /de\s+(\d{2}\/\d{2}\/20\d{2})\s+(?:a|ate|até)\s+(\d{2}\/\d{2}\/20\d{2})/i,
+  ];
+
+  for (const pattern of patterns) {
+    const result = text.match(pattern);
+    if (result?.[1] && result?.[2]) {
+      return sortedDateRange([toIsoDate(result[1]), toIsoDate(result[2])]);
+    }
+  }
+
+  return fallback;
+}
+
+function sortedDateRange(dates) {
+  const sorted = [...new Set(dates.filter(Boolean))]
+    .sort((a, b) => new Date(`${a}T00:00:00`).getTime() - new Date(`${b}T00:00:00`).getTime());
+  const today = new Date().toISOString().slice(0, 10);
+  return {
+    startsAt: sorted[0] || today,
+    endsAt: sorted[sorted.length - 1] || sorted[0] || today,
+  };
+}
+
+function extractBaseDate(text) {
+  const result = text.match(/data[-\s]*base\D{0,40}(\d{2}\/\d{2}\/20\d{2})/i);
+  return result?.[1] ? toIsoDate(result[1]) : "";
+}
+
+function extractCategory(text) {
+  const patterns = [
+    /categoria\(s\)\s+econ[oô]mica\(s\)\s*[–—-]\s*([^.;\n\r]+)/i,
+    /categoria\(s\)\s+profissional\(is\)\s*[–—-]\s*([^.;\n\r]+)/i,
+    /categorias?\s+econ[oô]micas?\s*[–—-]\s*([^.;\n\r]+)/i,
+    /categorias?\s+profissionais?\s*[–—-]\s*([^.;\n\r]+)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const result = text.match(pattern);
+    if (result?.[1]) return cleanExtractedText(result[1]);
+  }
+
+  return cleanExtractedText(findNear(text, ["categoria economica", "categoria profissional"]));
+}
+
+function cleanExtractedText(value = "") {
+  return value
+    .replace(/\s+/g, " ")
+    .replace(/^(?:[-–—:]\s*)+/, "")
+    .replace(/\s+(?:com\s+abrangencia|abranger[aá]|abrangera|em\s+todo).*$/i, "")
+    .trim();
 }
 
 function findSnippet(text, topic) {
