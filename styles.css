@@ -726,13 +726,15 @@ h2 {
 
 .showcase {
   display: grid;
-  grid-template-columns: minmax(0, 0.86fr) minmax(320px, 1.14fr);
+  grid-template-columns: minmax(0, 0.95fr) minmax(300px, 1.05fr);
   align-items: center;
-  gap: 42px;
+  gap: clamp(48px, 6vw, 88px);
 }
 
 .showcase-copy {
   max-width: 560px;
+  position: relative;
+  z-index: 2;
 }
 
 .browser-frame {
@@ -742,6 +744,12 @@ h2 {
   background: rgba(4, 12, 32, 0.78);
   box-shadow: 0 34px 100px rgba(0, 0, 0, 0.35);
   transform: perspective(900px) rotateY(-8deg) rotateX(4deg);
+}
+
+.showcase-image-frame {
+  justify-self: end;
+  width: min(100%, 640px);
+  transform: none;
 }
 
 .showcase-image-frame img {
