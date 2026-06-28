@@ -83,9 +83,11 @@ function parseForm(request) {
 async function extractPdfText(buffer) {
   ensurePdfEnvironment();
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  pdfjs.GlobalWorkerOptions.workerSrc = import.meta.resolve(
+    "pdfjs-dist/legacy/build/pdf.worker.mjs",
+  );
   const loadingTask = pdfjs.getDocument({
     data: new Uint8Array(buffer),
-    disableWorker: true,
     useSystemFonts: true,
   });
   const document = await loadingTask.promise;
