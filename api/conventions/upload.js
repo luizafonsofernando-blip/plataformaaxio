@@ -285,6 +285,7 @@ function cleanExtractedText(value = "") {
     .replace(/\s+/g, " ")
     .replace(/^(?:[-–—:]\s*)+/, "")
     .replace(/\s+(?:com\s+abrangencia|abranger[aá]|abrangera|em\s+todo).*$/i, "")
+    .replace(/\s+(?:vig[eê]ncia|data[-\s]*base|registro\s+mte|registro\s+em|cl[aá]usula).*$/i, "")
     .trim();
 }
 
