@@ -81,6 +81,7 @@ function parseForm(request) {
 }
 
 async function extractPdfText(buffer) {
+  ensurePdfEnvironment();
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const loadingTask = pdfjs.getDocument({
     data: new Uint8Array(buffer),
@@ -102,6 +103,68 @@ async function extractPdfText(buffer) {
   }
 
   return pages.join("\n");
+}
+
+function ensurePdfEnvironment() {
+  if (typeof globalThis.DOMMatrix === "undefined") {
+    globalThis.DOMMatrix = class DOMMatrix {
+      constructor() {
+        this.a = 1;
+        this.b = 0;
+        this.c = 0;
+        this.d = 1;
+        this.e = 0;
+        this.f = 0;
+      }
+
+      multiplySelf() {
+        return this;
+      }
+
+      preMultiplySelf() {
+        return this;
+      }
+
+      translateSelf() {
+        return this;
+      }
+
+      scaleSelf() {
+        return this;
+      }
+
+      rotateSelf() {
+        return this;
+      }
+
+      invertSelf() {
+        return this;
+      }
+
+      transformPoint(point = {}) {
+        return {
+          x: point.x ?? 0,
+          y: point.y ?? 0,
+          z: point.z ?? 0,
+          w: point.w ?? 1,
+        };
+      }
+    };
+  }
+
+  if (typeof globalThis.ImageData === "undefined") {
+    globalThis.ImageData = class ImageData {
+      constructor(data, width, height) {
+        this.data = data;
+        this.width = width;
+        this.height = height;
+      }
+    };
+  }
+
+  if (typeof globalThis.Path2D === "undefined") {
+    globalThis.Path2D = class Path2D {};
+  }
 }
 
 function extractWithHeuristics(text, fileName) {
