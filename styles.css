@@ -306,6 +306,11 @@ button:disabled {
   font-weight: 800;
 }
 
+.module-icon-radar {
+  background: linear-gradient(135deg, #0a2a55 0%, #1e88ff 100%);
+  box-shadow: 0 10px 24px rgba(30, 136, 255, 0.22);
+}
+
 .module-name {
   display: grid;
   gap: 6px;
