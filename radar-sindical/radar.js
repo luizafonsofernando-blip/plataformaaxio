@@ -129,7 +129,7 @@ function renderDashboard() {
     </section>
     <section class="card">
       <h2>Indicativos totais</h2>
-      ${totalsPanel(stats)}
+      ${selectableTotalsPanel(stats)}
     </section>
     <section class="grid two-cols">
       <article class="card"><h2>Mapa operacional</h2>${mapTable(mapRows().slice(0, 5))}</article>
@@ -231,6 +231,13 @@ function bindViewEvents() {
     button.addEventListener("click", () => {
       dashboardFilter = button.dataset.dashboardFilter;
       render();
+    });
+    button.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        dashboardFilter = button.dataset.dashboardFilter;
+        render();
+      }
     });
   });
 
@@ -480,9 +487,9 @@ function clientIndicator(client, detail) {
 function expiringSoonPanel() {
   const expiring = expiringAgreements();
   if (!expiring.length) {
-    return `<div class="empty-state">Nenhum instrumento coletivo vence nos proximos 90 dias.</div>`;
+    return `<div class="empty-state selectable-empty ${dashboardFilter === "expiringSoon" ? "active" : ""}" data-dashboard-filter="expiringSoon" role="button" tabindex="0">Nenhum instrumento coletivo vence nos proximos 90 dias.</div>`;
   }
-  return `<div class="list">${expiring.map((agreement) => indicatorItem(agreementIndicator(agreement, `${daysUntil(agreement.endsAt)} dias restantes`))).join("")}</div>`;
+  return `<div class="list selectable-panel ${dashboardFilter === "expiringSoon" ? "active" : ""}" data-dashboard-filter="expiringSoon" role="button" tabindex="0">${expiring.map((agreement) => indicatorItem(agreementIndicator(agreement, `${daysUntil(agreement.endsAt)} dias restantes`))).join("")}</div>`;
 }
 
 function totalsPanel(stats) {
@@ -493,6 +500,16 @@ function totalsPanel(stats) {
     ["Clientes sem convenção", stats.unlinkedClients, "Clientes sem vínculo validado com CCT."],
   ];
   return `<div class="summary-grid">${items.map(([label, value, description]) => `<div class="summary-item"><strong>${value}</strong><span>${label}</span><small>${description}</small></div>`).join("")}</div>`;
+}
+
+function selectableTotalsPanel(stats) {
+  const items = [
+    ["CCTs ao total", stats.total, "Total geral de convencoes cadastradas/importadas.", "total"],
+    ["CCTs vigentes", stats.active, "Convencoes confirmadas como vigentes.", "active"],
+    ["CCTs vencidas", stats.expired, "Convencoes com status vencida.", "expired"],
+    ["Clientes sem convencao", stats.unlinkedClients, "Clientes sem vinculo validado com CCT.", "unlinkedClients"],
+  ];
+  return `<div class="summary-grid">${items.map(([label, value, description, filter]) => `<button class="summary-item ${dashboardFilter === filter ? "active" : ""}" data-dashboard-filter="${filter}" type="button"><strong>${value}</strong><span>${label}</span><small>${description}</small></button>`).join("")}</div>`;
 }
 
 function alertCard(alert) {

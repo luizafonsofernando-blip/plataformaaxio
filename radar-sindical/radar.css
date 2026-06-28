@@ -209,6 +209,28 @@ h1, h2, h3, p { margin: 0; }
   border-radius: 8px;
   padding: 14px;
   background: #f8fafc;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.summary-item:hover,
+.summary-item.active,
+.selectable-panel:hover,
+.selectable-panel.active,
+.selectable-empty:hover,
+.selectable-empty.active {
+  border-color: rgba(0, 82, 204, .42);
+  box-shadow: 0 12px 28px rgba(0, 82, 204, .12);
+  transform: translateY(-1px);
+}
+
+.selectable-panel,
+.selectable-empty {
+  cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
 }
 
 .summary-item strong {
