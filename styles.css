@@ -750,6 +750,7 @@ h2 {
   height: 100%;
   min-height: 420px;
   object-fit: cover;
+  object-position: 62% center;
 }
 
 .browser-bar {
