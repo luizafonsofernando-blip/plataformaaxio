@@ -25,6 +25,7 @@ const clauseTopics = [
 
 let view = "dashboard";
 let editingClientId = null;
+let dashboardFilter = "total";
 let state = loadState();
 
 function loadState() {
@@ -109,12 +110,26 @@ function renderDashboard() {
   const stats = buildStats();
   return `
     <section class="grid stats">
-      ${statCard("Total CCTs", stats.total)}
-      ${statCard("Vigentes", stats.active)}
-      ${statCard("Vencidas", stats.expired)}
-      ${statCard("Prox. vencimento", stats.expiringSoon)}
-      ${statCard("Sem vinculo", stats.unlinkedClients)}
-      ${statCard("Clientes em risco", stats.riskyClients)}
+      ${statCard("Total CCTs", stats.total, "total")}
+      ${statCard("Vigentes", stats.active, "active")}
+      ${statCard("Vencidas", stats.expired, "expired")}
+      ${statCard("Prox. vencimento", stats.expiringSoon, "expiringSoon")}
+      ${statCard("Sem vinculo", stats.unlinkedClients, "unlinkedClients")}
+      ${statCard("Clientes em risco", stats.riskyClients, "riskyClients")}
+    </section>
+    <section class="grid two-cols">
+      <article class="card">
+        <h2>Indicativo selecionado</h2>
+        ${dashboardIndicatorPanel()}
+      </article>
+      <article class="card">
+        <h2>Instrumentos vencendo em 90 dias</h2>
+        ${expiringSoonPanel()}
+      </article>
+    </section>
+    <section class="card">
+      <h2>Indicativos totais</h2>
+      ${totalsPanel(stats)}
     </section>
     <section class="grid two-cols">
       <article class="card"><h2>Mapa operacional</h2>${mapTable(mapRows().slice(0, 5))}</article>
@@ -211,6 +226,12 @@ function renderMap() {
 function bindViewEvents() {
   document.querySelectorAll("[data-view-button]").forEach((button) => {
     button.addEventListener("click", () => setView(button.dataset.viewButton));
+  });
+  document.querySelectorAll("[data-dashboard-filter]").forEach((button) => {
+    button.addEventListener("click", () => {
+      dashboardFilter = button.dataset.dashboardFilter;
+      render();
+    });
   });
 
   const fileInput = document.getElementById("agreementPdf");
@@ -381,8 +402,97 @@ function createLink(event) {
   render();
 }
 
-function statCard(label, value) {
-  return `<article class="card"><div class="stat-label">${label}</div><div class="stat-value">${value}</div></article>`;
+function statCard(label, value, filter) {
+  return `<button class="card stat-card ${dashboardFilter === filter ? "active" : ""}" data-dashboard-filter="${filter}" type="button"><span class="stat-label">${label}</span><span class="stat-value">${value}</span></button>`;
+}
+
+function dashboardIndicatorPanel() {
+  const data = dashboardFilterData()[dashboardFilter] || dashboardFilterData().total;
+  return `<div class="indicator-panel">
+    <p class="muted">${escapeHtml(data.description)}</p>
+    <div class="list">${data.items.length ? data.items.map(indicatorItem).join("") : `<div class="empty-state">Nenhum registro encontrado para este indicador.</div>`}</div>
+  </div>`;
+}
+
+function dashboardFilterData() {
+  const rows = mapRows();
+  const expiring = expiringAgreements();
+  return {
+    total: {
+      description: "Todas as convencoes coletivas cadastradas ou importadas no Radar.",
+      items: state.agreements.map((agreement) => agreementIndicator(agreement)),
+    },
+    active: {
+      description: "Convencoes com status vigente.",
+      items: state.agreements.filter((agreement) => agreement.status === "vigente").map((agreement) => agreementIndicator(agreement)),
+    },
+    expired: {
+      description: "Convencoes vencidas que exigem revisao antes de novas rotinas trabalhistas.",
+      items: state.agreements.filter((agreement) => agreement.status === "vencida").map((agreement) => agreementIndicator(agreement)),
+    },
+    expiringSoon: {
+      description: "Convencoes com vigencia final nos proximos 90 dias.",
+      items: expiring.map((agreement) => agreementIndicator(agreement, `${daysUntil(agreement.endsAt)} dias restantes`)),
+    },
+    unlinkedClients: {
+      description: "Clientes sem convencao validada vinculada.",
+      items: state.clients
+        .filter((client) => !state.links.some((link) => link.clientId === client.id && link.humanValidated))
+        .map((client) => clientIndicator(client, "Sem convencao validada")),
+    },
+    riskyClients: {
+      description: "Clientes com risco medio ou alto por ausencia de vinculo, validacao pendente ou CCT vencida.",
+      items: rows.filter((row) => row.risk !== "baixo").map((row) => clientIndicator(row.client, `Risco ${row.risk}`)),
+    },
+  };
+}
+
+function indicatorItem(item) {
+  return `<div class="list-item compact">
+    <div>
+      <strong>${escapeHtml(item.title)}</strong>
+      <p class="muted">${escapeHtml(item.description)}</p>
+    </div>
+    ${item.badge ? `<span class="badge ${item.badgeClass || "info"}">${escapeHtml(item.badge)}</span>` : ""}
+  </div>`;
+}
+
+function agreementIndicator(agreement, detail = "") {
+  const days = daysUntil(agreement.endsAt);
+  return {
+    title: agreement.title,
+    description: `${agreement.city}/${agreement.state} | Vigencia ate ${formatDate(agreement.endsAt)}${detail ? ` | ${detail}` : ""}`,
+    badge: agreement.status,
+    badgeClass: badgeClass(agreement.status === "vigente" ? "baixo" : agreement.status === "vencida" ? "alto" : "medio"),
+    days,
+  };
+}
+
+function clientIndicator(client, detail) {
+  return {
+    title: client.legalName,
+    description: `${client.city}/${client.state} | CNAE ${client.mainCnae} | ${detail}`,
+    badge: detail.toLowerCase().includes("alto") ? "alto" : detail.toLowerCase().includes("medio") ? "medio" : "revisar",
+    badgeClass: detail.toLowerCase().includes("alto") || detail.toLowerCase().includes("sem") ? "danger" : "warn",
+  };
+}
+
+function expiringSoonPanel() {
+  const expiring = expiringAgreements();
+  if (!expiring.length) {
+    return `<div class="empty-state">Nenhum instrumento coletivo vence nos proximos 90 dias.</div>`;
+  }
+  return `<div class="list">${expiring.map((agreement) => indicatorItem(agreementIndicator(agreement, `${daysUntil(agreement.endsAt)} dias restantes`))).join("")}</div>`;
+}
+
+function totalsPanel(stats) {
+  const items = [
+    ["CCTs ao total", stats.total, "Total geral de convencoes cadastradas/importadas."],
+    ["CCTs vigentes", stats.active, "Convenções confirmadas como vigentes."],
+    ["CCTs vencidas", stats.expired, "Convenções com status vencida."],
+    ["Clientes sem convenção", stats.unlinkedClients, "Clientes sem vínculo validado com CCT."],
+  ];
+  return `<div class="summary-grid">${items.map(([label, value, description]) => `<div class="summary-item"><strong>${value}</strong><span>${label}</span><small>${description}</small></div>`).join("")}</div>`;
 }
 
 function alertCard(alert) {
@@ -443,7 +553,7 @@ function mapRows() {
   return state.clients.map((client) => {
     const link = state.links.find((item) => item.clientId === client.id);
     const agreement = state.agreements.find((item) => item.id === link?.agreementId);
-    const risk = !agreement ? "alto" : !link?.humanValidated || agreement.status === "em validacao" ? "medio" : "baixo";
+    const risk = !agreement || agreement.status === "vencida" ? "alto" : !link?.humanValidated || agreement.status === "em validacao" ? "medio" : "baixo";
     return { client, agreement, status: agreement?.status || "sem vinculo", risk };
   });
 }
@@ -465,6 +575,15 @@ function buildStats() {
     unlinkedClients: unlinked,
     riskyClients: unlinked + state.agreements.filter((item) => item.status === "em validacao").length,
   };
+}
+
+function expiringAgreements() {
+  return state.agreements
+    .filter((item) => {
+      const days = daysUntil(item.endsAt);
+      return days !== null && days >= 0 && days <= 90;
+    })
+    .sort((a, b) => daysUntil(a.endsAt) - daysUntil(b.endsAt));
 }
 
 function field(name, label, value = "", className = "", type = "text") {
