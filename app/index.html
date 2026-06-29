@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-DFpfn3WSAzZd5VUJkY0tkKrBtf3exhFv+XsL94/OPd8='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-pm5tcJOgEkj8OgWOd8OaCuzClYy3Mw4G2Lwr/V3gKrw='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -1733,12 +1733,10 @@
               <label>Valor de honorário<input id="aberturaValorHonorario" placeholder="R$ 0,00"></label>
               <label>Data de pagamento<select id="aberturaDataPagamento">
                 <option value="">Selecione o dia</option>
-                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
-                <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
-                <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
-                <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
-                <option>21</option><option>22</option><option>23</option><option>24</option><option>25</option>
-                <option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option>
+                <option>06</option>
+                <option>10</option>
+                <option>15</option>
+                <option>20</option>
               </select></label>
               <label>Razão Social<input id="aberturaRazao" placeholder="Nome empresarial pretendido"></label>
               <label>Nome fantasia<input id="aberturaFantasia" placeholder="Nome fantasia pretendido"></label>
@@ -1790,20 +1788,20 @@
                 <label class="check"><input type="checkbox" class="aberturaFormaAtuacao" value="Televendas">Televendas</label>
                 <label class="check"><input type="checkbox" class="aberturaFormaAtuacao" value="Máquinas Automáticas">Máquinas Automáticas</label>
               </div>
-              <label>Área total da edificação (m²)<input id="aberturaAreaTotal" placeholder="Ex.: 120"></label>
-              <label>Área utilizada (m²)<input id="aberturaAreaUtilizada" placeholder="Ex.: 80"></label>
-              <label>Atividade principal<input id="aberturaAtividadePrincipal" placeholder="Descrição da atividade principal"></label>
               <label>CNAE principal<input id="aberturaCnaePrincipal" placeholder="Ex.: 69.20-6-01"></label>
+              <label>Atividade principal<input id="aberturaAtividadePrincipal" placeholder="Preenchida automaticamente pelo CNAE"></label>
+              <label>Área total da edificação (m²)<input id="aberturaAreaTotal" placeholder="Ex.: 120,00 m²"></label>
+              <label>Área utilizada (m²)<input id="aberturaAreaUtilizada" placeholder="Ex.: 80,00 m²"></label>
               <label class="span-2">CNAEs secundários<textarea id="aberturaCnaesSecundarios" placeholder="Informe um CNAE por linha"></textarea></label>
               <label class="span-2">Objeto social<textarea id="aberturaObjetoSocial" placeholder="Descreva o objeto social"></textarea></label>
-              <label>Possui pró-labore?<select id="aberturaPossuiProlabore"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
-              <label class="conditional-field hidden" id="aberturaProlaboreWrap">Valor da retirada<input id="aberturaProlabore" placeholder="R$ 0,00"></label>
               <label>Contato e e-mail da empresa<input id="aberturaContatoEmail" placeholder="Telefone / e-mail"></label>
               <label>E-mail usuário externo Gestta<input id="aberturaEmailGestta" type="email" placeholder="email@dominio.com"></label>
               <label>Representante perante a Receita Federal<input id="aberturaRepresentanteReceita" placeholder="Nome do representante"></label>
               <label class="span-2">Dados do sócio</label>
               <div class="grid span-2">
                 <label>Nome do sócio<input id="aberturaSocioNome" placeholder="Nome completo"></label>
+                <label>CPF do sócio<input id="aberturaSocioCpf" placeholder="000.000.000-00" title="CPF é formatado e validado pelos dígitos verificadores. Não há consulta pública de dados pessoais."></label>
+                <label>Sócio administrador?<select id="aberturaSocioAdministrador"><option>Sim</option><option>Não</option></select></label>
                 <label>CEP residencial<div class="lookup-row"><input id="aberturaSocioCep" placeholder="00.000-000" title="CEP consulta a base pública ViaCEP/Correios para preencher o endereço residencial."><button class="btn mini" type="button" id="buscarAberturaSocioCep">Buscar CEP</button></div></label>
                 <label>Endereço residencial<input id="aberturaSocioEndereco" placeholder="Endereço residencial"></label>
                 <label>Estado civil<select id="aberturaSocioEstadoCivil"><option value="">Selecione</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option></select></label>
@@ -1815,9 +1813,11 @@
                   <option>Separação obrigatória de bens</option>
                   <option>Participação final nos aquestos</option>
                 </select></label>
+                <label>Possui pró-labore?<select id="aberturaPossuiProlabore"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
+                <label class="conditional-field hidden" id="aberturaProlaboreWrap">Valor da retirada<input id="aberturaProlabore" placeholder="R$ 0,00"></label>
                 <label>Profissão<input id="aberturaSocioProfissao" placeholder="Profissão"></label>
                 <label>Quotas<input id="aberturaSocioQuotas" placeholder="Ex.: 10.000 quotas"></label>
-                <label>Porcentagem<input id="aberturaSocioPercentual" placeholder="Ex.: 100%"></label>
+                <label>Porcentagem<input id="aberturaSocioPercentual" placeholder="Ex.: 100,00%"></label>
                 <label>Qualificação<select id="aberturaSocioQualificacao">
                   <option value="">Selecione</option>
                   <option>Sócio administrador</option>
@@ -1838,13 +1838,7 @@
               </div>
               <label>Solicitar alvará?<select id="aberturaSolicitarAlvara"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
               <label>Licitações?<select id="aberturaLicitacoes"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
-              <label class="span-2">Sócio</label>
-              <div class="grid span-2">
-                <label>Nome do sócio<input id="aberturaAdminNome" placeholder="Nome completo"></label>
-                <label>CPF do sócio<input id="aberturaAdminCpf" placeholder="000.000.000-00" title="CPF é formatado e validado pelos dígitos verificadores. Não há consulta pública de dados pessoais."></label>
-                <label>Sócio administrador?<select id="aberturaAdminSocioAdministrador"><option>Sim</option><option>Não</option></select></label>
-                <button class="btn mini" type="button" id="addAberturaAdmin">Adicionar sócio</button>
-              </div>
+              <button class="btn mini" type="button" id="addAberturaAdmin">Adicionar sócio</button>
               <div class="socios-list span-2" id="aberturaAdminsList"></div>
               <label class="span-2">Observação<textarea id="aberturaObservacao" placeholder="Informe observações da abertura, pendências, particularidades e orientações relevantes."></textarea></label>
             </div>
@@ -2650,6 +2644,22 @@
       "valorHonorariosAberto"
     ]);
 
+    const areaFieldIds = new Set([
+      "aberturaAreaTotal",
+      "aberturaAreaUtilizada",
+      "areaTotal",
+      "areaUtilizada"
+    ]);
+
+    const percentFieldIds = new Set([
+      "aberturaSocioPercentual",
+      "socioParticipacao"
+    ]);
+
+    const quotaFieldIds = new Set([
+      "aberturaSocioQuotas"
+    ]);
+
     function formatCurrencyInputValue(raw) {
       const text = String(raw || "").trim();
       if (!text) return "";
@@ -2664,6 +2674,49 @@
       const field = $(id);
       if (!field) return;
       field.value = formatCurrencyInputValue(field.value);
+      syncFieldFilled(field);
+    }
+
+    function numberFromLocaleText(raw) {
+      const text = String(raw || "").trim();
+      if (!text) return null;
+      const normalized = text
+        .replace(/[^\d,.-]/g, "")
+        .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+        .replace(",", ".");
+      const number = Number(normalized);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function formatDecimalUnitInputValue(raw, unit, decimals = 2) {
+      const number = numberFromLocaleText(raw);
+      if (number === null) return String(raw || "").trim();
+      return `${number.toLocaleString("pt-BR", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      })}${unit}`;
+    }
+
+    function formatAreaField(id) {
+      const field = $(id);
+      if (!field) return;
+      field.value = formatDecimalUnitInputValue(field.value, " m²");
+      syncFieldFilled(field);
+    }
+
+    function formatPercentField(id) {
+      const field = $(id);
+      if (!field) return;
+      field.value = formatDecimalUnitInputValue(field.value, "%");
+      syncFieldFilled(field);
+    }
+
+    function formatQuotaField(id) {
+      const field = $(id);
+      if (!field) return;
+      const number = numberFromLocaleText(field.value);
+      if (number === null) return;
+      field.value = `${Math.round(number).toLocaleString("pt-BR")} quotas`;
       syncFieldFilled(field);
     }
 
@@ -3654,7 +3707,24 @@
       return Array.from($(stepId).querySelectorAll("input:not([type='checkbox']), select, textarea"))
         .filter((control) => control.type !== "file" && control.type !== "hidden")
         .filter((control) => control.dataset.conditionalDisabled !== "true")
-        .filter((control) => !["aberturaAdminNome", "aberturaAdminCpf"].includes(control.id))
+        .filter((control) => ![
+          "aberturaSocioNome",
+          "aberturaSocioCpf",
+          "aberturaSocioAdministrador",
+          "aberturaSocioCep",
+          "aberturaSocioEndereco",
+          "aberturaSocioEstadoCivil",
+          "aberturaSocioRegimeCasamento",
+          "aberturaPossuiProlabore",
+          "aberturaProlabore",
+          "aberturaSocioProfissao",
+          "aberturaSocioQuotas",
+          "aberturaSocioPercentual",
+          "aberturaSocioQualificacao",
+          "aberturaCertificadoPf",
+          "aberturaPossuiSenhaGov",
+          "aberturaSenhaGov"
+        ].includes(control.id))
         .filter((control) => !control.closest(".hidden") && !control.closest(".workflow-hidden"))
         .filter((control) => !(isPessoaFisica() && control.closest(".pf-optional-field")));
     }
@@ -4114,7 +4184,7 @@
       const adminsComplete = aberturaAdministradores.length > 0;
       if (showMissing) {
         markRequiredFields("briefingAbertura");
-        ["aberturaAdminNome", "aberturaAdminCpf"].forEach((id) => setMissing($(id), !adminsComplete && value(id, "") === ""));
+        ["aberturaSocioNome", "aberturaSocioCpf", "aberturaSocioAdministrador", "aberturaSocioQuotas", "aberturaSocioPercentual"].forEach((id) => setMissing($(id), !adminsComplete && value(id, "") === ""));
         stepNote("briefingAbertura", fieldsComplete && adminsComplete ? "" : "Preencha todos os campos da ficha e adicione ao menos um sócio.");
       }
       return fieldsComplete && adminsComplete;
@@ -4292,6 +4362,12 @@
 
     function rowsFilled(items) {
       return rows(items.filter(([, text]) => isMeaningfulDocValue(text)));
+    }
+
+    function areaDocValue(text) {
+      const clean = String(text || "").trim();
+      if (!clean) return "";
+      return /m²|m2/i.test(clean) ? clean : `${clean} m²`;
     }
 
     function sectionTitle(number, title) {
@@ -4628,16 +4704,59 @@
 
     function aberturaAdministradoresDocumento() {
       const items = aberturaAdministradores.map((admin) => ({ ...admin }));
-      const nome = value("aberturaAdminNome", "");
-      const cpf = value("aberturaAdminCpf", "");
+      const nome = value("aberturaSocioNome", "");
+      const cpf = value("aberturaSocioCpf", "");
       if (nome || cpf) {
         items.push({
           nome: nome || "Não informado",
           cpf: cpf || "Não informado",
-          socioAdministrador: value("aberturaAdminSocioAdministrador", "")
+          socioAdministrador: value("aberturaSocioAdministrador", ""),
+          cep: value("aberturaSocioCep", ""),
+          endereco: value("aberturaSocioEndereco", ""),
+          estadoCivil: value("aberturaSocioEstadoCivil", ""),
+          regimeCasamento: value("aberturaSocioEstadoCivil", "") === "Casado(a)" ? value("aberturaSocioRegimeCasamento", "") : "Não aplicável",
+          possuiProlabore: value("aberturaPossuiProlabore", ""),
+          valorProlabore: value("aberturaPossuiProlabore", "") === "Sim" ? value("aberturaProlabore", "") : "",
+          profissao: value("aberturaSocioProfissao", ""),
+          quotas: value("aberturaSocioQuotas", ""),
+          percentual: value("aberturaSocioPercentual", ""),
+          qualificacao: value("aberturaSocioQualificacao", ""),
+          certificadoPf: value("aberturaCertificadoPf", ""),
+          possuiSenhaGov: value("aberturaPossuiSenhaGov", ""),
+          senhaGov: value("aberturaPossuiSenhaGov", "") === "Sim" ? value("aberturaSenhaGov", "") : ""
         });
       }
       return items;
+    }
+
+    function aberturaSocioRows(admin) {
+      return rowsFilled([
+        ["Nome do sócio", admin.nome],
+        ["CPF do sócio", admin.cpf],
+        ["Sócio administrador", admin.socioAdministrador],
+        ["CEP residencial", admin.cep],
+        ["Endereço residencial", admin.endereco],
+        ["Estado civil", admin.estadoCivil],
+        ["Regime de casamento", admin.regimeCasamento],
+        ["Possui pró-labore", admin.possuiProlabore],
+        ["Valor da retirada", admin.valorProlabore],
+        ["Profissão", admin.profissao],
+        ["Quotas", admin.quotas],
+        ["Porcentagem", admin.percentual],
+        ["Qualificação", admin.qualificacao],
+        ["Certificado digital Pessoa Física", admin.certificadoPf],
+        ["Possui senha gov", admin.possuiSenhaGov],
+        ["Senha gov", admin.senhaGov]
+      ]);
+    }
+
+    function aberturaSociosDetalhadosSection(title, startIndex) {
+      const administradoresDocumento = aberturaAdministradoresDocumento();
+      if (!administradoresDocumento.length) return "";
+      return administradoresDocumento.map((admin, index) => {
+        const socioRows = aberturaSocioRows(admin);
+        return `${sectionTitle(startIndex + index, `${title} ${index + 1}`)}<table class="doc-table">${socioRows}</table>`;
+      }).join("");
     }
 
     function briefingAberturaInicial() {
@@ -4659,32 +4778,16 @@
         ["Regime tributário", value("aberturaRegime", "")],
         ["Endereço empresa comercial", aberturaEnderecoCompleto()],
         ["Forma de atuação", selectedAberturaFormaAtuacao()],
-        ["Área total da edificação", areaTotal ? `${areaTotal} m²` : ""],
-        ["Área utilizada", areaUtilizada ? `${areaUtilizada} m²` : ""],
-        ["Atividade principal", value("aberturaAtividadePrincipal", "")],
         ["CNAE principal", value("aberturaCnaePrincipal", "")],
+        ["Atividade principal", value("aberturaAtividadePrincipal", "")],
+        ["Área total da edificação", areaDocValue(areaTotal)],
+        ["Área utilizada", areaDocValue(areaUtilizada)],
         ["CNAEs secundários", value("aberturaCnaesSecundarios", "")],
         ["Objeto social", value("aberturaObjetoSocial", "")],
         ["Capital Social", value("aberturaCapitalSocial", "")],
-        ["Possui pró-labore", value("aberturaPossuiProlabore", "")],
-        ["Valor da retirada", value("aberturaProlabore", "")],
         ["Contato e e-mail da empresa", value("aberturaContatoEmail", "")],
         ["E-mail usuário externo Gestta", value("aberturaEmailGestta", "")],
         ["Representante perante a Receita Federal", value("aberturaRepresentanteReceita", "")]
-      ]);
-      const socioRows = rowsFilled([
-        ["Nome do sócio", value("aberturaSocioNome", "")],
-        ["CEP residencial", value("aberturaSocioCep", "")],
-        ["Endereço residencial", value("aberturaSocioEndereco", "")],
-        ["Estado civil", value("aberturaSocioEstadoCivil", "")],
-        ["Regime de casamento", value("aberturaSocioRegimeCasamento", "")],
-        ["Profissão", value("aberturaSocioProfissao", "")],
-        ["Quotas", value("aberturaSocioQuotas", "")],
-        ["Porcentagem", value("aberturaSocioPercentual", "")],
-        ["Qualificação", value("aberturaSocioQualificacao", "")],
-        ["Certificado digital Pessoa Física", value("aberturaCertificadoPf", "")],
-        ["Possui senha gov", value("aberturaPossuiSenhaGov", "")],
-        ["Senha gov", value("aberturaSenhaGov", "")]
       ]);
       const docsRows = rowsFilled([
         ["Cópia de documentos", selectedAberturaDocumentos()],
@@ -4693,11 +4796,9 @@
       ]);
       const observacao = value("aberturaObservacao", "");
       let sectionIndex = 2;
-      const socioSection = socioRows ? `${sectionTitle(sectionIndex++, "Dados do sócio")}<table class="doc-table">${socioRows}</table>` : "";
       const administradoresDocumento = aberturaAdministradoresDocumento();
-      const adminsSection = administradoresDocumento.length
-        ? `${sectionTitle(sectionIndex++, "Sócios adicionados")}<table class="doc-table"><thead><tr><th>Sócio</th><th>CPF</th><th>Sócio administrador</th></tr></thead><tbody>${administradoresDocumento.map((admin) => `<tr><td>${admin.nome}</td><td>${admin.cpf}</td><td>${admin.socioAdministrador || "Não informado"}</td></tr>`).join("")}</tbody></table>`
-        : "";
+      const adminsSection = administradoresDocumento.length ? aberturaSociosDetalhadosSection("Dados do sócio", sectionIndex) : "";
+      if (administradoresDocumento.length) sectionIndex += administradoresDocumento.length;
       const docsSection = docsRows ? `${sectionTitle(sectionIndex++, "Documentos e processos")}<table class="doc-table">${docsRows}</table>` : "";
       return `
         ${openingDocHero()}
@@ -4705,7 +4806,6 @@
           ${observacao ? `<div class="notice">${observacao}</div>` : ""}
           ${sectionTitle(1, "Ficha Briefing Abertura")}
           <table class="doc-table">${aberturaRows}</table>
-          ${socioSection}
           ${adminsSection}
           ${docsSection}
         </div>
@@ -4727,10 +4827,10 @@
       aberturaAdministradoresDocumento().forEach((admin) => {
         rowsList.push(`
           <tr>
-            <td>${admin.nome}</td>
-            <td>${admin.cpf}</td>
-            <td>Sócio administrador: ${admin.socioAdministrador || "Não informado"}</td>
-            <td>Adicionado na ficha Briefing Abertura</td>
+            <td>${admin.nome}<br>${admin.profissao || ""}</td>
+            <td>${admin.cpf}<br>${admin.cep || ""}<br>${admin.endereco || ""}</td>
+            <td>${admin.estadoCivil || ""}<br>${admin.regimeCasamento || ""}<br>Sócio administrador: ${admin.socioAdministrador || "Não informado"}</td>
+            <td>Quotas: ${admin.quotas || "Não informado"}<br>Porcentagem: ${admin.percentual || "Não informado"}<br>Pró-labore: ${admin.possuiProlabore || "Não informado"} ${admin.valorProlabore || ""}<br>Qualificação: ${admin.qualificacao || "Não informado"}</td>
           </tr>
         `);
       });
@@ -4784,14 +4884,13 @@
             ["Regime tributário", value("aberturaRegime", value("regime"))],
             ["Endereço empresa comercial", aberturaEnderecoCompleto()],
             ["Forma de atuação", selectedAberturaFormaAtuacao()],
-            ["Área total da edificação", areaTotal ? `${areaTotal} m²` : ""],
-            ["Área utilizada", areaUtilizada ? `${areaUtilizada} m²` : ""],
-            ["Atividade principal", value("aberturaAtividadePrincipal", "")],
             ["CNAE principal", value("aberturaCnaePrincipal", "")],
+            ["Atividade principal", value("aberturaAtividadePrincipal", "")],
+            ["Área total da edificação", areaDocValue(areaTotal)],
+            ["Área utilizada", areaDocValue(areaUtilizada)],
             ["CNAEs secundários", value("aberturaCnaesSecundarios", "")],
             ["Objeto social", value("aberturaObjetoSocial", "")],
             ["Capital social", value("aberturaCapitalSocial", "")],
-            ["Pró-labore", `${value("aberturaPossuiProlabore", "")} ${value("aberturaPossuiProlabore", "") === "Sim" ? "- " + value("aberturaProlabore", "") : ""}`],
             ["Contato e e-mail da empresa", value("aberturaContatoEmail", "")],
             ["E-mail usuário externo Gestta", value("aberturaEmailGestta", "")],
             ["Representante perante a Receita Federal", value("aberturaRepresentanteReceita", "")],
@@ -5594,16 +5693,33 @@
               <button class="btn mini" type="button" data-remove-abertura-admin="${index}">Remover</button>
             </div>
           </div>
-          <div>${escapeHtml(admin.cpf)}<br>Sócio administrador: ${escapeHtml(admin.socioAdministrador || "Não informado")}</div>
+          <div>
+            ${escapeHtml(admin.cpf)}<br>
+            Sócio administrador: ${escapeHtml(admin.socioAdministrador || "Não informado")}<br>
+            Quotas: ${escapeHtml(admin.quotas || "Não informado")} | Porcentagem: ${escapeHtml(admin.percentual || "Não informado")}
+          </div>
         </div>
       `).join("");
       document.querySelectorAll("[data-edit-abertura-admin]").forEach((button) => {
         button.addEventListener("click", () => {
           const admin = aberturaAdministradores.splice(Number(button.dataset.editAberturaAdmin), 1)[0];
           if (!admin) return;
-          $("aberturaAdminNome").value = admin.nome || "";
-          $("aberturaAdminCpf").value = admin.cpf || "";
-          $("aberturaAdminSocioAdministrador").value = admin.socioAdministrador || "Sim";
+          $("aberturaSocioNome").value = admin.nome || "";
+          $("aberturaSocioCpf").value = admin.cpf || "";
+          $("aberturaSocioAdministrador").value = admin.socioAdministrador || "Sim";
+          $("aberturaSocioCep").value = admin.cep || "";
+          $("aberturaSocioEndereco").value = admin.endereco || "";
+          $("aberturaSocioEstadoCivil").value = admin.estadoCivil || "";
+          $("aberturaSocioRegimeCasamento").value = admin.regimeCasamento === "Não aplicável" ? "" : (admin.regimeCasamento || "");
+          $("aberturaPossuiProlabore").value = admin.possuiProlabore || "";
+          $("aberturaProlabore").value = admin.valorProlabore || "";
+          $("aberturaSocioProfissao").value = admin.profissao || "";
+          $("aberturaSocioQuotas").value = admin.quotas || "";
+          $("aberturaSocioPercentual").value = admin.percentual || "";
+          $("aberturaSocioQualificacao").value = admin.qualificacao || "";
+          $("aberturaCertificadoPf").value = admin.certificadoPf || "";
+          $("aberturaPossuiSenhaGov").value = admin.possuiSenhaGov || "";
+          $("aberturaSenhaGov").value = admin.senhaGov || "";
           renderAberturaAdministradores();
           syncAllFieldsFilled();
           updateFlowState();
@@ -5620,20 +5736,63 @@
     }
 
     $("addAberturaAdmin").addEventListener("click", () => {
-      const nome = value("aberturaAdminNome", "");
-      const cpf = value("aberturaAdminCpf", "");
-      const socioAdministrador = value("aberturaAdminSocioAdministrador", "Sim");
-      setMissing($("aberturaAdminNome"), !nome);
-      setMissing($("aberturaAdminCpf"), !cpf);
-      if (!nome || !cpf) {
-        stepNote("briefingAbertura", "Informe nome e CPF para adicionar o sócio.");
+      const requiredIds = [
+        "aberturaSocioNome",
+        "aberturaSocioCpf",
+        "aberturaSocioAdministrador",
+        "aberturaSocioQuotas",
+        "aberturaSocioPercentual"
+      ];
+      if (value("aberturaSocioEstadoCivil", "") === "Casado(a)") requiredIds.push("aberturaSocioRegimeCasamento");
+      if (value("aberturaPossuiProlabore", "") === "Sim") requiredIds.push("aberturaProlabore");
+      const missing = requiredIds.filter((id) => value(id, "") === "");
+      requiredIds.forEach((id) => setMissing($(id), missing.includes(id)));
+      if (missing.length) {
+        stepNote("briefingAbertura", "Informe nome, CPF, administrador, quotas e porcentagem para adicionar o sócio.");
         return;
       }
-      aberturaAdministradores.push({ nome, cpf: formatCpfDigits(cpf), socioAdministrador });
-      $("aberturaAdminNome").value = "";
-      $("aberturaAdminCpf").value = "";
-      $("aberturaAdminSocioAdministrador").value = "Sim";
+      aberturaAdministradores.push({
+        nome: value("aberturaSocioNome", ""),
+        cpf: formatCpfDigits(value("aberturaSocioCpf")),
+        socioAdministrador: value("aberturaSocioAdministrador", "Sim"),
+        cep: value("aberturaSocioCep", ""),
+        endereco: value("aberturaSocioEndereco", ""),
+        estadoCivil: value("aberturaSocioEstadoCivil", ""),
+        regimeCasamento: value("aberturaSocioEstadoCivil", "") === "Casado(a)" ? value("aberturaSocioRegimeCasamento", "") : "Não aplicável",
+        possuiProlabore: value("aberturaPossuiProlabore", ""),
+        valorProlabore: value("aberturaPossuiProlabore", "") === "Sim" ? value("aberturaProlabore", "") : "",
+        profissao: value("aberturaSocioProfissao", ""),
+        quotas: value("aberturaSocioQuotas", ""),
+        percentual: value("aberturaSocioPercentual", ""),
+        qualificacao: value("aberturaSocioQualificacao", ""),
+        certificadoPf: value("aberturaCertificadoPf", ""),
+        possuiSenhaGov: value("aberturaPossuiSenhaGov", ""),
+        senhaGov: value("aberturaPossuiSenhaGov", "") === "Sim" ? value("aberturaSenhaGov", "") : ""
+      });
+      [
+        "aberturaSocioNome",
+        "aberturaSocioCpf",
+        "aberturaSocioCep",
+        "aberturaSocioEndereco",
+        "aberturaSocioEstadoCivil",
+        "aberturaSocioRegimeCasamento",
+        "aberturaPossuiProlabore",
+        "aberturaProlabore",
+        "aberturaSocioProfissao",
+        "aberturaSocioQuotas",
+        "aberturaSocioPercentual",
+        "aberturaSocioQualificacao",
+        "aberturaCertificadoPf",
+        "aberturaPossuiSenhaGov",
+        "aberturaSenhaGov"
+      ].forEach((id) => {
+        const field = $(id);
+        if (field) field.value = "";
+      });
+      $("aberturaSocioAdministrador").value = "Sim";
+      $("aberturaSocioQualificacao").value = "";
       renderAberturaAdministradores();
+      syncAllFieldsFilled();
       updateFlowState();
     });
 
@@ -5681,9 +5840,12 @@
         if (field.id === "cep") normalizeCepField("cep");
         if (field.id === "aberturaCep") normalizeCepField("aberturaCep");
         if (field.id === "aberturaSocioCep") normalizeCepField("aberturaSocioCep");
-        if (field.id === "aberturaCnaePrincipal") field.value = formatCnaeDigits(field.value);
+        if (field.id === "aberturaCnaePrincipal") {
+          field.value = formatCnaeDigits(field.value);
+          if (onlyDigits(field.value).length === 7) autoPreencherCnaePrincipal("aberturaCnaePrincipal", "aberturaAtividadePrincipal");
+        }
         if (field.id === "cnaePrincipal" && onlyDigits(field.value).length <= 7) field.value = formatCnaeDigits(field.value);
-        if (field.id === "socioCpf" || field.id === "aberturaAdminCpf") normalizeCpfField(field.id);
+        if (field.id === "socioCpf" || field.id === "aberturaSocioCpf") normalizeCpfField(field.id);
         field.classList.remove("draft-missing");
         syncFieldFilled(field);
         updateFlowState();
@@ -5694,7 +5856,7 @@
         if (field.id === "cep") normalizeCepField("cep");
         if (field.id === "aberturaCep") normalizeCepField("aberturaCep");
         if (field.id === "aberturaSocioCep") normalizeCepField("aberturaSocioCep");
-        if (field.id === "socioCpf" || field.id === "aberturaAdminCpf") normalizeCpfField(field.id);
+        if (field.id === "socioCpf" || field.id === "aberturaSocioCpf") normalizeCpfField(field.id);
         field.classList.remove("draft-missing");
         syncFieldFilled(field);
         updateFlowState();
@@ -5707,6 +5869,9 @@
       });
       field.addEventListener("blur", () => {
         if (currencyFieldIds.has(field.id)) formatCurrencyField(field.id);
+        if (areaFieldIds.has(field.id)) formatAreaField(field.id);
+        if (percentFieldIds.has(field.id)) formatPercentField(field.id);
+        if (quotaFieldIds.has(field.id)) formatQuotaField(field.id);
       });
     });
 
@@ -6340,13 +6505,15 @@
       $("aberturaEmailGestta").value = "usuario@orteconte.com.br";
       $("aberturaRepresentanteReceita").value = "Administrador exemplo";
       $("aberturaSocioNome").value = "Administrador exemplo";
+      $("aberturaSocioCpf").value = "000.000.000-00";
+      $("aberturaSocioAdministrador").value = "Sim";
       $("aberturaSocioCep").value = "36.900-353";
       $("aberturaSocioEndereco").value = "Rua Serafim Tibúrcio, 120 A - Bairro Coqueiro - Manhuaçu/MG";
       $("aberturaSocioEstadoCivil").value = "Casado(a)";
       $("aberturaSocioRegimeCasamento").value = "Comunhão parcial de bens";
       $("aberturaSocioProfissao").value = "Contador";
       $("aberturaSocioQuotas").value = "10.000 quotas";
-      $("aberturaSocioPercentual").value = "100%";
+      $("aberturaSocioPercentual").value = "100,00%";
       $("aberturaSocioQualificacao").value = "Sócio administrador";
       $("aberturaCertificadoPf").value = "Sim";
       $("aberturaPossuiSenhaGov").value = "Sim";
@@ -6360,7 +6527,24 @@
         item.checked = ["Documentos pessoais", "IPTU do endereço comercial", "Contrato de locação ou documento de posse do imóvel", "Comprovante de endereço comercial e residencial"].includes(item.value);
       });
       $("aberturaObservacao").value = "Ficha inicial para abertura. Após geração, editar pelo histórico para complementar sócios, financeiro, informativo, setores, processos e documentos.";
-      aberturaAdministradores.splice(0, aberturaAdministradores.length, { nome: "Administrador exemplo", cpf: "000.000.000-00", socioAdministrador: "Sim" });
+      aberturaAdministradores.splice(0, aberturaAdministradores.length, {
+        nome: "Administrador exemplo",
+        cpf: "000.000.000-00",
+        socioAdministrador: "Sim",
+        cep: "36.900-353",
+        endereco: "Rua Serafim Tibúrcio, 120 A - Bairro Coqueiro - Manhuaçu/MG",
+        estadoCivil: "Casado(a)",
+        regimeCasamento: "Comunhão parcial de bens",
+        possuiProlabore: "Sim",
+        valorProlabore: "R$ 1.412,00",
+        profissao: "Contador",
+        quotas: "10.000 quotas",
+        percentual: "100,00%",
+        qualificacao: "Sócio administrador",
+        certificadoPf: "Sim",
+        possuiSenhaGov: "Sim",
+        senhaGov: "Informar acesso GOV"
+      });
       renderAberturaAdministradores();
       updateFlowState();
     }
