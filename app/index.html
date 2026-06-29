@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-pm5tcJOgEkj8OgWOd8OaCuzClYy3Mw4G2Lwr/V3gKrw='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-Er/wlg15hrQN6XtLB6GzCSM5gz1FkTPn2ARlPWaz0a8='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -1670,8 +1670,8 @@
           <button class="btn draft workflow-hidden" type="button" id="saveDraft">Salvar Rascunho</button>
           <button class="btn" type="button" id="fillExample">Preencher exemplo</button>
           <button class="btn danger" type="button" id="clearForm">Limpar</button>
-          <button class="btn primary" type="button" id="printDoc">Gerar PDF</button>
-          <button class="btn primary" type="button" id="generateWord">Gerar Word</button>
+          <button class="btn primary" type="button" id="printDoc">Imprimir PDF</button>
+          <button class="btn primary" type="button" id="generateWord">Imprimir Word</button>
           <button class="btn" type="button" id="adminUsersButton" hidden>Usuários</button>
           <span class="action-divider" aria-hidden="true"></span>
           <button class="btn danger" type="button" id="logoutButton">Sair</button>
@@ -6051,7 +6051,7 @@
             <div class="pdf-shell">
               <div class="pdf-toolbar">
                 <div class="pdf-print-tip">Para remover data, endereço, about:blank e paginação automática, desmarque <strong>Cabeçalhos e rodapés</strong> na janela de impressão.</div>
-                <button class="btn primary" id="pdfPrintButton" type="button">Gerar PDF</button>
+                <button class="btn primary" id="pdfPrintButton" type="button">Imprimir PDF</button>
               </div>
               <article class="document">${contentHtml}</article>
             </div>
@@ -6130,8 +6130,6 @@
     async function generateWordDocument() {
       if (isBriefingAberturaWorkflow()) {
         syncOpeningBriefingToMainFields();
-        currentDoc = "briefing";
-        document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.doc === "briefing"));
       }
       render();
       await saveCurrentDocumentToHistory();
@@ -6183,8 +6181,6 @@
     $("printDoc").addEventListener("click", async () => {
       if (isBriefingAberturaWorkflow()) {
         syncOpeningBriefingToMainFields();
-        currentDoc = "briefing";
-        document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.doc === "briefing"));
         render();
         await saveCurrentDocumentToHistory();
         openPdfDocument();
