@@ -239,7 +239,8 @@ function parsePdfEntry(segment) {
   }
   const [, code, description, first, second] = match;
   if (second === undefined) return { code, description: description.trim(), reference: null, amount: parseBrNumber(first) };
-  return { code, description: description.trim(), reference: parseBrNumber(first), amount: parseBrNumber(second) };
+  const event = { kind: referenceKind(code, description) };
+  return { code, description: description.trim(), reference: parseReferenceNumber(first, event), amount: parseBrNumber(second) };
 }
 
 function pdfCategory(x) {
@@ -266,7 +267,8 @@ function parseSheetReport(buffer, fileName) {
     const text = String(cell).trim();
     if (/\d{3}\.\d{3}\s*-/.test(text)) {
       const [code, ...rest] = text.split("-");
-      events.push({ column, code: code.trim(), description: rest.join("-").trim().replace(/\.$/, "") });
+      const description = rest.join("-").trim().replace(/\.$/, "");
+      events.push({ column, code: code.trim(), description, kind: referenceKind(code, description) });
     }
   });
 
@@ -283,7 +285,7 @@ function parseSheetReport(buffer, fileName) {
     for (const event of events) {
       if (isDiscountEvent(event.code, event.description)) continue;
       const amount = parseBrNumber(row[event.column]);
-      const reference = parseBrNumber(row[event.column + 2]);
+      const reference = parseReferenceNumber(row[event.column + 2], event);
       if (amount === null && reference === null) continue;
       launches.push({
         source: "Planilha",
@@ -360,7 +362,7 @@ function simpleSheetEvent(value) {
   if (!header || header.includes("QTD COLUNAS") || header.includes("LAYOUT") || header.includes("CODCONTINTERM")) return null;
   if (header.includes("HE 100")) return { code: "613", description: "Horas extras 100%", kind: "reference" };
   if (header.includes("FALTAS") && header.includes("DIAS")) return { code: "703", description: "Faltas nao justificadas dias", kind: "absence-days" };
-  if (header.includes("FALTAS") && header.includes("HORAS")) return { code: "723", description: "Faltas nao justificadas horas", kind: "reference" };
+  if (header.includes("FALTAS") && header.includes("HORAS")) return { code: "723", description: "Faltas nao justificadas horas", kind: "reference-hours" };
   if (header === "VALE") return { code: "872", description: "Vale", kind: "amount" };
   return null;
 }
@@ -374,7 +376,7 @@ function parseSimpleSheetValue(value, event) {
     const amount = parseBrNumber(value);
     return amount === null ? null : { reference: null, amount };
   }
-  const reference = parseBrNumber(value);
+  const reference = parseReferenceNumber(value, event);
   return reference === null ? null : { reference, amount: null };
 }
 
@@ -565,6 +567,56 @@ function isDiscountEvent(code, description) {
 function isIgnoredPayrollEvent(code, description) {
   const words = normalize(`${code} ${description}`).split(" ");
   return ["INSS", "IRRF"].some((term) => words.includes(term));
+}
+
+function referenceKind(code, description) {
+  const text = normalize(`${code} ${description}`);
+  if (text.includes("FALTAS") && text.includes("HORAS")) return "reference-hours";
+  return "reference";
+}
+
+function parseReferenceNumber(value, event) {
+  if (event?.kind === "reference-hours") return parseHourReference(value);
+  return parseBrNumber(value);
+}
+
+function parseHourReference(value) {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "number") {
+    if (Number.isNaN(value)) return null;
+    if (Number.isInteger(value) && Math.abs(value) >= 100) return signedNumber(parseCompactHourReference(value), value < 0);
+    return value;
+  }
+
+  const text = String(value).trim();
+  if (!text) return null;
+  const negative = text.startsWith("-") || (text.startsWith("(") && text.endsWith(")"));
+  const cleaned = text.replace(/[()]/g, "").replace(/^-/, "").trim();
+  const separated = cleaned.match(/^(\d{1,3})[.,:](\d{2})$/);
+  if (separated) {
+    return signedNumber(Number(`${Number(separated[1])}.${separated[2]}`), negative);
+  }
+
+  const digits = cleaned.replace(/\D/g, "");
+  if (digits.length >= 3 && digits.length <= 5) {
+    const compact = parseCompactHourReference(Number(digits));
+    return compact === null ? null : signedNumber(compact, negative);
+  }
+
+  return parseBrNumber(value);
+}
+
+function parseCompactHourReference(value) {
+  const digits = String(Math.abs(value));
+  if (digits.length < 3) return value;
+  const minutes = Number(digits.slice(-2));
+  const hours = Number(digits.slice(0, -2));
+  if (!Number.isFinite(hours) || minutes >= 60) return value;
+  return Number(`${hours}.${String(minutes).padStart(2, "0")}`);
+}
+
+function signedNumber(value, negative) {
+  return negative ? -value : value;
 }
 
 function parseBrNumber(value) {
