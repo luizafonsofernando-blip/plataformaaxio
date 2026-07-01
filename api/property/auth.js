@@ -2,6 +2,7 @@ import crypto from "crypto";
 
 const ALL_ENTITIES = ["ent-cpf-1", "ent-cnpj-1", "ent-cnpj-2"];
 const ALL_MODULES = ["dashboard", "properties", "people", "contracts", "finance", "distribution", "inspections", "reports"];
+const COOKIE_NAME = "property_session";
 
 const accounts = [
   {
@@ -70,6 +71,24 @@ async function supabaseSession(username, password) {
   };
 }
 
+function sessionSecret() {
+  return process.env.PROPERTY_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || accounts.map((account) => account.hash).join(".");
+}
+
+function signSession(session) {
+  const payload = Buffer.from(JSON.stringify({ ...session, exp: Math.floor(Date.now() / 1000) + 8 * 60 * 60 })).toString("base64url");
+  const signature = crypto.createHmac("sha256", sessionSecret()).update(payload).digest("base64url");
+  return `${payload}.${signature}`;
+}
+
+function setSessionCookie(response, session) {
+  const secure = process.env.NODE_ENV === "production" ? " Secure;" : "";
+  response.setHeader(
+    "Set-Cookie",
+    `${COOKIE_NAME}=${signSession(session)}; HttpOnly;${secure} SameSite=Lax; Path=/api/property; Max-Age=28800`
+  );
+}
+
 function verifyPassword(password, account) {
   const candidate = crypto.pbkdf2Sync(String(password ?? ""), account.salt, 150000, 32, "sha256");
   const expected = Buffer.from(account.hash, "hex");
@@ -91,6 +110,7 @@ export default async function handler(request, response) {
     return null;
   });
   if (supabase) {
+    setSessionCookie(response, supabase);
     return response.status(200).json({ session: supabase });
   }
 
@@ -100,12 +120,12 @@ export default async function handler(request, response) {
     return response.status(401).json({ message: "Usuario ou senha invalidos." });
   }
 
-  return response.status(200).json({
-    session: {
-      name: account.name,
-      role: account.role,
-      allowedEntityIds: account.allowedEntityIds,
-      allowedModules: account.allowedModules
-    }
-  });
+  const session = {
+    name: account.name,
+    role: account.role,
+    allowedEntityIds: account.allowedEntityIds,
+    allowedModules: account.allowedModules
+  };
+  setSessionCookie(response, session);
+  return response.status(200).json({ session });
 }
