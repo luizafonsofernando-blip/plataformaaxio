@@ -311,6 +311,11 @@ button:disabled {
   box-shadow: 0 10px 24px rgba(30, 136, 255, 0.22);
 }
 
+.module-icon-review {
+  background: linear-gradient(135deg, #12386f 0%, #83e0b3 100%);
+  box-shadow: 0 10px 24px rgba(131, 224, 179, 0.18);
+}
+
 .module-name {
   display: grid;
   gap: 6px;
