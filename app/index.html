@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-qxgu6jXgnLOTB0OhCJJ3e+23z9WAM0hjw8DwkzfY46g='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-ylT1VDzxB/itd/Zwl+IllzDneta1nbPyq1v2IAq4jvA='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -2121,6 +2121,8 @@
     const $ = (id) => document.getElementById(id);
     const socios = [];
     const aberturaAdministradores = [];
+    let editingSocioIndex = null;
+    let editingAberturaAdminIndex = null;
     let currentDoc = "briefing";
     let aberturaCompletaLiberada = false;
     let currentDocumentSerial = "";
@@ -5586,6 +5588,7 @@
         return;
       }
       const state = item.formState;
+      resetSocioEditState();
       aberturaCompletaLiberada = true;
       document.querySelectorAll("input, select, textarea").forEach((field) => {
         if (!field.id || field.type === "file") return;
@@ -5642,6 +5645,13 @@
       }
     }
 
+    function resetSocioEditState() {
+      editingSocioIndex = null;
+      editingAberturaAdminIndex = null;
+      if ($("addSocio")) $("addSocio").textContent = "Adicionar sócio";
+      if ($("addAberturaAdmin")) $("addAberturaAdmin").textContent = "Adicionar sócio";
+    }
+
     function renderSocios() {
       $("sociosList").innerHTML = socios.map((socio, index) => `
         <div class="socio-card">
@@ -5657,8 +5667,10 @@
       `).join("");
       document.querySelectorAll("[data-edit]").forEach((button) => {
         button.addEventListener("click", () => {
-          const socio = socios.splice(Number(button.dataset.edit), 1)[0];
+          const editIndex = Number(button.dataset.edit);
+          const socio = socios[editIndex];
           if (!socio) return;
+          editingSocioIndex = editIndex;
           $("socioNome").value = socio.nome || "";
           $("socioCpf").value = socio.cpf || "";
           $("socioParticipacao").value = socio.participacao || "";
@@ -5673,7 +5685,7 @@
           $("socioQualificacao").value = socio.qualificacao || "Sócio administrador";
           if ($("socioMae")) $("socioMae").value = socio.mae || "";
           if ($("socioTitulo")) $("socioTitulo").value = socio.titulo || "";
-          renderSocios();
+          $("addSocio").textContent = "Salvar sócio";
           syncAllFieldsFilled();
           updateFlowState();
           $("socios").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -5681,7 +5693,14 @@
       });
       document.querySelectorAll("[data-remove]").forEach((button) => {
         button.addEventListener("click", () => {
-          socios.splice(Number(button.dataset.remove), 1);
+          const removeIndex = Number(button.dataset.remove);
+          socios.splice(removeIndex, 1);
+          if (editingSocioIndex === removeIndex) {
+            editingSocioIndex = null;
+            $("addSocio").textContent = "Adicionar sócio";
+          } else if (editingSocioIndex !== null && removeIndex < editingSocioIndex) {
+            editingSocioIndex -= 1;
+          }
           renderSocios();
           updateFlowState();
         });
@@ -5709,8 +5728,10 @@
       `).join("");
       document.querySelectorAll("[data-edit-abertura-admin]").forEach((button) => {
         button.addEventListener("click", () => {
-          const admin = aberturaAdministradores.splice(Number(button.dataset.editAberturaAdmin), 1)[0];
+          const editIndex = Number(button.dataset.editAberturaAdmin);
+          const admin = aberturaAdministradores[editIndex];
           if (!admin) return;
+          editingAberturaAdminIndex = editIndex;
           $("aberturaSocioNome").value = admin.nome || "";
           $("aberturaSocioCpf").value = admin.cpf || "";
           $("aberturaSocioAdministrador").value = admin.socioAdministrador || "Sim";
@@ -5727,7 +5748,7 @@
           $("aberturaCertificadoPf").value = admin.certificadoPf || "";
           $("aberturaPossuiSenhaGov").value = admin.possuiSenhaGov || "";
           $("aberturaSenhaGov").value = admin.senhaGov || "";
-          renderAberturaAdministradores();
+          $("addAberturaAdmin").textContent = "Salvar sócio";
           syncAllFieldsFilled();
           updateFlowState();
           $("briefingAbertura").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -5735,7 +5756,14 @@
       });
       document.querySelectorAll("[data-remove-abertura-admin]").forEach((button) => {
         button.addEventListener("click", () => {
-          aberturaAdministradores.splice(Number(button.dataset.removeAberturaAdmin), 1);
+          const removeIndex = Number(button.dataset.removeAberturaAdmin);
+          aberturaAdministradores.splice(removeIndex, 1);
+          if (editingAberturaAdminIndex === removeIndex) {
+            editingAberturaAdminIndex = null;
+            $("addAberturaAdmin").textContent = "Adicionar sócio";
+          } else if (editingAberturaAdminIndex !== null && removeIndex < editingAberturaAdminIndex) {
+            editingAberturaAdminIndex -= 1;
+          }
           renderAberturaAdministradores();
           updateFlowState();
         });
@@ -5758,7 +5786,7 @@
         stepNote("briefingAbertura", "Informe nome, CPF, administrador, quotas e porcentagem para adicionar o sócio.");
         return;
       }
-      aberturaAdministradores.push({
+      const adminData = {
         nome: value("aberturaSocioNome", ""),
         cpf: formatCpfDigits(value("aberturaSocioCpf")),
         socioAdministrador: value("aberturaSocioAdministrador", "Sim"),
@@ -5775,7 +5803,13 @@
         certificadoPf: value("aberturaCertificadoPf", ""),
         possuiSenhaGov: value("aberturaPossuiSenhaGov", ""),
         senhaGov: value("aberturaPossuiSenhaGov", "") === "Sim" ? value("aberturaSenhaGov", "") : ""
-      });
+      };
+      if (editingAberturaAdminIndex !== null && aberturaAdministradores[editingAberturaAdminIndex]) {
+        aberturaAdministradores[editingAberturaAdminIndex] = adminData;
+      } else {
+        aberturaAdministradores.push(adminData);
+      }
+      editingAberturaAdminIndex = null;
       [
         "aberturaSocioNome",
         "aberturaSocioCpf",
@@ -5798,6 +5832,7 @@
       });
       $("aberturaSocioAdministrador").value = "Sim";
       $("aberturaSocioQualificacao").value = "";
+      $("addAberturaAdmin").textContent = "Adicionar sócio";
       renderAberturaAdministradores();
       syncAllFieldsFilled();
       updateFlowState();
@@ -5814,7 +5849,7 @@
         return;
       }
       const nome = value("socioNome", "");
-      socios.push({
+      const socioData = {
         nome,
         cpf: formatCpfDigits(value("socioCpf")),
         participacao: value("socioParticipacao"),
@@ -5829,13 +5864,20 @@
         qualificacao: value("socioQualificacao"),
         mae: isBaixaWorkflow() ? "" : value("socioMae"),
         titulo: isBaixaWorkflow() ? "" : value("socioTitulo")
-      });
+      };
+      if (editingSocioIndex !== null && socios[editingSocioIndex]) {
+        socios[editingSocioIndex] = socioData;
+      } else {
+        socios.push(socioData);
+      }
+      editingSocioIndex = null;
       ["socioNome", "socioCpf", "socioParticipacao", "socioProlabore", "socioValorProlabore", "socioNascimento", "socioEmail", "socioTelefone", "socioSexo", "socioEstadoCivil", "socioRegimeCasamento", "socioMae", "socioTitulo"].forEach((id) => {
         const field = $(id);
         if (field) field.value = "";
       });
       $("socioQualificacao").value = "Sócio administrador";
       if ($("socioProlabore")) $("socioProlabore").value = "Sim";
+      $("addSocio").textContent = "Adicionar sócio";
       renderSocios();
       updateFlowState();
     });
@@ -6287,6 +6329,7 @@
       document.querySelectorAll(".step-note").forEach((note) => note.classList.remove("visible"));
       socios.splice(0, socios.length);
       aberturaAdministradores.splice(0, aberturaAdministradores.length);
+      resetSocioEditState();
       aberturaCompletaLiberada = false;
       currentDocumentSerial = "";
       activeDraftId = "";
@@ -6319,6 +6362,7 @@
       document.querySelectorAll(".step-note").forEach((note) => note.classList.remove("visible"));
       socios.splice(0, socios.length);
       aberturaAdministradores.splice(0, aberturaAdministradores.length);
+      resetSocioEditState();
       aberturaCompletaLiberada = false;
       currentDocumentSerial = "";
       activeDraftId = "";
