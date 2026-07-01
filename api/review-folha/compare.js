@@ -8,7 +8,7 @@ export const config = {
   },
 };
 
-const TOLERANCE = 0.01;
+const DECIMAL_SCALE = 100;
 
 export default async function handler(request, response) {
   if (request.method !== "POST") {
@@ -394,20 +394,20 @@ function compareReports(pdfLaunches, sheetLaunches, pdfPeople, sheetPeople) {
 
     if (!pdfItem) {
       criterion = sheetItem.has_reference && !sheetItem.has_amount ? "quantidade" : "valor";
-      amountDiff = round2(0 - (sheetItem.has_amount ? sheetItem.amount : 0));
-      refDiff = round2(0 - (sheetItem.has_reference ? sheetItem.reference : 0));
+      amountDiff = decimalDiff(0, sheetItem.has_amount ? sheetItem.amount : 0);
+      refDiff = decimalDiff(0, sheetItem.has_reference ? sheetItem.reference : 0);
       status = "Rubrica somente na planilha";
     } else if (!sheetItem) {
       criterion = pdfItem.has_reference && !pdfItem.has_amount ? "quantidade" : "valor";
-      amountDiff = round2(pdfItem.has_amount ? pdfItem.amount : 0);
-      refDiff = round2(pdfItem.has_reference ? pdfItem.reference : 0);
+      amountDiff = decimalDiff(pdfItem.has_amount ? pdfItem.amount : 0, 0);
+      refDiff = decimalDiff(pdfItem.has_reference ? pdfItem.reference : 0, 0);
       status = "Rubrica somente no PDF";
     } else {
-      amountDiff = round2((pdfItem.has_amount ? pdfItem.amount : 0) - (sheetItem.has_amount ? sheetItem.amount : 0));
-      refDiff = round2((pdfItem.has_reference ? pdfItem.reference : 0) - (sheetItem.has_reference ? sheetItem.reference : 0));
+      amountDiff = decimalDiff(pdfItem.has_amount ? pdfItem.amount : 0, sheetItem.has_amount ? sheetItem.amount : 0);
+      refDiff = decimalDiff(pdfItem.has_reference ? pdfItem.reference : 0, sheetItem.has_reference ? sheetItem.reference : 0);
       criterion = sheetItem.has_reference && !sheetItem.has_amount ? "quantidade" : "valor";
       const relevantDiff = criterion === "quantidade" ? refDiff : amountDiff;
-      if (Math.abs(relevantDiff) <= TOLERANCE) continue;
+      if (toScaledInteger(relevantDiff) === 0) continue;
       status = criterion === "quantidade" ? "Quantidade divergente" : "Valor divergente";
     }
 
@@ -461,7 +461,9 @@ function summarize(launches) {
       codes: new Set(),
       descriptions: new Set(),
       amount: 0,
+      amount_scaled: 0,
       reference: 0,
+      reference_scaled: 0,
       has_amount: false,
       has_reference: false,
       rows: new Set(),
@@ -469,11 +471,11 @@ function summarize(launches) {
     record.codes.add(item.code);
     record.descriptions.add(item.description);
     if (item.amount !== null) {
-      record.amount += item.amount;
+      record.amount_scaled += toScaledInteger(item.amount);
       record.has_amount = true;
     }
     if (item.reference !== null) {
-      record.reference += item.reference;
+      record.reference_scaled += toScaledInteger(item.reference);
       record.has_reference = true;
     }
     record.rows.add(item.row_info);
@@ -481,8 +483,10 @@ function summarize(launches) {
   }
 
   for (const record of grouped.values()) {
-    record.amount = round2(record.amount);
-    record.reference = round2(record.reference);
+    record.amount = record.amount_scaled / DECIMAL_SCALE;
+    record.reference = record.reference_scaled / DECIMAL_SCALE;
+    delete record.amount_scaled;
+    delete record.reference_scaled;
     record.codes = [...record.codes].sort().join(", ");
     record.descriptions = [...record.descriptions].sort().join(" / ");
     record.rows = [...record.rows].sort().join(", ");
@@ -495,7 +499,7 @@ function buildSalaryFloorDifferences(salaries, monthlyFloor, hourlyFloor) {
   const differences = [];
   for (const salary of salaries.values()) {
     const floor = salary.salary_type === "horista" ? hourlyFloor : monthlyFloor;
-    if (floor === null || salary.salary + TOLERANCE >= floor) continue;
+    if (floor === null || toScaledInteger(salary.salary) >= toScaledInteger(floor)) continue;
     differences.push({
       status: "Piso salarial abaixo do informado",
       employee: salary.employee,
@@ -509,7 +513,7 @@ function buildSalaryFloorDifferences(salaries, monthlyFloor, hourlyFloor) {
       sheet_ref: null,
       pdf_amount: salary.salary,
       sheet_amount: floor,
-      amount_diff: round2(salary.salary - floor),
+      amount_diff: decimalDiff(salary.salary, floor),
       ref_diff: 0,
       criterion: "valor",
       pdf_rows: salary.row_info,
@@ -580,6 +584,23 @@ function parseBrNumber(value) {
 
 function round2(value) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+function decimalDiff(left, right) {
+  return (toScaledInteger(left) - toScaledInteger(right)) / DECIMAL_SCALE;
+}
+
+function toScaledInteger(value) {
+  if (value === null || value === undefined || value === "") return 0;
+  const text = String(value).replace(",", ".").trim();
+  if (!text) return 0;
+  const negative = text.startsWith("-");
+  const unsigned = negative ? text.slice(1) : text;
+  const [integerPart = "0", decimalPart = ""] = unsigned.split(".");
+  const integer = Number(integerPart.replace(/\D/g, "") || 0);
+  const decimals = `${decimalPart.replace(/\D/g, "")}00`.slice(0, 2);
+  const scaled = integer * DECIMAL_SCALE + Number(decimals || 0);
+  return negative ? -scaled : scaled;
 }
 
 function sortPeople(a, b) {
