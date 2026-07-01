@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
 const ALL_ENTITIES = ["ent-cpf-1", "ent-cnpj-1", "ent-cnpj-2"];
-const ALL_MODULES = ["dashboard", "properties", "people", "contracts", "finance", "distribution", "inspections", "reports"];
+const ALL_MODULES = ["dashboard", "properties", "people", "contracts", "finance", "reports", "expenses", "profits"];
 const COOKIE_NAME = "property_session";
 
 const accounts = [
@@ -21,7 +21,7 @@ const accounts = [
     salt: "axion-property-user-v1",
     hash: "77e4d1425750da9ae127ebd4f10dd65cdd2b9545c8dbcfe295be6ee216a4e9b1",
     allowedEntityIds: ALL_ENTITIES,
-    allowedModules: ["dashboard", "properties", "people", "contracts", "finance"]
+    allowedModules: ["dashboard", "properties", "people", "contracts", "finance", "reports"]
   }
 ];
 
@@ -67,7 +67,7 @@ async function supabaseSession(username, password) {
     name: data.user?.user_metadata?.display_name || data.user?.user_metadata?.username || (role === "admin" ? "Gerente" : "User"),
     role,
     allowedEntityIds: ALL_ENTITIES,
-    allowedModules: role === "admin" ? ALL_MODULES : ["dashboard", "properties", "people", "contracts", "finance"]
+    allowedModules: role === "admin" ? ALL_MODULES : ["dashboard", "properties", "people", "contracts", "finance", "reports"]
   };
 }
 
