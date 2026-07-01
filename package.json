@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "formidable": "^3.5.4",
-    "pdfjs-dist": "^6.1.200"
+    "pdfjs-dist": "^6.1.200",
+    "xlsx": "^0.18.5"
   }
 }

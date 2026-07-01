@@ -15,104 +15,7 @@
       rel="stylesheet"
     >
     <link rel="stylesheet" href="../styles.css">
-    <style>
-      body {
-        min-height: 100vh;
-      }
-
-      .module-page {
-        display: grid;
-        min-height: 100vh;
-        grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
-        align-items: center;
-        gap: clamp(38px, 7vw, 92px);
-        padding: 112px max(24px, calc((100vw - 1120px) / 2)) 64px;
-      }
-
-      .module-page::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        z-index: -2;
-        background:
-          radial-gradient(circle at 72% 34%, rgba(131, 224, 179, 0.2), transparent 28rem),
-          radial-gradient(circle at 18% 24%, rgba(30, 136, 255, 0.24), transparent 30rem),
-          linear-gradient(180deg, #020107 0%, #071d49 62%, #020712 100%);
-      }
-
-      .module-copy {
-        max-width: 720px;
-      }
-
-      .module-copy h1 {
-        width: auto;
-        max-width: 780px;
-        font-family: "Montserrat", sans-serif;
-        font-size: clamp(3.2rem, 8vw, 6.8rem);
-        line-height: 0.95;
-      }
-
-      .module-copy p {
-        max-width: 650px;
-        color: var(--ice);
-        font-size: clamp(1rem, 2vw, 1.18rem);
-        line-height: 1.75;
-      }
-
-      .module-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 14px;
-        margin-top: 30px;
-      }
-
-      .module-panel {
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(2, 7, 18, 0.7);
-        box-shadow: 0 34px 100px rgba(0, 0, 0, 0.34);
-        backdrop-filter: blur(16px);
-      }
-
-      .module-panel img {
-        display: block;
-        width: 100%;
-        aspect-ratio: 1.25;
-        object-fit: cover;
-        border-bottom: 1px solid var(--line);
-        border-radius: 8px 8px 0 0;
-      }
-
-      .module-panel-content {
-        padding: 24px;
-      }
-
-      .module-panel-content h2 {
-        font-size: 1.45rem;
-      }
-
-      .module-panel-content ul {
-        display: grid;
-        gap: 12px;
-        margin: 20px 0 0;
-        padding: 0;
-        color: var(--muted);
-        list-style: none;
-      }
-
-      .module-panel-content li {
-        padding-left: 18px;
-        border-left: 3px solid #83e0b3;
-        line-height: 1.5;
-      }
-
-      @media (max-width: 860px) {
-        .module-page {
-          grid-template-columns: 1fr;
-          padding-top: 128px;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="review-folha.css">
   </head>
   <body>
     <header class="site-header">
@@ -126,32 +29,89 @@
       <a class="header-action" href="../">Voltar</a>
     </header>
 
-    <main class="module-page">
-      <section class="module-copy">
-        <p class="eyebrow">Modulo Axion</p>
-        <h1>Review Folha</h1>
-        <p>
-          Sistema para confronto de folha de pagamento, leitura de arquivos,
-          identificacao de divergencias e emissao de relatorios de apoio para
-          revisao operacional.
-        </p>
-        <div class="module-actions">
-          <a class="primary-button" href="review-folha.zip" download>Baixar modulo</a>
-          <a class="ghost-button" href="../">Ver outros modulos</a>
+    <main class="review-app">
+      <section class="review-hero">
+        <div>
+          <p class="eyebrow">Modulo Axion</p>
+          <h1>Review Folha</h1>
+          <p>
+            Confronte a listagem analitica da folha em PDF com a planilha de fatos
+            geradores. O modulo aponta divergencias por funcionario, rubrica,
+            quantidade, valor e piso salarial informado.
+          </p>
         </div>
+        <img src="logo-axion.png" alt="Axion Solutions">
       </section>
 
-      <aside class="module-panel" aria-label="Resumo do Review Folha">
-        <img src="logo-axion.png" alt="Identidade Axion do modulo Review Folha">
-        <div class="module-panel-content">
-          <h2>Pacote pronto para uso local</h2>
-          <ul>
-            <li>Inclui scripts de abertura para Windows.</li>
-            <li>Executa em servidor local Python.</li>
-            <li>Gera relatorios e evidencias de divergencias.</li>
-          </ul>
-        </div>
-      </aside>
+      <section class="review-workspace">
+        <form class="review-form" id="reviewForm">
+          <div class="form-grid">
+            <label class="file-field">
+              <span>PDF da folha</span>
+              <input id="pdfFile" name="pdf" type="file" accept="application/pdf,.pdf" required>
+            </label>
+            <label class="file-field">
+              <span>Planilha de fatos geradores</span>
+              <input id="sheetFile" name="sheet" type="file" accept=".xls,.xlsx,.csv" required>
+            </label>
+            <label>
+              <span>Piso mensal</span>
+              <input name="monthlyFloor" type="text" inputmode="decimal" placeholder="Ex.: 1.640,00">
+            </label>
+            <label>
+              <span>Piso hora</span>
+              <input name="hourlyFloor" type="text" inputmode="decimal" placeholder="Ex.: 7,45">
+            </label>
+          </div>
+          <div class="form-actions">
+            <button class="primary-button" id="submitReview" type="submit">Confrontar folha</button>
+            <button class="ghost-button" id="clearReview" type="button">Limpar</button>
+          </div>
+          <p class="form-status" id="formStatus" role="status"></p>
+        </form>
+
+        <section class="result-panel" id="resultPanel" hidden>
+          <div class="result-heading">
+            <div>
+              <p class="eyebrow">Resultado</p>
+              <h2>Resumo do confronto</h2>
+            </div>
+            <button class="ghost-button" id="exportCsv" type="button">Exportar CSV</button>
+          </div>
+
+          <div class="kpi-grid" id="kpiGrid"></div>
+
+          <div class="people-grid">
+            <article>
+              <h3>Somente no PDF</h3>
+              <ul id="onlyPdf"></ul>
+            </article>
+            <article>
+              <h3>Somente na planilha</h3>
+              <ul id="onlySheet"></ul>
+            </article>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Funcionario</th>
+                  <th>Rubrica</th>
+                  <th>Criterio</th>
+                  <th>PDF</th>
+                  <th>Planilha</th>
+                  <th>Diferenca</th>
+                </tr>
+              </thead>
+              <tbody id="differenceRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
     </main>
+
+    <script src="review-folha.js"></script>
   </body>
 </html>
