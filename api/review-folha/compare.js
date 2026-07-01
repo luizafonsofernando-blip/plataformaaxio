@@ -30,7 +30,10 @@ export default async function handler(request, response) {
     const hourlyFloor = parseBrNumber(firstField(fields.hourlyFloor));
     const pdfData = await parsePdfReport(pdfBuffer);
     const sheetData = parseSheetReport(sheetBuffer, sheetFile.originalFilename || "planilha.xlsx");
-    const result = compareReports(pdfData.launches, sheetData.launches, pdfData.people, sheetData.people);
+    const pdfLaunches = sheetData.limitToSheetEvents
+      ? pdfData.launches.filter((item) => sheetData.eventKeys.has(item.event))
+      : pdfData.launches;
+    const result = compareReports(pdfLaunches, sheetData.launches, pdfData.people, sheetData.people);
     result.differences.push(...buildSalaryFloorDifferences(pdfData.salaries, monthlyFloor, hourlyFloor));
     result.differences.sort((a, b) => `${a.employee} ${a.event}`.localeCompare(`${b.employee} ${b.event}`));
 
@@ -94,17 +97,37 @@ async function parsePdfReport(buffer) {
 
       for (const line of lines) {
         const text = line.items.map((item) => item.str).join(" ").replace(/\s+/g, " ").trim();
-        const employee = text.match(/EMPREGADO:\s*(\d+)\s*-\s*(.+?)(?:\s+Cargo:|\s+\d{4}\s*-|$)/i);
+        const employee =
+          text.match(/EMPREGADO:\s*(\d+)\s*-\s*(.+?)(?:\s+Cargo:|\s+\d{4}\s*-|$)/i) ||
+          text.match(/^(\d{1,6})\s+(.+?)\s+\d+\s+\d+\s+Admiss\S*o\b.*?Sal\S*rio base\s+([\d.,]+).*?Horas mensais:\s*([\d.,]+)/i);
         if (employee) {
-          currentId = employee[1];
+          currentId = canonicalEmployeeId(employee[1]);
           currentName = employee[2].replace(/\s+/g, " ").trim();
           people.set(currentId, { id: currentId, name: currentName });
+          if (employee[3]) {
+            const value = parseBrNumber(employee[3]);
+            if (value !== null) {
+              salaries.set(currentId, {
+                employee_id: currentId,
+                employee: currentName,
+                salary: value,
+                salary_type: value < 200 ? "horista" : "mensalista",
+                row_info: `Pagina ${pageNumber}`,
+              });
+            }
+          }
           continue;
         }
 
         if (!currentId) continue;
+        if (/^PROVENTOS\s+DESCONTOS/i.test(text)) {
+          currentId = "";
+          currentName = "";
+          continue;
+        }
+        if (/^(Total\s|Base\s|Folha\s|F\S*rias\s|ORTECONTE\b)/i.test(text)) continue;
 
-        const salary = text.match(/Sal[aá]rio:\s*([\d.,]+)/i);
+        const salary = text.match(/Sal\S*rio:\s*([\d.,]+)/i);
         if (salary) {
           const value = parseBrNumber(salary[1]);
           if (value !== null) {
@@ -118,18 +141,19 @@ async function parsePdfReport(buffer) {
           }
         }
 
-        if (!text.includes(" - ") || text.startsWith("Total ")) continue;
+        if (text.startsWith("Total ")) continue;
 
         const starts = [];
         line.items.forEach((item, index) => {
-          if (/^\d{3,4}$/.test(item.str) && line.items[index + 1]?.str === "-") starts.push(index);
+          const next = line.items[index + 1]?.str || "";
+          if (/^\d{1,5}$/.test(item.str) && (next === "-" || /[^\d\s.,:()/-]/.test(next))) starts.push(index);
         });
 
         if (!starts.length) {
           const parsed = parsePdfEntry(text);
           if (parsed) {
             const category = pdfCategory(line.items[0]?.x ?? 0);
-            if (category === "Vencimento" && !isDiscountEvent(parsed.code, parsed.description)) {
+            if (category !== "Base" && !isIgnoredPayrollEvent(parsed.code, parsed.description)) {
               launches.push({
                 source: "PDF",
                 employee_id: currentId,
@@ -153,7 +177,7 @@ async function parsePdfReport(buffer) {
           const parsed = parsePdfEntry(segment);
           if (!parsed) continue;
           const category = pdfCategory(line.items[start].x);
-          if (category !== "Vencimento" || isDiscountEvent(parsed.code, parsed.description)) continue;
+          if (category === "Base" || isIgnoredPayrollEvent(parsed.code, parsed.description)) continue;
           launches.push({
             source: "PDF",
             employee_id: currentId,
@@ -207,9 +231,9 @@ function groupPdfItemsByLine(items) {
 
 function parsePdfEntry(segment) {
   const text = segment.replace(/\s+/g, " ").trim();
-  let match = text.match(/^(\d{3,4})\s*-\s*(.+?)\s+([\d.,()]+)(?:\s+([\d.,()]+))?$/);
+  let match = text.match(/^(\d{1,5})\s*-?\s*(.+?)\s+([\d.,():]+)(?:\s+([\d.,():]+))?$/);
   if (!match) {
-    match = text.match(/^(\d{3,4})\s*-\s*(.+)$/);
+    match = text.match(/^(\d{1,5})\s*-?\s*(.+)$/);
     if (!match) return null;
     return { code: match[1], description: match[2].trim(), reference: null, amount: null };
   }
@@ -228,6 +252,9 @@ function parseSheetReport(buffer, fileName) {
   const workbook = XLSX.read(buffer, { type: "buffer", cellDates: false });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: "" });
+  const simpleReport = parseSimpleLaunchSheet(rows);
+  if (simpleReport) return simpleReport;
+
   const eventRowIndex = rows.findIndex((row) => row.some((cell) => /\d{3}\.\d{3}\s*-/.test(String(cell))));
 
   if (eventRowIndex < 0) {
@@ -250,7 +277,8 @@ function parseSheetReport(buffer, fileName) {
     if (!row?.[0]) continue;
     const [employeeId, employee] = splitEmployee(String(row[0]));
     if (!employeeId && !employee) continue;
-    people.set(employeeId || normalize(employee), { id: employeeId, name: employee });
+    const canonicalId = canonicalEmployeeId(employeeId);
+    people.set(canonicalId || normalize(employee), { id: canonicalId, name: employee });
 
     for (const event of events) {
       if (isDiscountEvent(event.code, event.description)) continue;
@@ -259,7 +287,7 @@ function parseSheetReport(buffer, fileName) {
       if (amount === null && reference === null) continue;
       launches.push({
         source: "Planilha",
-        employee_id: employeeId,
+        employee_id: canonicalId,
         employee,
         code: event.code,
         description: event.description,
@@ -271,7 +299,83 @@ function parseSheetReport(buffer, fileName) {
     }
   }
 
-  return { launches, people };
+  return { launches, people, limitToSheetEvents: false, eventKeys: new Set(launches.map((item) => item.event)) };
+}
+
+function parseSimpleLaunchSheet(rows) {
+  const headerIndex = rows.findIndex((row) => {
+    const normalized = row.map((cell) => normalize(cell));
+    return normalized.includes("CODIGO") && normalized.includes("NOME");
+  });
+  if (headerIndex < 0) return null;
+
+  const headers = rows[headerIndex].map((cell) => normalize(cell));
+  const codeColumn = headers.indexOf("CODIGO");
+  const nameColumn = headers.indexOf("NOME");
+  if (codeColumn < 0 || nameColumn < 0) return null;
+
+  const eventColumns = rows[headerIndex]
+    .map((cell, column) => ({ column, event: simpleSheetEvent(cell) }))
+    .filter((item) => item.event);
+  if (!eventColumns.length) return null;
+
+  const launches = [];
+  const people = new Map();
+
+  for (let index = headerIndex + 1; index < rows.length; index += 1) {
+    const row = rows[index];
+    const rawId = String(row?.[codeColumn] ?? "").trim();
+    const employee = String(row?.[nameColumn] ?? "").replace(/\s+/g, " ").trim();
+    const employeeId = canonicalEmployeeId(rawId);
+    if (!employeeId && !employee) continue;
+    people.set(employeeId || normalize(employee), { id: employeeId, name: employee });
+
+    for (const { column, event } of eventColumns) {
+      const parsed = parseSimpleSheetValue(row[column], event);
+      if (!parsed) continue;
+      launches.push({
+        source: "Planilha",
+        employee_id: employeeId,
+        employee,
+        code: event.code,
+        description: event.description,
+        event: eventKey(event.code, event.description),
+        reference: parsed.reference,
+        amount: parsed.amount,
+        row_info: `Linha ${index + 1}`,
+      });
+    }
+  }
+
+  return {
+    launches,
+    people,
+    limitToSheetEvents: true,
+    eventKeys: new Set(eventColumns.map(({ event }) => eventKey(event.code, event.description))),
+  };
+}
+
+function simpleSheetEvent(value) {
+  const header = normalize(value);
+  if (!header || header.includes("QTD COLUNAS") || header.includes("LAYOUT") || header.includes("CODCONTINTERM")) return null;
+  if (header.includes("HE 100")) return { code: "613", description: "Horas extras 100%", kind: "reference" };
+  if (header.includes("FALTAS") && header.includes("DIAS")) return { code: "703", description: "Faltas nao justificadas dias", kind: "absence-days" };
+  if (header.includes("FALTAS") && header.includes("HORAS")) return { code: "723", description: "Faltas nao justificadas horas", kind: "reference" };
+  if (header === "VALE") return { code: "872", description: "Vale", kind: "amount" };
+  return null;
+}
+
+function parseSimpleSheetValue(value, event) {
+  if (value === null || value === undefined) return null;
+  const text = String(value).trim();
+  if (!text || /^\/?\s*\/?\s*\/?$/.test(text) || /^0(?:[,.]0+)?$/.test(text)) return null;
+  if (event.kind === "absence-days") return { reference: 1, amount: null };
+  if (event.kind === "amount") {
+    const amount = parseBrNumber(value);
+    return amount === null ? null : { reference: null, amount };
+  }
+  const reference = parseBrNumber(value);
+  return reference === null ? null : { reference, amount: null };
 }
 
 function compareReports(pdfLaunches, sheetLaunches, pdfPeople, sheetPeople) {
@@ -419,7 +523,12 @@ function buildSalaryFloorDifferences(salaries, monthlyFloor, hourlyFloor) {
 function splitEmployee(text) {
   const match = text.match(/\s*(\d+)\s*-\s*(.+?)\s*$/);
   if (!match) return ["", text.trim()];
-  return [match[1], match[2].replace(/\s+/g, " ").trim()];
+  return [canonicalEmployeeId(match[1]), match[2].replace(/\s+/g, " ").trim()];
+}
+
+function canonicalEmployeeId(value) {
+  const digits = String(value ?? "").replace(/\D/g, "").replace(/^0+/, "");
+  return digits || "";
 }
 
 function normalize(value) {
@@ -449,11 +558,18 @@ function isDiscountEvent(code, description) {
   );
 }
 
+function isIgnoredPayrollEvent(code, description) {
+  const words = normalize(`${code} ${description}`).split(" ");
+  return ["INSS", "IRRF"].some((term) => words.includes(term));
+}
+
 function parseBrNumber(value) {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value === "number") return Number.isNaN(value) ? null : value;
   let text = String(value).trim();
   if (!text) return null;
+  const timeReference = text.match(/^(\d{1,3}):(\d{2})$/);
+  if (timeReference) return Number(`${Number(timeReference[1])}.${timeReference[2]}`);
   const negative = text.startsWith("(") && text.endsWith(")");
   text = text.replace(/[()]/g, "").replace(/\./g, "").replace(",", ".").replace(/[^0-9.-]/g, "");
   if (!text || text === "-" || text === ".") return null;

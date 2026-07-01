@@ -54,10 +54,10 @@
 .review-form,
 .result-panel,
 .people-grid article {
-  border: 1px solid var(--line);
+  border: 1px solid rgba(230, 236, 243, 0.16);
   border-radius: 8px;
-  background: rgba(2, 7, 18, 0.7);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+  background: linear-gradient(180deg, rgba(8, 20, 44, 0.82), rgba(2, 7, 18, 0.76));
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(16px);
 }
 
@@ -88,9 +88,16 @@
   border: 1px solid rgba(230, 236, 243, 0.22);
   border-radius: 6px;
   outline: 0;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.075);
   color: #fff;
   font: inherit;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.review-form input:focus {
+  border-color: rgba(131, 224, 179, 0.76);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 4px rgba(131, 224, 179, 0.12);
 }
 
 .file-field {
@@ -166,6 +173,13 @@
   margin-top: 0;
 }
 
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .result-heading h2 {
   font-size: clamp(1.8rem, 4vw, 3.2rem);
 }
@@ -182,7 +196,7 @@
   padding: 16px;
   border: 1px solid rgba(230, 236, 243, 0.16);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.055);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035));
 }
 
 .kpi-card strong {
@@ -232,6 +246,7 @@
   overflow: auto;
   border: 1px solid rgba(230, 236, 243, 0.16);
   border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 table {
@@ -250,7 +265,8 @@ td {
 }
 
 th {
-  color: #70b5ff;
+  background: rgba(112, 181, 255, 0.08);
+  color: #9fd0ff;
   font-size: 0.74rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -266,7 +282,7 @@ td {
   display: inline-flex;
   border-radius: 999px;
   padding: 5px 9px;
-  background: rgba(30, 136, 255, 0.16);
+  background: rgba(30, 136, 255, 0.18);
   color: #9fd0ff;
   font-size: 0.72rem;
   font-weight: 800;
@@ -315,5 +331,16 @@ td {
   .result-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .result-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .result-actions .primary-button,
+  .result-actions .ghost-button {
+    width: 100%;
+    justify-content: center;
   }
 }
