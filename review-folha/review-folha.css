@@ -95,6 +95,46 @@
 
 .file-field {
   grid-column: span 2;
+  position: relative;
+  align-content: start;
+  cursor: pointer;
+}
+
+.file-field input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 18px 42px rgba(30, 136, 255, 0.35);
+  font-weight: 800;
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.file-field:hover .file-button,
+.file-field:focus-within .file-button {
+  background: #3697ff;
+  transform: translateY(-2px);
+}
+
+.file-field small {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .form-actions,

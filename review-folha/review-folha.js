@@ -8,8 +8,20 @@ const onlyPdf = document.getElementById("onlyPdf");
 const onlySheet = document.getElementById("onlySheet");
 const differenceRows = document.getElementById("differenceRows");
 const exportCsv = document.getElementById("exportCsv");
+const pdfFile = document.getElementById("pdfFile");
+const sheetFile = document.getElementById("sheetFile");
+const pdfFileName = document.getElementById("pdfFileName");
+const sheetFileName = document.getElementById("sheetFileName");
 
 let currentResult = null;
+
+pdfFile.addEventListener("change", () => {
+  pdfFileName.textContent = pdfFile.files?.[0]?.name || "Nenhum arquivo selecionado";
+});
+
+sheetFile.addEventListener("change", () => {
+  sheetFileName.textContent = sheetFile.files?.[0]?.name || "Nenhum arquivo selecionado";
+});
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -34,6 +46,8 @@ form.addEventListener("submit", async (event) => {
 
 clearButton.addEventListener("click", () => {
   form.reset();
+  pdfFileName.textContent = "Nenhum arquivo selecionado";
+  sheetFileName.textContent = "Nenhum arquivo selecionado";
   currentResult = null;
   resultPanel.hidden = true;
   kpiGrid.innerHTML = "";
