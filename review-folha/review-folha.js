@@ -184,6 +184,15 @@ function buildPdfReport(result) {
         background: linear-gradient(135deg, #071d49, #0f766e);
         color: #fff;
       }
+      .brand-logo {
+        display: block;
+        width: 118px;
+        height: auto;
+        margin-bottom: 12px;
+        padding: 6px 8px;
+        border-radius: 6px;
+        background: rgba(255,255,255,.94);
+      }
       .hero p { margin: 0; color: rgba(255,255,255,.76); font-size: 12px; font-weight: 700; text-transform: uppercase; }
       h1 { margin: 8px 0 0; font-size: 34px; letter-spacing: 0; }
       .meta { align-self: end; text-align: right; font-size: 12px; color: rgba(255,255,255,.78); }
@@ -225,6 +234,7 @@ function buildPdfReport(result) {
     <main class="report">
       <section class="hero">
         <div>
+          <img class="brand-logo" src="/review-folha/logo-axion.png" alt="Axion Solutions">
           <p>Axion Solutions</p>
           <h1>Review Folha</h1>
         </div>

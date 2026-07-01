@@ -6053,6 +6053,17 @@
                 print-color-adjust: exact;
                 -webkit-print-color-adjust: exact;
               }
+              .pdf-brand-strip {
+                display: flex;
+                justify-content: flex-end;
+                margin: 0 0 8px;
+              }
+              .pdf-brand-strip img {
+                display: block;
+                width: 96px;
+                height: auto;
+                opacity: .82;
+              }
               @media print {
                 @page { margin: 8mm; }
                 * {
@@ -6069,6 +6080,7 @@
                   padding: 0;
                 }
                 .pdf-toolbar { display: none !important; }
+                .pdf-brand-strip { margin-bottom: 5px; }
                 .document {
                   border: 1px solid #d7e7f7;
                   border-radius: 10px;
@@ -6111,6 +6123,7 @@
                 <div class="pdf-print-tip">Para remover data, endereço, about:blank e paginação automática, desmarque <strong>Cabeçalhos e rodapés</strong> na janela de impressão.</div>
                 <button class="btn primary" id="pdfPrintButton" type="button">Imprimir PDF</button>
               </div>
+              <div class="pdf-brand-strip"><img src="logo-axion-login.png" alt="Axion Solutions"></div>
               <article class="document">${contentHtml}</article>
             </div>
           </body>
