@@ -1,5 +1,5 @@
 /*
-  Content-Security-Policy: default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-ylT1VDzxB/itd/Zwl+IllzDneta1nbPyq1v2IAq4jvA='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-3oMimcPQOpCZM/HG8Lg9gsn7CBRq0J+pTpp3M6x6tMo='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer

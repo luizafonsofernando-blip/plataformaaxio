@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-ylT1VDzxB/itd/Zwl+IllzDneta1nbPyq1v2IAq4jvA='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-3oMimcPQOpCZM/HG8Lg9gsn7CBRq0J+pTpp3M6x6tMo='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -1987,7 +1987,7 @@
                 <option>Parcelado</option>
                 <option>Depósito em conta</option>
               </select></label>
-              <label>Honorário mensal<input id="financeiroHonorario" placeholder="R$ 0,00"></label>
+              <label class="alteracao-hidden-field">Honorário mensal<input id="financeiroHonorario" placeholder="R$ 0,00"></label>
               <label class="conditional-field entrada-field hidden">Data de pagamento<select id="financeiroDataPagamento">
                 <option value="">Selecione o dia</option>
                 <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
@@ -3987,6 +3987,16 @@
           }
         });
       });
+      document.querySelectorAll(".alteracao-hidden-field").forEach((field) => {
+        field.classList.toggle("hidden", isAlteracaoWorkflow());
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = isAlteracaoWorkflow() ? "true" : "false";
+          if (isAlteracaoWorkflow()) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
       document.querySelectorAll(".non-baixa-socio-field").forEach((field) => {
         field.classList.toggle("hidden", isBaixaWorkflow());
         field.querySelectorAll("input, select, textarea").forEach((control) => {
@@ -4409,7 +4419,7 @@
               <span class="doc-chip">${identificacaoTitulo()}: ${value("cnpj")}</span>
               <span class="doc-chip">Regime: ${value("regime")}</span>
               ${isSaidaWorkflow() || isAlteracaoWorkflow() ? "" : `<span class="doc-chip">Início: ${monthLabel($("inicio").value)}</span>`}
-              <span class="doc-chip">Honorário: ${honorarioFinanceiro()}</span>
+              ${isAlteracaoWorkflow() ? "" : `<span class="doc-chip">Honorário: ${honorarioFinanceiro()}</span>`}
               ${serialMeta}
             </div>
           </div>
@@ -4500,7 +4510,7 @@
       const items = [
         ...(isSaidaWorkflow() || isPortabilidadeEntradaWorkflow() ? [] : [["Valor dos serviços", value("financeiroValor")]]),
         ["Forma de pagamento", value("formaPagamento")],
-        ["Honorário mensal", honorarioFinanceiro()],
+        ...(isAlteracaoWorkflow() ? [] : [["Honorário mensal", honorarioFinanceiro()]]),
         ...(isPortabilidadeEntradaWorkflow() ? [["Data de pagamento", value("financeiroDataPagamento", "") ? `Dia ${value("financeiroDataPagamento", "")}` : "Não informado"]] : []),
         ["Competência", competenciaFinanceira()],
         ["Observação financeira", value("financeiroObservacao", "Dependendo do processo, esse valor pode ser reajustado.")]
@@ -4606,8 +4616,7 @@
             ["Endereço", `${value("endereco")} - ${value("municipio")}/${value("estado", "UF")} - CEP ${value("cep")}`],
             ["Atividade principal", value("cnaePrincipal")],
             ["CNAEs secundários", value("cnaesSecundarios")],
-            ["Forma de atuação", selectedFormaAtuacao()],
-            ["Honorário acordado", `${honorarioFinanceiro()} | Cobrança a partir de ${competenciaFinanceira()}`]
+            ["Forma de atuação", selectedFormaAtuacao()]
           ].concat(grupoCadastroRows()))}</table>
 
           ${alteracaoEventosSection()}
