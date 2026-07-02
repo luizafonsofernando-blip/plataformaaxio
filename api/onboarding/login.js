@@ -1,4 +1,6 @@
 const SUPABASE_USER_PAGE_LIMIT = 100;
+const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
+const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
 
 function json(response, status, body) {
   response.status(status).setHeader("Cache-Control", "no-store");
@@ -13,7 +15,7 @@ function legacyEmailForIdentifier(identifier) {
 }
 
 async function supabaseFetch(path, { method = "GET", key, body, bearer } = {}) {
-  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
   const response = await fetch(`${supabaseUrl}${path}`, {
     method,
     headers: {
@@ -36,6 +38,7 @@ async function supabaseFetch(path, { method = "GET", key, body, bearer } = {}) {
 async function findEmailByIdentifier(identifier, serviceRoleKey) {
   const directEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier) ? identifier : legacyEmailForIdentifier(identifier);
   if (directEmail) return directEmail;
+  if (!serviceRoleKey) return "";
 
   for (let page = 1; page <= 10; page += 1) {
     const data = await supabaseFetch(`/auth/v1/admin/users?page=${page}&per_page=${SUPABASE_USER_PAGE_LIMIT}`, {
@@ -61,7 +64,7 @@ async function findEmailByIdentifier(identifier, serviceRoleKey) {
 }
 
 async function approveLegacyUserIfNeeded(user, serviceRoleKey) {
-  if (!user?.id || user.app_metadata?.status) return user;
+  if (!serviceRoleKey || !user?.id || user.app_metadata?.status) return user;
   const appMetadata = {
     ...(user.app_metadata || {}),
     role: user.app_metadata?.role || "user",
@@ -81,10 +84,14 @@ export default async function handler(request, response) {
     return json(response, 405, { code: "invalid_credentials" });
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  const anonKey =
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_PUBLISHABLE_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY ||
+    DEFAULT_SUPABASE_PUBLISHABLE_KEY;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+  if (!supabaseUrl || !anonKey) {
     return json(response, 503, { code: "service_unavailable" });
   }
 
