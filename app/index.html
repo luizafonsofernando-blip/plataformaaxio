@@ -2303,10 +2303,9 @@
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 12000);
       try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/login`, {
+        const response = await fetch("/api/onboarding/login", {
           method: "POST",
           headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({ identifier: normalized, password }),
