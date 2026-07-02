@@ -2197,7 +2197,7 @@
 
     function updateAdminAccess(user) {
       const role = user?.app_metadata?.role || "";
-      const isAdmin = role === "admin" && user?.app_metadata?.status === "approved";
+      const isAdmin = role === "admin" && user?.app_metadata?.status !== "pending";
       if (user) sessionStorage.setItem(ROLE_KEY, isAdmin ? "admin" : "user");
       else sessionStorage.removeItem(ROLE_KEY);
       if ($("adminUsersButton")) $("adminUsersButton").hidden = !isAdmin;
@@ -2278,7 +2278,7 @@
           session = await refreshSupabaseSession(session);
         }
         const user = await supabaseAuthRequest("user", { accessToken: session.access_token });
-        if (user?.app_metadata?.status !== "approved") {
+        if (user?.app_metadata?.status === "pending") {
           clearSupabaseSession();
           return null;
         }

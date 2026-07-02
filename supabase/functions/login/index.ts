@@ -33,6 +33,16 @@ const hash = async (value: string) => {
   return Array.from(new Uint8Array(bytes)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
 };
 
+const legacyEmailForIdentifier = (identifier: string) => {
+  const aliases: Record<string, string> = {
+    fernanddo46: "fernanddo46@axionsolutions.com.br",
+  };
+  return aliases[identifier] || "";
+};
+
+const isPendingUser = (user: { app_metadata?: Record<string, unknown> }) =>
+  user.app_metadata?.status === "pending";
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(request) });
   if (request.method !== "POST") return json(request, { code: "invalid_credentials" }, 405);
@@ -70,7 +80,7 @@ Deno.serve(async (request) => {
   const ipHash = await hash(clientAddress.trim());
   const rateKey = await hash(`${identifierHash}:${ipHash}`);
 
-  let email = isEmail ? identifier : "";
+  let email = isEmail ? identifier : legacyEmailForIdentifier(identifier);
   for (let page = 1; page <= 10 && !email; page += 1) {
     const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage: 100 });
     if (error) return json(request, { code: "invalid_credentials" }, 401);
@@ -123,8 +133,7 @@ Deno.serve(async (request) => {
       : json(request, { code: "invalid_credentials" }, 401);
   }
 
-  const status = data.user.app_metadata?.status;
-  if (status !== "approved") {
+  if (isPendingUser(data.user)) {
     await authClient.auth.signOut();
     return json(request, { code: "account_pending" }, 403);
   }

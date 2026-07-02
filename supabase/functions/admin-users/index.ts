@@ -28,6 +28,10 @@ const json = (request: Request, body: Record<string, unknown>, status = 200) =>
     headers: { ...corsHeaders(request), ...securityHeaders },
   });
 
+const isPendingUser = (user: { app_metadata?: Record<string, unknown> }) => user.app_metadata?.status === "pending";
+const isApprovedOrLegacyUser = (user: { app_metadata?: Record<string, unknown> }) => !isPendingUser(user);
+const ADMIN_EMAILS = new Set(["admin01@axionsolutions.com.br", "fernanddo46@axionsolutions.com.br"]);
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(request) });
   if (request.method !== "GET" && request.method !== "POST") {
@@ -53,9 +57,9 @@ Deno.serve(async (request) => {
   if (
     callerError ||
     !caller ||
-    caller.email?.toLowerCase() !== "admin01@axionsolutions.com.br" ||
+    !ADMIN_EMAILS.has(String(caller.email || "").toLowerCase()) ||
     caller.app_metadata?.role !== "admin" ||
-    caller.app_metadata?.status !== "approved"
+    isPendingUser(caller)
   ) {
     return json(request, { error: "Somente o administrador pode gerenciar usuarios." }, 403);
   }
@@ -82,7 +86,7 @@ Deno.serve(async (request) => {
         if (user.app_metadata?.status === "pending") {
           pendingUsers.push(baseUser);
         }
-        if (user.app_metadata?.status === "approved") {
+        if (isApprovedOrLegacyUser(user)) {
           activeUsers.push({
             ...baseUser,
             role: user.app_metadata?.role || "user",
@@ -112,7 +116,7 @@ Deno.serve(async (request) => {
   if (action === "delete") {
     if (userId === caller.id) return json(request, { error: "Nao e possivel excluir o proprio usuario administrador." }, 400);
     const { data: targetData, error: targetError } = await adminClient.auth.admin.getUserById(userId);
-    if (targetError || !targetData.user || targetData.user.app_metadata?.status !== "approved") {
+    if (targetError || !targetData.user || !isApprovedOrLegacyUser(targetData.user)) {
       return json(request, { error: "Usuario ativo nao encontrado." }, 404);
     }
     const { error } = await adminClient.auth.admin.deleteUser(userId);

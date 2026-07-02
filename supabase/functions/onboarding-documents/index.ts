@@ -47,6 +47,8 @@ const callerAuditMetadata = (caller: {
   actor_name: caller.user_metadata?.display_name || caller.user_metadata?.name || caller.user_metadata?.username || null,
 });
 
+const isPendingUser = (caller: { app_metadata?: Record<string, unknown> }) => caller.app_metadata?.status === "pending";
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(request) });
   if (!["GET", "POST", "DELETE"].includes(request.method)) {
@@ -69,7 +71,7 @@ Deno.serve(async (request) => {
   });
   const { data: callerData, error: callerError } = await callerClient.auth.getUser();
   const caller = callerData.user;
-  if (callerError || !caller || caller.app_metadata?.status !== "approved") {
+  if (callerError || !caller || isPendingUser(caller)) {
     return json(request, { error: "Sessao invalida ou usuario nao aprovado." }, 403);
   }
   const isAdmin = caller.app_metadata?.role === "admin";
