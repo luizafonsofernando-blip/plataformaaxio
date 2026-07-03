@@ -3,6 +3,7 @@ import crypto from "crypto";
 const ALL_ENTITIES = ["ent-cpf-1", "ent-cnpj-1", "ent-cnpj-2"];
 const ALL_MODULES = ["dashboard", "properties", "people", "contracts", "finance", "reports", "expenses", "profits"];
 const COOKIE_NAME = "property_session";
+const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
 
 const accounts = [
   {
@@ -26,10 +27,10 @@ const accounts = [
 ];
 
 async function supabaseSession(username, password) {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+  const supabaseUrl = supabaseUrlFromEnv();
+  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !anonKey || !serviceRoleKey) return null;
+  if (!anonKey || !serviceRoleKey) return null;
 
   let email = username.includes("@") ? username : "";
   if (!email) {
@@ -73,6 +74,10 @@ async function supabaseSession(username, password) {
 
 function sessionSecret() {
   return process.env.PROPERTY_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || accounts.map((account) => account.hash).join(".");
+}
+
+function supabaseUrlFromEnv() {
+  return process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
 }
 
 function signSession(session) {

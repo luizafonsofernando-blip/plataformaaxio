@@ -1,10 +1,11 @@
 import crypto from "crypto";
 
 const COOKIE_NAME = "property_session";
-const FALLBACK_SECRET = "99087aa162a1d1a47c6d88d5606a2bee66dc7217fe19b2ce9b66b9fbef570d19.77e4d1425750da9ae127ebd4f10dd65cdd2b9545c8dbcfe295be6ee216a4e9b1";
+const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
+const MAX_PAYLOAD_BYTES = 5 * 1024 * 1024;
 
 function sessionSecret() {
-  return process.env.PROPERTY_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || FALLBACK_SECRET;
+  return process.env.PROPERTY_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 }
 
 function cookieValue(request, name) {
@@ -17,14 +18,21 @@ function cookieValue(request, name) {
 }
 
 function verifySession(request) {
+  const secret = sessionSecret();
+  if (!secret) return null;
   const token = cookieValue(request, COOKIE_NAME);
   if (!token || !token.includes(".")) return null;
   const [payload, signature] = token.split(".");
+  if (!payload || !signature) return null;
   const expected = crypto.createHmac("sha256", sessionSecret()).update(payload).digest("base64url");
   if (signature.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
-  const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
-  if (!session.exp || session.exp < Math.floor(Date.now() / 1000)) return null;
-  return session;
+  try {
+    const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    if (!session.exp || session.exp < Math.floor(Date.now() / 1000)) return null;
+    return session;
+  } catch (_error) {
+    return null;
+  }
 }
 
 function supabaseHeaders(prefer) {
@@ -42,12 +50,20 @@ function json(response, status, body) {
   return response.status(status).json(body);
 }
 
+function supabaseUrlFromEnv() {
+  return process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+}
+
+function hasValidPayloadSize(payload) {
+  return Buffer.byteLength(JSON.stringify(payload), "utf8") <= MAX_PAYLOAD_BYTES;
+}
+
 export default async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store");
-  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseUrl = supabaseUrlFromEnv();
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !serviceRoleKey) {
-    return json(response, 503, { message: "Supabase nao configurado para o Property." });
+  if (!serviceRoleKey) {
+    return json(response, 503, { message: "Supabase service role nao configurada para o Property." });
   }
 
   const session = verifySession(request);
@@ -67,6 +83,7 @@ export default async function handler(request, response) {
   if (request.method === "PUT") {
     const payload = request.body?.payload;
     if (!payload || typeof payload !== "object") return json(response, 400, { message: "Payload invalido." });
+    if (!hasValidPayloadSize(payload)) return json(response, 413, { message: "Payload muito grande." });
     const result = await fetch(`${supabaseUrl}/rest/v1/property_module_state`, {
       method: "POST",
       headers: supabaseHeaders("resolution=merge-duplicates"),
