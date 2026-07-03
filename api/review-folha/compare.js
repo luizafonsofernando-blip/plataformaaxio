@@ -360,7 +360,7 @@ function parseSimpleLaunchSheet(rows) {
 function simpleSheetEvent(value) {
   const header = normalize(value);
   if (!header || header.includes("QTD COLUNAS") || header.includes("LAYOUT") || header.includes("CODCONTINTERM")) return null;
-  if (header.includes("HE 100")) return { code: "613", description: "Horas extras 100%", kind: "reference" };
+  if (header.includes("HE 100")) return { code: "613", description: "Horas extras 100%", kind: "reference-hours" };
   if (header.includes("FALTAS") && header.includes("DIAS")) return { code: "703", description: "Faltas nao justificadas dias", kind: "absence-days" };
   if (header.includes("FALTAS") && header.includes("HORAS")) return { code: "723", description: "Faltas nao justificadas horas", kind: "reference-hours" };
   if (header === "VALE") return { code: "872", description: "Vale", kind: "amount" };
@@ -572,6 +572,7 @@ function isIgnoredPayrollEvent(code, description) {
 function referenceKind(code, description) {
   const text = normalize(`${code} ${description}`);
   if (text.includes("FALTAS") && text.includes("HORAS")) return "reference-hours";
+  if (text.includes("HORA") && text.includes("EXTRA")) return "reference-hours";
   return "reference";
 }
 
@@ -627,11 +628,40 @@ function parseBrNumber(value) {
   const timeReference = text.match(/^(\d{1,3}):(\d{2})$/);
   if (timeReference) return Number(`${Number(timeReference[1])}.${timeReference[2]}`);
   const negative = text.startsWith("(") && text.endsWith(")");
-  text = text.replace(/[()]/g, "").replace(/\./g, "").replace(",", ".").replace(/[^0-9.-]/g, "");
+  text = normalizeNumberText(text);
   if (!text || text === "-" || text === ".") return null;
   const number = Number(text);
   if (Number.isNaN(number)) return null;
   return negative ? -number : number;
+}
+
+function normalizeNumberText(value) {
+  let text = String(value)
+    .replace(/[()]/g, "")
+    .replace(/[^0-9,.-]/g, "")
+    .trim();
+  if (!text) return "";
+  const sign = text.startsWith("-") ? "-" : "";
+  text = text.replace(/-/g, "");
+  const commaIndex = text.lastIndexOf(",");
+  const dotIndex = text.lastIndexOf(".");
+
+  if (commaIndex >= 0 && dotIndex >= 0) {
+    const decimalSeparator = commaIndex > dotIndex ? "," : ".";
+    const thousandSeparator = decimalSeparator === "," ? "." : ",";
+    return `${sign}${text.replaceAll(thousandSeparator, "").replace(decimalSeparator, ".")}`;
+  }
+
+  if (commaIndex >= 0) return `${sign}${text.replace(/\./g, "").replace(",", ".")}`;
+
+  if (dotIndex >= 0) {
+    const dotCount = (text.match(/\./g) || []).length;
+    const decimalDigits = text.length - dotIndex - 1;
+    if (dotCount === 1 && decimalDigits > 0 && decimalDigits <= 2) return `${sign}${text}`;
+    return `${sign}${text.replace(/\./g, "")}`;
+  }
+
+  return `${sign}${text}`;
 }
 
 function round2(value) {
