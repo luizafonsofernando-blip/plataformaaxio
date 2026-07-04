@@ -128,17 +128,20 @@
     }
 
     @keyframes loginVortexSpin {
+      from {
+        transform: translate(-50%, -50%) rotate(-10deg) rotate(0deg) scaleX(1.2);
+      }
       to {
-        transform: translate(-50%, -50%) rotate(360deg);
+        transform: translate(-50%, -50%) rotate(-10deg) rotate(360deg) scaleX(1.2);
       }
     }
 
     @keyframes loginRingSpin {
       from {
-        transform: rotateX(68deg) rotateZ(0deg);
+        transform: translate(-50%, -50%) rotate(0deg);
       }
       to {
-        transform: rotateX(68deg) rotateZ(360deg);
+        transform: translate(-50%, -50%) rotate(360deg);
       }
     }
 
@@ -168,8 +171,8 @@
       place-items: center;
       padding: 24px;
       background:
-        radial-gradient(circle at 63% 48%, rgba(0, 0, 0, .68) 0 9%, transparent 18%),
-        radial-gradient(circle at 68% 34%, rgba(30, 136, 255, .24), transparent 31%),
+        radial-gradient(circle at 63% 48%, rgba(0, 0, 0, .9) 0 7%, rgba(0, 0, 0, .52) 9%, transparent 20%),
+        radial-gradient(circle at 68% 34%, rgba(30, 136, 255, .2), transparent 31%),
         radial-gradient(circle at 16% 82%, rgba(125, 211, 252, .11), transparent 27%),
         linear-gradient(180deg, #020712 0%, #071d49 54%, #030815 100%);
       position: relative;
@@ -185,12 +188,14 @@
       z-index: -2;
       opacity: .72;
       background-image:
+        linear-gradient(104deg, transparent 0 46%, rgba(125, 211, 252, .18) 46.2% 46.5%, transparent 47% 100%),
+        linear-gradient(78deg, transparent 0 52%, rgba(255, 255, 255, .13) 52.1% 52.35%, transparent 52.8% 100%),
         radial-gradient(circle, rgba(255, 255, 255, .9) 0 1px, transparent 1.5px),
         radial-gradient(circle, rgba(108, 183, 255, .75) 0 1px, transparent 1.5px),
         radial-gradient(circle, rgba(255, 255, 255, .5) 0 1px, transparent 1.5px);
-      background-position: 0 0, 38px 26px, 18px 54px;
-      background-size: 86px 86px, 127px 127px, 173px 173px;
-      mask-image: radial-gradient(ellipse at 63% 48%, transparent 0 10%, #000 22% 100%);
+      background-position: 0 0, 28px 18px, 0 0, 38px 26px, 18px 54px;
+      background-size: 320px 180px, 360px 220px, 86px 86px, 127px 127px, 173px 173px;
+      mask-image: radial-gradient(ellipse at 63% 48%, transparent 0 8%, rgba(0, 0, 0, .35) 16%, #000 28% 100%);
       animation: loginStarInhale 20s ease-in-out infinite alternate;
     }
 
@@ -199,29 +204,30 @@
       position: absolute;
       left: 63%;
       top: 48%;
-      width: clamp(320px, 54vw, 760px);
-      aspect-ratio: 1;
+      width: clamp(390px, 58vw, 820px);
+      height: clamp(190px, 31vw, 420px);
       border-radius: 50%;
       z-index: -1;
       background:
-        radial-gradient(circle, #000 0 8%, rgba(2, 7, 18, .98) 9% 15%, transparent 16%),
-        conic-gradient(from 20deg, transparent 0 8%, rgba(125, 211, 252, .12) 10%, rgba(30, 136, 255, .58) 16%, transparent 26%, rgba(255, 255, 255, .22) 31%, rgba(10, 74, 180, .42) 37%, transparent 48%, rgba(96, 165, 250, .48) 58%, transparent 71%, rgba(255, 255, 255, .18) 78%, rgba(30, 136, 255, .32) 84%, transparent 100%);
-      filter: drop-shadow(0 0 46px rgba(30, 136, 255, .34));
-      transform: translate(-50%, -50%);
+        radial-gradient(ellipse at 50% 50%, transparent 0 39%, rgba(255, 255, 255, .88) 41%, rgba(125, 211, 252, .72) 43%, rgba(30, 136, 255, .2) 48%, transparent 56%),
+        conic-gradient(from 30deg, transparent 0 10%, rgba(255, 255, 255, .65) 13%, rgba(30, 136, 255, .88) 17%, transparent 25%, rgba(3, 12, 30, .04) 42%, rgba(96, 165, 250, .54) 56%, rgba(255, 255, 255, .28) 60%, transparent 70%, rgba(30, 136, 255, .36) 82%, transparent 100%);
+      filter: blur(.4px) drop-shadow(0 0 36px rgba(30, 136, 255, .36));
+      transform: translate(-50%, -50%) rotate(-10deg) scaleX(1.2);
       animation: loginVortexSpin 34s linear infinite;
-      opacity: .94;
+      opacity: .9;
+      mask-image: radial-gradient(ellipse at center, transparent 0 35%, #000 39% 55%, transparent 61%);
     }
 
     .axion-vortex {
       position: absolute;
       left: 63%;
       top: 48%;
-      width: clamp(350px, 58vw, 820px);
-      aspect-ratio: 1;
+      width: clamp(420px, 62vw, 880px);
+      height: clamp(230px, 34vw, 460px);
       pointer-events: none;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%) rotate(-10deg);
       z-index: -1;
-      opacity: .88;
+      opacity: .95;
     }
 
     .axion-vortex::before,
@@ -233,42 +239,60 @@
     }
 
     .axion-vortex::before {
-      inset: 39%;
-      background: radial-gradient(circle, #000 0 48%, rgba(6, 22, 58, .9) 52%, transparent 72%);
+      left: 50%;
+      top: 50%;
+      width: clamp(92px, 13vw, 174px);
+      aspect-ratio: 1;
+      background:
+        radial-gradient(circle, #000 0 48%, rgba(0, 0, 0, .98) 56%, rgba(4, 13, 34, .86) 63%, transparent 74%);
+      transform: translate(-50%, -50%) rotate(10deg);
       animation: loginAccretionPulse 4.8s ease-in-out infinite;
     }
 
     .axion-vortex::after {
       left: 50%;
       top: 50%;
-      width: 72%;
-      aspect-ratio: 1;
-      background: conic-gradient(from 180deg, transparent, rgba(125, 211, 252, .18), rgba(30, 136, 255, .48), transparent, rgba(255, 255, 255, .14), transparent);
-      filter: blur(18px);
-      animation: loginVortexSpin 24s linear infinite reverse;
+      width: 76%;
+      height: 58%;
+      background:
+        radial-gradient(ellipse at 50% 50%, transparent 0 45%, rgba(125, 211, 252, .24) 49%, rgba(30, 136, 255, .28) 52%, transparent 62%);
+      filter: blur(14px);
       transform: translate(-50%, -50%);
+      opacity: .74;
     }
 
     .vortex-ring {
-      border: 1px solid rgba(125, 211, 252, .22);
-      box-shadow: 0 0 22px rgba(30, 136, 255, .18);
+      left: 50%;
+      top: 50%;
+      width: 78%;
+      height: 54%;
+      border: 1px solid rgba(125, 211, 252, .24);
+      border-top-color: rgba(255, 255, 255, .66);
+      border-left-color: rgba(30, 136, 255, .62);
+      border-bottom-color: rgba(5, 19, 45, .08);
+      box-shadow: 0 0 24px rgba(30, 136, 255, .18);
       transform-origin: center;
     }
 
     .ring-one {
-      inset: 18%;
+      width: 84%;
+      height: 49%;
       animation: loginRingSpin 18s linear infinite;
     }
 
     .ring-two {
-      inset: 25%;
+      width: 66%;
+      height: 39%;
       border-color: rgba(30, 136, 255, .3);
+      border-top-color: rgba(255, 255, 255, .52);
       animation: loginRingSpin 24s linear infinite reverse;
     }
 
     .ring-three {
-      inset: 32%;
+      width: 48%;
+      height: 30%;
       border-color: rgba(255, 255, 255, .16);
+      border-left-color: rgba(125, 211, 252, .38);
       animation: loginRingSpin 30s linear infinite;
     }
 
