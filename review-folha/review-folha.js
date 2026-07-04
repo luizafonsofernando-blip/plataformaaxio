@@ -149,6 +149,12 @@ function filteredDifferences() {
   if (currentDifferenceFilter === "only-sheet") {
     return differences.filter((item) => String(item?.status || "").toLowerCase().includes("somente na planilha"));
   }
+  if (currentDifferenceFilter === "errors") {
+    return differences.filter((item) => {
+      const status = String(item?.status || "").toLowerCase();
+      return status.includes("divergente") && !status.includes("somente");
+    });
+  }
   return differences;
 }
 
