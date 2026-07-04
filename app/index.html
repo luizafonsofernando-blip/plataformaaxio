@@ -152,7 +152,9 @@
       place-items: center;
       padding: 24px;
       background:
-        radial-gradient(ellipse at center, rgba(4, 25, 64, .88) 0%, rgba(2, 7, 18, .98) 70%),
+        radial-gradient(circle at 22% 18%, rgba(30, 136, 255, .18), transparent 30%),
+        radial-gradient(circle at 78% 28%, rgba(125, 211, 252, .08), transparent 28%),
+        radial-gradient(ellipse at center, rgba(4, 25, 64, .9) 0%, rgba(2, 7, 18, .98) 72%),
         linear-gradient(180deg, #020712 0%, #06173a 48%, #020916 100%);
       position: relative;
       overflow: hidden;
@@ -164,8 +166,7 @@
       content: "";
       position: absolute;
       inset: -18%;
-      z-index: -2;
-      display: none;
+      z-index: -1;
       opacity: .72;
       background-image:
         radial-gradient(circle, rgba(255, 255, 255, .9) 0 1px, transparent 1.5px),
@@ -215,6 +216,7 @@
       position: absolute;
       inset: 0;
       z-index: -1;
+      display: none;
       overflow: hidden;
       pointer-events: none;
     }
@@ -2240,6 +2242,5 @@
     </div>
   </div>
   <script src="onboarding.js"></script>
-  <script type="module" src="/assets/axion-black-hole.js"></script>
 </body>
 </html>
