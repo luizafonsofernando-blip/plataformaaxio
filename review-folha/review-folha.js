@@ -7,6 +7,8 @@ const kpiGrid = document.getElementById("kpiGrid");
 const onlyPdf = document.getElementById("onlyPdf");
 const onlySheet = document.getElementById("onlySheet");
 const differenceRows = document.getElementById("differenceRows");
+const differenceFilter = document.getElementById("differenceFilter");
+const differenceFilterCount = document.getElementById("differenceFilterCount");
 const exportCsv = document.getElementById("exportCsv");
 const exportPdf = document.getElementById("exportPdf");
 const pdfFile = document.getElementById("pdfFile");
@@ -15,6 +17,7 @@ const pdfFileName = document.getElementById("pdfFileName");
 const sheetFileName = document.getElementById("sheetFileName");
 
 let currentResult = null;
+let currentDifferenceFilter = "all";
 
 pdfFile.addEventListener("change", () => {
   pdfFileName.textContent = pdfFile.files?.[0]?.name || "Nenhum arquivo selecionado";
@@ -50,6 +53,8 @@ clearButton.addEventListener("click", () => {
   pdfFileName.textContent = "Nenhum arquivo selecionado";
   sheetFileName.textContent = "Nenhum arquivo selecionado";
   currentResult = null;
+  currentDifferenceFilter = "all";
+  differenceFilter.value = "all";
   resultPanel.hidden = true;
   kpiGrid.innerHTML = "";
   onlyPdf.innerHTML = "";
@@ -58,11 +63,17 @@ clearButton.addEventListener("click", () => {
   setStatus("");
 });
 
+differenceFilter.addEventListener("change", () => {
+  currentDifferenceFilter = differenceFilter.value;
+  renderDifferenceTable();
+});
+
 exportCsv.addEventListener("click", () => {
   if (!currentResult) return;
+  const differences = filteredDifferences();
   const rows = [
     ["Status", "Funcionario", "Matricula", "Rubrica", "Criterio", "PDF", "Planilha", "Diferenca"],
-    ...currentResult.differences.map((item) => {
+    ...differences.map((item) => {
       const metric = metricValues(item);
       return [
         item.status,
@@ -94,7 +105,7 @@ exportPdf.addEventListener("click", () => {
     return;
   }
   reportWindow.document.open();
-  reportWindow.document.write(buildPdfReport(currentResult));
+  reportWindow.document.write(buildPdfReport({ ...currentResult, differences: filteredDifferences() }));
   reportWindow.document.close();
   reportWindow.addEventListener("load", () => {
     reportWindow.focus();
@@ -104,6 +115,8 @@ exportPdf.addEventListener("click", () => {
 
 function renderResult(result) {
   resultPanel.hidden = false;
+  currentDifferenceFilter = "all";
+  differenceFilter.value = "all";
   const differences = result.differences || [];
   kpiGrid.innerHTML = [
     ["Funcionarios PDF", result.pdf_people],
@@ -117,9 +130,26 @@ function renderResult(result) {
 
   onlyPdf.innerHTML = renderPeople(result.people_only_pdf);
   onlySheet.innerHTML = renderPeople(result.people_only_sheet);
+  renderDifferenceTable();
+}
+
+function renderDifferenceTable() {
+  const differences = filteredDifferences();
+  differenceFilterCount.textContent = `${differences.length} ${differences.length === 1 ? "registro" : "registros"}`;
   differenceRows.innerHTML = differences.length
     ? differences.map(renderDifferenceRow).join("")
     : `<tr><td colspan="7">Nenhuma divergencia encontrada para os criterios processados.</td></tr>`;
+}
+
+function filteredDifferences() {
+  const differences = currentResult?.differences || [];
+  if (currentDifferenceFilter === "only-pdf") {
+    return differences.filter((item) => rowStatusClass(item) === "only-pdf");
+  }
+  if (currentDifferenceFilter === "only-sheet") {
+    return differences.filter((item) => String(item?.status || "").toLowerCase().includes("somente na planilha"));
+  }
+  return differences;
 }
 
 function renderPeople(people = []) {
