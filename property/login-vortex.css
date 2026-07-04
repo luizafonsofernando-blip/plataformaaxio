@@ -25,9 +25,7 @@
   overflow: hidden;
   isolation: isolate;
   background:
-    radial-gradient(circle at 50% 82%, rgba(30, 136, 255, .24), transparent 34%),
-    radial-gradient(circle at 48% 74%, rgba(255, 255, 255, .1), transparent 18%),
-    radial-gradient(circle at 72% 22%, rgba(125, 211, 252, .1), transparent 28%),
+    radial-gradient(ellipse at center, rgba(4, 25, 64, .88) 0%, rgba(2, 7, 18, .98) 70%),
     linear-gradient(180deg, #020712 0%, #06173a 48%, #020916 100%) !important;
 }
 
@@ -36,6 +34,7 @@
   position: absolute;
   inset: -18%;
   z-index: -2;
+  display: none;
   opacity: .72;
   background-image:
     radial-gradient(circle, rgba(255, 255, 255, .92) 0 1px, transparent 1.5px),
@@ -56,6 +55,7 @@
   height: min(500px, 50vw);
   border-radius: 50% 50% 0 0;
   z-index: -1;
+  display: none;
   background:
     linear-gradient(90deg, transparent 0 4%, rgba(30, 136, 255, .5) 20%, rgba(255, 255, 255, .98) 50%, rgba(0, 102, 255, .54) 80%, transparent 96%) 50% 100% / 100% 4px no-repeat,
     radial-gradient(ellipse at 50% 100%, #01030a 0 23%, rgba(2, 11, 28, .98) 25%, transparent 28%),
@@ -64,6 +64,20 @@
     radial-gradient(ellipse at 50% 100%, rgba(255, 255, 255, .82) 0 1%, rgba(30, 136, 255, .78) 6%, rgba(4, 25, 64, .34) 28%, transparent 58%);
   transform: translateX(-50%);
   animation: propertyPortalBreath 4.8s ease-in-out infinite alternate;
+}
+
+.axion-black-hole-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.axion-black-hole-bg canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .login-panel {
