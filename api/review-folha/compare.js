@@ -8,7 +8,8 @@ export const config = {
   },
 };
 
-const DECIMAL_SCALE = 100;
+const DECIMAL_DIGITS = 4;
+const DECIMAL_SCALE = 10 ** DECIMAL_DIGITS;
 
 export default async function handler(request, response) {
   if (request.method !== "POST") {
@@ -146,7 +147,12 @@ async function parsePdfReport(buffer) {
         const starts = [];
         line.items.forEach((item, index) => {
           const next = line.items[index + 1]?.str || "";
-          if (/^\d{1,5}$/.test(item.str) && (next === "-" || /[^\d\s.,:()/-]/.test(next))) starts.push(index);
+          if (
+            /^\d{1,5}\s*-/.test(item.str) ||
+            (/^\d{1,5}$/.test(item.str) && (next === "-" || /[^\d\s.,:()/-]/.test(next)))
+          ) {
+            starts.push(index);
+          }
         });
 
         if (!starts.length) {
@@ -395,19 +401,19 @@ function compareReports(pdfLaunches, sheetLaunches, pdfPeople, sheetPeople) {
     let criterion = "valor";
 
     if (!pdfItem) {
-      criterion = sheetItem.has_reference && !sheetItem.has_amount ? "quantidade" : "valor";
+      criterion = compareByQuantity(sheetItem) ? "quantidade" : "valor";
       amountDiff = decimalDiff(0, sheetItem.has_amount ? sheetItem.amount : 0);
       refDiff = decimalDiff(0, sheetItem.has_reference ? sheetItem.reference : 0);
       status = "Rubrica somente na planilha";
     } else if (!sheetItem) {
-      criterion = pdfItem.has_reference && !pdfItem.has_amount ? "quantidade" : "valor";
+      criterion = compareByQuantity(pdfItem) ? "quantidade" : "valor";
       amountDiff = decimalDiff(pdfItem.has_amount ? pdfItem.amount : 0, 0);
       refDiff = decimalDiff(pdfItem.has_reference ? pdfItem.reference : 0, 0);
       status = "Rubrica somente no PDF";
     } else {
       amountDiff = decimalDiff(pdfItem.has_amount ? pdfItem.amount : 0, sheetItem.has_amount ? sheetItem.amount : 0);
       refDiff = decimalDiff(pdfItem.has_reference ? pdfItem.reference : 0, sheetItem.has_reference ? sheetItem.reference : 0);
-      criterion = sheetItem.has_reference && !sheetItem.has_amount ? "quantidade" : "valor";
+      criterion = compareByQuantity(pdfItem, sheetItem) ? "quantidade" : "valor";
       const relevantDiff = criterion === "quantidade" ? refDiff : amountDiff;
       if (toScaledInteger(relevantDiff) === 0) continue;
       status = criterion === "quantidade" ? "Quantidade divergente" : "Valor divergente";
@@ -497,6 +503,19 @@ function summarize(launches) {
   return grouped;
 }
 
+function compareByQuantity(...items) {
+  return items.some((item) => {
+    if (!item) return false;
+    const text = normalize(`${item.codes || ""} ${item.descriptions || ""} ${item.event || ""}`);
+    const isQuantityEvent =
+      (text.includes("HORA") && text.includes("EXTRA")) ||
+      text.includes("ADICIONAL NOTURNO") ||
+      text.includes("FALTA") ||
+      text.includes("FALTAS");
+    return item.has_reference && (isQuantityEvent || !item.has_amount);
+  });
+}
+
 function buildSalaryFloorDifferences(salaries, monthlyFloor, hourlyFloor) {
   const differences = [];
   for (const salary of salaries.values()) {
@@ -551,6 +570,9 @@ function eventKey(code, description) {
   let desc = normalize(description)
     .replaceAll("HORAS EXTRAS", "HORA EXTRA")
     .replaceAll("COMISSOES", "COMISSAO")
+    .replaceAll("DESC FALTAS HRS", "FALTAS HORAS")
+    .replaceAll("FALTAS NAO JUSTIFICADAS HORAS", "FALTAS HORAS")
+    .replaceAll("FALTAS NAO JUSTIFICADAS DIAS", "FALTAS DIAS")
     .replace(/\bS\b|\bDE\b|\bDA\b|\bDO\b|\bDAS\b|\bDOS\b/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -559,7 +581,7 @@ function eventKey(code, description) {
 
 function isDiscountEvent(code, description) {
   const words = normalize(`${code} ${description}`).split(" ");
-  return ["DESCONTO", "DESC", "FALTA", "FALTAS", "INSS", "IRRF", "VALE", "VALES", "ADTO", "ADIANTAMENTO"].some((term) =>
+  return ["DESCONTO", "DESC", "INSS", "IRRF", "ADTO", "ADIANTAMENTO"].some((term) =>
     words.includes(term),
   );
 }
@@ -573,6 +595,7 @@ function referenceKind(code, description) {
   const text = normalize(`${code} ${description}`);
   if (text.includes("FALTAS") && text.includes("HORAS")) return "reference-hours";
   if (text.includes("HORA") && text.includes("EXTRA")) return "reference-hours";
+  if (text.includes("ADICIONAL NOTURNO")) return "reference-hours";
   return "reference";
 }
 
@@ -596,6 +619,14 @@ function parseHourReference(value) {
   const separated = cleaned.match(/^(\d{1,3})[.,:](\d{2})$/);
   if (separated) {
     return signedNumber(Number(`${Number(separated[1])}.${separated[2]}`), negative);
+  }
+  const decimalReference = cleaned.match(/^(\d{1,3})[.,](\d{1,4})$/);
+  if (decimalReference) {
+    return signedNumber(Number(`${Number(decimalReference[1])}.${decimalReference[2]}`), negative);
+  }
+  if (/[.,]/.test(cleaned)) {
+    const decimalValue = parseBrNumber(value);
+    return decimalValue === null ? null : signedNumber(Math.abs(decimalValue), negative || decimalValue < 0);
   }
 
   const digits = cleaned.replace(/\D/g, "");
@@ -680,7 +711,7 @@ function toScaledInteger(value) {
   const unsigned = negative ? text.slice(1) : text;
   const [integerPart = "0", decimalPart = ""] = unsigned.split(".");
   const integer = Number(integerPart.replace(/\D/g, "") || 0);
-  const decimals = `${decimalPart.replace(/\D/g, "")}00`.slice(0, 2);
+  const decimals = `${decimalPart.replace(/\D/g, "")}${"0".repeat(DECIMAL_DIGITS)}`.slice(0, DECIMAL_DIGITS);
   const scaled = integer * DECIMAL_SCALE + Number(decimals || 0);
   return negative ? -scaled : scaled;
 }

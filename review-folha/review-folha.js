@@ -70,9 +70,9 @@ exportCsv.addEventListener("click", () => {
         item.employee_id,
         item.event,
         item.criterion,
-        formatNumber(metric.pdf),
-        formatNumber(metric.sheet),
-        formatNumber(metric.diff),
+        formatMetric(metric.pdf, item.criterion),
+        formatMetric(metric.sheet, item.criterion),
+        formatMetric(metric.diff, item.criterion),
       ];
     }),
   ];
@@ -129,17 +129,24 @@ function renderPeople(people = []) {
 
 function renderDifferenceRow(item) {
   const metric = metricValues(item);
+  const rowClass = rowStatusClass(item);
   return `
-    <tr>
-      <td><span class="status-badge ${item.severity === "critico" ? "critico" : ""}">${escapeHtml(item.status)}</span></td>
+    <tr class="${rowClass}">
+      <td><span class="status-badge ${rowClass} ${item.severity === "critico" ? "critico" : ""}">${escapeHtml(item.status)}</span></td>
       <td>${escapeHtml(item.employee_id || "-")}<br><strong>${escapeHtml(item.employee || "")}</strong></td>
       <td>${escapeHtml(item.event || "")}</td>
       <td>${item.criterion === "quantidade" ? "Quantidade" : "Valor"}</td>
-      <td class="num">${formatNumber(metric.pdf)}</td>
-      <td class="num">${formatNumber(metric.sheet)}</td>
-      <td class="num"><strong>${formatNumber(metric.diff)}</strong></td>
+      <td class="num">${formatMetric(metric.pdf, item.criterion)}</td>
+      <td class="num">${formatMetric(metric.sheet, item.criterion)}</td>
+      <td class="num"><strong>${formatMetric(metric.diff, item.criterion)}</strong></td>
     </tr>
   `;
+}
+
+function rowStatusClass(item) {
+  const status = String(item?.status || "").toLowerCase();
+  if (status.includes("somente no pdf")) return "only-pdf";
+  return "has-divergence";
 }
 
 function metricValues(item) {
@@ -166,7 +173,7 @@ function buildPdfReport(result) {
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        background: #f4f7fb;
+        background: #fff;
         color: #172033;
         font-family: Inter, Arial, sans-serif;
       }
@@ -219,8 +226,14 @@ function buildPdfReport(result) {
       th { color: #0f4c81; font-size: 10px; text-transform: uppercase; }
       .num { text-align: right; font-variant-numeric: tabular-nums; }
       .badge { display: inline-block; padding: 4px 7px; border-radius: 999px; background: #e8f3ff; color: #0f4c81; font-weight: 800; }
+      .badge.has-divergence,
       .badge.critico { background: #ffe8e8; color: #b42318; }
+      .badge.only-pdf { background: #dcfce7; color: #16784a; }
+      tr.has-divergence td { background: #fff5f5; }
+      tr.only-pdf td { background: #f2fff6; }
       .people { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .people article:first-child { border-radius: 8px; background: #f2fff6; padding: 10px; }
+      .people article:first-child h2 { color: #16784a; }
       ul { margin: 0; padding-left: 18px; color: #475569; }
       footer { margin-top: 16px; color: #64748b; font-size: 11px; text-align: center; }
       @media print {
@@ -289,15 +302,16 @@ function buildPdfReport(result) {
 
 function renderPdfDifferenceRow(item) {
   const metric = metricValues(item);
+  const rowClass = rowStatusClass(item);
   return `
-    <tr>
-      <td><span class="badge ${item.severity === "critico" ? "critico" : ""}">${escapeHtml(item.status)}</span></td>
+    <tr class="${rowClass}">
+      <td><span class="badge ${rowClass} ${item.severity === "critico" ? "critico" : ""}">${escapeHtml(item.status)}</span></td>
       <td>${escapeHtml(item.employee_id || "-")}<br><strong>${escapeHtml(item.employee || "")}</strong></td>
       <td>${escapeHtml(item.event || "")}</td>
       <td>${item.criterion === "quantidade" ? "Quantidade" : "Valor"}</td>
-      <td class="num">${formatNumber(metric.pdf)}</td>
-      <td class="num">${formatNumber(metric.sheet)}</td>
-      <td class="num"><strong>${formatNumber(metric.diff)}</strong></td>
+      <td class="num">${formatMetric(metric.pdf, item.criterion)}</td>
+      <td class="num">${formatMetric(metric.sheet, item.criterion)}</td>
+      <td class="num"><strong>${formatMetric(metric.diff, item.criterion)}</strong></td>
     </tr>
   `;
 }
@@ -319,6 +333,15 @@ function formatNumber(value) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+}
+
+function formatMetric(value, criterion) {
+  if (value === null || value === undefined || value === "") return "-";
+  const options =
+    criterion === "quantidade"
+      ? { minimumFractionDigits: 2, maximumFractionDigits: 4 }
+      : { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  return Number(value).toLocaleString("pt-BR", options);
 }
 
 function csvCell(value) {
