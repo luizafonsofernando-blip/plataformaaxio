@@ -575,16 +575,42 @@ function normalize(value) {
 }
 
 function eventKey(code, description) {
+  const desc = normalizePayrollDescription(description);
+  return desc || normalize(code);
+}
+
+function normalizePayrollDescription(description) {
   let desc = normalize(description)
+    .replace(/\bAD\b/g, "ADICIONAL")
+    .replace(/\bDESC\b/g, " ")
+    .replace(/\bDESCONTO\b/g, " ")
     .replaceAll("HORAS EXTRAS", "HORA EXTRA")
+    .replaceAll("HORAS EXTRA", "HORA EXTRA")
+    .replaceAll("HORA EXTRAS", "HORA EXTRA")
     .replaceAll("COMISSOES", "COMISSAO")
     .replaceAll("DESC FALTAS HRS", "FALTAS HORAS")
+    .replaceAll("FALTAS HRS", "FALTAS HORAS")
     .replaceAll("FALTAS NAO JUSTIFICADAS HORAS", "FALTAS HORAS")
     .replaceAll("FALTAS NAO JUSTIFICADAS DIAS", "FALTAS DIAS")
+    .replaceAll("FALTAS INJUSTIFICADAS HORAS", "FALTAS HORAS")
+    .replaceAll("FALTAS INJUSTIFICADAS DIAS", "FALTAS DIAS")
+    .replaceAll("FALTAS INJUSTIFICADAS", "FALTAS")
     .replace(/\bS\b|\bDE\b|\bDA\b|\bDO\b|\bDAS\b|\bDOS\b/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-  return desc || normalize(code);
+
+  if (desc.includes("FARMACIA")) return "FARMACIA";
+  if (desc.includes("FALTAS HORAS")) return "FALTAS HORAS";
+  if (desc.includes("FALTAS DIAS")) return "FALTAS DIAS";
+  if (desc === "FALTA" || desc === "FALTAS" || desc.includes(" FALTAS") || desc.includes("FALTAS ")) return "FALTAS";
+
+  const additionalNight = desc.match(/\bADICIONAL NOTURNO(?:\s+(\d+%))?/);
+  if (additionalNight) return ["ADICIONAL NOTURNO", additionalNight[1]].filter(Boolean).join(" ");
+
+  const overtime = desc.match(/\bHORA EXTRA(?:\s+(\d+%))?/);
+  if (overtime) return ["HORA EXTRA", overtime[1]].filter(Boolean).join(" ");
+
+  return desc;
 }
 
 function isDiscountEvent(code, description) {
@@ -604,6 +630,7 @@ function referenceKind(code, description) {
   if (text.includes("FALTAS") && text.includes("HORAS")) return "reference-hours";
   if (text.includes("HORA") && text.includes("EXTRA")) return "reference-hours";
   if (text.includes("ADICIONAL NOTURNO")) return "reference-hours";
+  if (text.includes("AD NOTURNO")) return "reference-hours";
   if (text.includes("FALTA") || text.includes("FALTAS")) return "reference-only";
   return "reference";
 }
