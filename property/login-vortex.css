@@ -1,0 +1,87 @@
+@keyframes propertyStarInhale {
+  from {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1.04);
+    opacity: .62;
+  }
+  to {
+    transform: translate3d(-46px, 32px, 0) rotate(-14deg) scale(.98);
+    opacity: .9;
+  }
+}
+
+@keyframes propertyVortexSpin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes propertyVortexPulse {
+  0%,
+  100% {
+    opacity: .9;
+    filter: drop-shadow(0 0 44px rgba(30, 136, 255, .32));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 66px rgba(96, 165, 250, .46));
+  }
+}
+
+.login-screen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 65% 48%, rgba(0, 0, 0, .72) 0 9%, transparent 18%),
+    radial-gradient(circle at 68% 30%, rgba(30, 136, 255, .26), transparent 31rem),
+    radial-gradient(circle at 14% 78%, rgba(125, 211, 252, .12), transparent 24rem),
+    linear-gradient(180deg, #020712 0%, #071d49 54%, #030815 100%) !important;
+}
+
+.login-screen::before {
+  content: "";
+  position: absolute;
+  inset: -18%;
+  z-index: -2;
+  opacity: .72;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, .92) 0 1px, transparent 1.5px),
+    radial-gradient(circle, rgba(108, 183, 255, .76) 0 1px, transparent 1.5px),
+    radial-gradient(circle, rgba(255, 255, 255, .52) 0 1px, transparent 1.5px);
+  background-position: 0 0, 38px 26px, 18px 54px;
+  background-size: 86px 86px, 127px 127px, 173px 173px;
+  mask-image: radial-gradient(ellipse at 65% 48%, transparent 0 10%, #000 22% 100%);
+  animation: propertyStarInhale 20s ease-in-out infinite alternate;
+}
+
+.login-screen::after {
+  content: "";
+  position: absolute;
+  left: 65%;
+  top: 48%;
+  width: clamp(340px, 56vw, 820px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  z-index: -1;
+  background:
+    radial-gradient(circle, #000 0 8%, rgba(2, 7, 18, .98) 9% 15%, transparent 16%),
+    conic-gradient(from 20deg, transparent 0 8%, rgba(125, 211, 252, .12) 10%, rgba(30, 136, 255, .58) 16%, transparent 26%, rgba(255, 255, 255, .22) 31%, rgba(10, 74, 180, .42) 37%, transparent 48%, rgba(96, 165, 250, .48) 58%, transparent 71%, rgba(255, 255, 255, .18) 78%, rgba(30, 136, 255, .32) 84%, transparent 100%);
+  transform: translate(-50%, -50%);
+  animation: propertyVortexSpin 34s linear infinite, propertyVortexPulse 5s ease-in-out infinite;
+}
+
+.login-panel {
+  position: relative;
+  z-index: 2;
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid rgba(255, 255, 255, .72);
+  box-shadow: 0 32px 94px rgba(0, 0, 0, .48);
+  backdrop-filter: blur(18px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-screen::before,
+  .login-screen::after {
+    animation: none;
+  }
+}

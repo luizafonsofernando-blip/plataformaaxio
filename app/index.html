@@ -116,12 +116,41 @@
       }
     }
 
-    @keyframes loginStarDrift {
+    @keyframes loginStarInhale {
       from {
-        transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(1.04);
+        opacity: .66;
       }
       to {
-        transform: translate3d(-72px, 54px, 0);
+        transform: translate3d(-48px, 34px, 0) rotate(-14deg) scale(.98);
+        opacity: .9;
+      }
+    }
+
+    @keyframes loginVortexSpin {
+      to {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
+    }
+
+    @keyframes loginRingSpin {
+      from {
+        transform: rotateX(68deg) rotateZ(0deg);
+      }
+      to {
+        transform: rotateX(68deg) rotateZ(360deg);
+      }
+    }
+
+    @keyframes loginAccretionPulse {
+      0%,
+      100% {
+        opacity: .72;
+        box-shadow: 0 0 56px rgba(0, 0, 0, .95), 0 0 118px rgba(30, 136, 255, .28);
+      }
+      50% {
+        opacity: .96;
+        box-shadow: 0 0 72px rgba(0, 0, 0, .98), 0 0 150px rgba(96, 165, 250, .42);
       }
     }
 
@@ -139,8 +168,9 @@
       place-items: center;
       padding: 24px;
       background:
-        radial-gradient(circle at 68% 34%, rgba(30, 136, 255, .22), transparent 31%),
-        radial-gradient(circle at 16% 82%, rgba(30, 136, 255, .12), transparent 27%),
+        radial-gradient(circle at 63% 48%, rgba(0, 0, 0, .68) 0 9%, transparent 18%),
+        radial-gradient(circle at 68% 34%, rgba(30, 136, 255, .24), transparent 31%),
+        radial-gradient(circle at 16% 82%, rgba(125, 211, 252, .11), transparent 27%),
         linear-gradient(180deg, #020712 0%, #071d49 54%, #030815 100%);
       position: relative;
       overflow: hidden;
@@ -160,23 +190,86 @@
         radial-gradient(circle, rgba(255, 255, 255, .5) 0 1px, transparent 1.5px);
       background-position: 0 0, 38px 26px, 18px 54px;
       background-size: 86px 86px, 127px 127px, 173px 173px;
-      animation: loginStarDrift 24s linear infinite alternate;
+      mask-image: radial-gradient(ellipse at 63% 48%, transparent 0 10%, #000 22% 100%);
+      animation: loginStarInhale 20s ease-in-out infinite alternate;
     }
 
     .login-screen::after {
-      content: "A";
+      content: "";
       position: absolute;
-      right: clamp(-80px, 3vw, 40px);
-      top: 50%;
+      left: 63%;
+      top: 48%;
+      width: clamp(320px, 54vw, 760px);
+      aspect-ratio: 1;
+      border-radius: 50%;
       z-index: -1;
-      color: rgba(30, 136, 255, .08);
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: clamp(320px, 52vw, 760px);
-      font-weight: 900;
-      line-height: .75;
-      transform: translateY(-50%);
-      -webkit-text-stroke: 2px rgba(128, 198, 255, .16);
-      text-shadow: 0 0 80px rgba(30, 136, 255, .18);
+      background:
+        radial-gradient(circle, #000 0 8%, rgba(2, 7, 18, .98) 9% 15%, transparent 16%),
+        conic-gradient(from 20deg, transparent 0 8%, rgba(125, 211, 252, .12) 10%, rgba(30, 136, 255, .58) 16%, transparent 26%, rgba(255, 255, 255, .22) 31%, rgba(10, 74, 180, .42) 37%, transparent 48%, rgba(96, 165, 250, .48) 58%, transparent 71%, rgba(255, 255, 255, .18) 78%, rgba(30, 136, 255, .32) 84%, transparent 100%);
+      filter: drop-shadow(0 0 46px rgba(30, 136, 255, .34));
+      transform: translate(-50%, -50%);
+      animation: loginVortexSpin 34s linear infinite;
+      opacity: .94;
+    }
+
+    .axion-vortex {
+      position: absolute;
+      left: 63%;
+      top: 48%;
+      width: clamp(350px, 58vw, 820px);
+      aspect-ratio: 1;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: -1;
+      opacity: .88;
+    }
+
+    .axion-vortex::before,
+    .axion-vortex::after,
+    .vortex-ring {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+    }
+
+    .axion-vortex::before {
+      inset: 39%;
+      background: radial-gradient(circle, #000 0 48%, rgba(6, 22, 58, .9) 52%, transparent 72%);
+      animation: loginAccretionPulse 4.8s ease-in-out infinite;
+    }
+
+    .axion-vortex::after {
+      left: 50%;
+      top: 50%;
+      width: 72%;
+      aspect-ratio: 1;
+      background: conic-gradient(from 180deg, transparent, rgba(125, 211, 252, .18), rgba(30, 136, 255, .48), transparent, rgba(255, 255, 255, .14), transparent);
+      filter: blur(18px);
+      animation: loginVortexSpin 24s linear infinite reverse;
+      transform: translate(-50%, -50%);
+    }
+
+    .vortex-ring {
+      border: 1px solid rgba(125, 211, 252, .22);
+      box-shadow: 0 0 22px rgba(30, 136, 255, .18);
+      transform-origin: center;
+    }
+
+    .ring-one {
+      inset: 18%;
+      animation: loginRingSpin 18s linear infinite;
+    }
+
+    .ring-two {
+      inset: 25%;
+      border-color: rgba(30, 136, 255, .3);
+      animation: loginRingSpin 24s linear infinite reverse;
+    }
+
+    .ring-three {
+      inset: 32%;
+      border-color: rgba(255, 255, 255, .16);
+      animation: loginRingSpin 30s linear infinite;
     }
 
     .login-card {
@@ -190,6 +283,8 @@
       display: grid;
       gap: 16px;
       animation: softReveal .32s ease both;
+      position: relative;
+      z-index: 2;
     }
 
     .login-logo {
@@ -260,6 +355,16 @@
       width: 100%;
       justify-content: center;
       margin-top: 4px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .login-screen::before,
+      .login-screen::after,
+      .axion-vortex::before,
+      .axion-vortex::after,
+      .vortex-ring {
+        animation: none;
+      }
     }
 
     .account-dialog {
@@ -1585,6 +1690,11 @@
 </head>
 <body class="auth-locked">
   <section class="login-screen" id="loginScreen">
+    <div class="axion-vortex" aria-hidden="true">
+      <span class="vortex-ring ring-one"></span>
+      <span class="vortex-ring ring-two"></span>
+      <span class="vortex-ring ring-three"></span>
+    </div>
     <form class="login-card" id="loginForm" autocomplete="off">
       <div class="login-logo">
         <img src="logo-axion-login.png" alt="Axion Solutions">
