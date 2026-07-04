@@ -142,6 +142,18 @@
   white-space: nowrap;
 }
 
+.review-app .ghost-button {
+  border: 0;
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 18px 42px rgba(30, 136, 255, 0.35);
+}
+
+.review-app .ghost-button:hover,
+.review-app .ghost-button:focus-visible {
+  background: #3697ff;
+}
+
 .form-actions,
 .result-heading {
   display: flex;
