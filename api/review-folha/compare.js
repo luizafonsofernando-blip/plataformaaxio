@@ -244,8 +244,16 @@ function parsePdfEntry(segment) {
     return { code: match[1], description: match[2].trim(), reference: null, amount: null };
   }
   const [, code, description, first, second] = match;
-  if (second === undefined) return { code, description: description.trim(), reference: null, amount: parseBrNumber(first) };
   const event = { kind: referenceKind(code, description) };
+  if (second === undefined) {
+    const isReferenceOnly = event.kind === "reference-hours" || event.kind === "reference-only";
+    return {
+      code,
+      description: description.trim(),
+      reference: isReferenceOnly ? parseReferenceNumber(first, event) : null,
+      amount: isReferenceOnly ? null : parseBrNumber(first),
+    };
+  }
   return { code, description: description.trim(), reference: parseReferenceNumber(first, event), amount: parseBrNumber(second) };
 }
 
@@ -596,6 +604,7 @@ function referenceKind(code, description) {
   if (text.includes("FALTAS") && text.includes("HORAS")) return "reference-hours";
   if (text.includes("HORA") && text.includes("EXTRA")) return "reference-hours";
   if (text.includes("ADICIONAL NOTURNO")) return "reference-hours";
+  if (text.includes("FALTA") || text.includes("FALTAS")) return "reference-only";
   return "reference";
 }
 
@@ -689,6 +698,7 @@ function normalizeNumberText(value) {
     const dotCount = (text.match(/\./g) || []).length;
     const decimalDigits = text.length - dotIndex - 1;
     if (dotCount === 1 && decimalDigits > 0 && decimalDigits <= 2) return `${sign}${text}`;
+    if (dotCount === 1 && decimalDigits === DECIMAL_DIGITS) return `${sign}${text}`;
     return `${sign}${text.replace(/\./g, "")}`;
   }
 
