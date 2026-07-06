@@ -255,6 +255,30 @@
       }
     }
 
+    async function onboardingApiRequest(path, { method = "POST", body } = {}) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      try {
+        const response = await fetch(`/api/onboarding/${path}`, {
+          method,
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: body ? JSON.stringify(body) : undefined,
+          signal: controller.signal
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const apiError = new Error(data.error || "NÃ£o foi possÃ­vel concluir a operaÃ§Ã£o.");
+          apiError.code = data.code || "api_error";
+          throw apiError;
+        }
+        return data;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
     async function setupLogin() {
       const form = $("loginForm");
       if (!form) return;
@@ -403,7 +427,7 @@
           submit.textContent = "Enviando...";
         }
         try {
-          await supabaseFunctionRequest("request-registration", {
+          await onboardingApiRequest("register", {
             body: {
               name: value("registrationName", "").trim(),
               username: value("registrationUsername", "").trim(),
