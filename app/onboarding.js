@@ -3355,6 +3355,14 @@
       renderHistory();
     }
 
+    async function saveFinalDocument() {
+      if (isBriefingAberturaWorkflow()) {
+        syncOpeningBriefingToMainFields();
+      }
+      render();
+      await saveCurrentDocumentToHistory(currentDocumentKind());
+    }
+
     async function saveDraftToHistory() {
       const kind = "briefing";
       currentDocumentSerial = nextDocumentSerial("rascunho");
@@ -3903,7 +3911,6 @@
         currentDoc = "briefing";
         document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.doc === "briefing"));
         render();
-        await saveCurrentDocumentToHistory("briefing");
         $("documentPreview").scrollIntoView({ behavior: "smooth", block: "start" });
         return;
       }
@@ -3911,7 +3918,6 @@
       currentDoc = "briefing";
       document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.doc === "briefing"));
       render();
-      await saveCurrentDocumentToHistory("briefing");
       $("documentPreview").scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
@@ -3921,7 +3927,6 @@
       currentDoc = "contrato";
       document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.doc === "contrato"));
       render();
-      await saveCurrentDocumentToHistory(isBaixaWorkflow() ? "distrato" : "contrato");
       $("documentPreview").scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
@@ -4071,12 +4076,46 @@
       writePdfDocument(pdfWindow, contentHtml || $("documentPreview").innerHTML);
     }
 
+    function waitForPrintAssets(pdfWindow) {
+      return new Promise((resolve) => {
+        const done = () => {
+          const images = Array.from(pdfWindow.document.images || []);
+          if (!images.length) {
+            resolve();
+            return;
+          }
+          let pending = images.filter((image) => !image.complete).length;
+          if (!pending) {
+            resolve();
+            return;
+          }
+          const settle = () => {
+            pending -= 1;
+            if (pending <= 0) resolve();
+          };
+          images.forEach((image) => {
+            if (image.complete) return;
+            image.addEventListener("load", settle, { once: true });
+            image.addEventListener("error", settle, { once: true });
+          });
+          setTimeout(resolve, 1600);
+        };
+        if (pdfWindow.document.readyState === "complete") {
+          done();
+        } else {
+          pdfWindow.addEventListener("load", done, { once: true });
+          setTimeout(done, 1200);
+        }
+      });
+    }
+
     function writePdfDocument(pdfWindow, contentHtml) {
       pdfWindow.document.open();
       pdfWindow.document.write(printableDocumentHtml(sanitizeDocumentHtml(contentHtml), true));
       pdfWindow.document.close();
       pdfWindow.focus();
-      const startPrint = () => {
+      const startPrint = async () => {
+        await waitForPrintAssets(pdfWindow);
         pdfWindow.document.title = "";
         pdfWindow.focus();
         pdfWindow.print();
@@ -4132,7 +4171,6 @@
         syncOpeningBriefingToMainFields();
       }
       render();
-      await saveCurrentDocumentToHistory();
       const kind = currentDocumentKind();
       const contentHtml = await inlineImagesForWord($("documentPreview").innerHTML);
       const wordBrand = activeProfile() === "simao" ? "#f4bd2a" : "#2f65a3";
@@ -4182,18 +4220,35 @@
       if (isBriefingAberturaWorkflow()) {
         syncOpeningBriefingToMainFields();
         render();
-        await saveCurrentDocumentToHistory();
         openPdfDocument();
         return;
       } else if (currentDoc === "briefing") {
         render();
       }
-      await saveCurrentDocumentToHistory();
       openPdfDocument();
     });
 
     $("generateWord").addEventListener("click", () => {
       generateWordDocument();
+    });
+
+    $("saveDocument").addEventListener("click", async () => {
+      const button = $("saveDocument");
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = "Salvando...";
+      try {
+        await saveFinalDocument();
+        button.textContent = "Salvo";
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.disabled = false;
+        }, 1200);
+      } catch (error) {
+        button.textContent = "Erro ao salvar";
+        button.disabled = false;
+        alert(error.message || "Não foi possível salvar o documento no histórico.");
+      }
     });
 
     $("saveDraft").addEventListener("click", async () => {
@@ -4232,7 +4287,6 @@
       currentDoc = "briefing";
       document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.doc === "briefing"));
       render();
-      await saveCurrentDocumentToHistory("briefing");
       openPdfDocument();
     });
 
