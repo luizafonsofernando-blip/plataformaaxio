@@ -4066,46 +4066,56 @@
 
     function openPdfDocument(contentHtml = null) {
       if (!contentHtml) render();
-      const pdfWindow = window.open("", "_blank");
-      if (!pdfWindow) {
-        preparePrintTitle();
-        window.print();
-        setTimeout(restorePrintTitle, 800);
-        return;
-      }
-      writePdfDocument(pdfWindow, contentHtml || $("documentPreview").innerHTML);
+      printCurrentDocument(contentHtml || $("documentPreview").innerHTML);
     }
 
-    function waitForPrintAssets(pdfWindow) {
+    function waitForImagesIn(container) {
       return new Promise((resolve) => {
-        const done = () => {
-          const images = Array.from(pdfWindow.document.images || []);
-          if (!images.length) {
-            resolve();
-            return;
-          }
-          let pending = images.filter((image) => !image.complete).length;
-          if (!pending) {
-            resolve();
-            return;
-          }
-          const settle = () => {
-            pending -= 1;
-            if (pending <= 0) resolve();
-          };
-          images.forEach((image) => {
-            if (image.complete) return;
-            image.addEventListener("load", settle, { once: true });
-            image.addEventListener("error", settle, { once: true });
-          });
-          setTimeout(resolve, 1600);
-        };
-        if (pdfWindow.document.readyState === "complete") {
-          done();
-        } else {
-          pdfWindow.addEventListener("load", done, { once: true });
-          setTimeout(done, 1200);
+        const images = Array.from(container.querySelectorAll("img"));
+        if (!images.length) {
+          resolve();
+          return;
         }
+        let pending = images.filter((image) => !image.complete).length;
+        if (!pending) {
+          resolve();
+          return;
+        }
+        const settle = () => {
+          pending -= 1;
+          if (pending <= 0) resolve();
+        };
+        images.forEach((image) => {
+          if (image.complete) return;
+          image.addEventListener("load", settle, { once: true });
+          image.addEventListener("error", settle, { once: true });
+        });
+        setTimeout(resolve, 1800);
+      });
+    }
+
+    async function printCurrentDocument(contentHtml) {
+      const printRoot = $("printRoot");
+      const cleanPrint = () => {
+        document.body.classList.remove("printing-document");
+        printRoot.innerHTML = "";
+        window.removeEventListener("afterprint", cleanPrint);
+        restorePrintTitle();
+      };
+      const safeHtml = sanitizeDocumentHtml(contentHtml);
+      printRoot.innerHTML = `
+        <div class="pdf-shell">
+          <div class="pdf-brand-strip"><img src="logo-axion-login.png" alt="Axion Solutions"></div>
+          <article class="document">${safeHtml}</article>
+        </div>
+      `;
+      document.body.classList.add("printing-document");
+      window.addEventListener("afterprint", cleanPrint);
+      preparePrintTitle();
+      await waitForImagesIn(printRoot);
+      requestAnimationFrame(() => {
+        window.print();
+        setTimeout(cleanPrint, 15000);
       });
     }
 
@@ -4115,7 +4125,7 @@
       pdfWindow.document.close();
       pdfWindow.focus();
       const startPrint = async () => {
-        await waitForPrintAssets(pdfWindow);
+        await waitForImagesIn(pdfWindow.document);
         pdfWindow.document.title = "";
         pdfWindow.focus();
         pdfWindow.print();

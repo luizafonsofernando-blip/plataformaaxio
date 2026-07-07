@@ -1143,6 +1143,10 @@
       display: none !important;
     }
 
+    .print-root {
+      display: none;
+    }
+
     textarea {
       min-height: 88px;
       resize: vertical;
@@ -1700,6 +1704,52 @@
       .signature-line {
         min-height: 23mm;
       }
+      body.printing-document aside,
+      body.printing-document .topbar,
+      body.printing-document .form-column,
+      body.printing-document .preview-panel,
+      body.printing-document .login-screen,
+      body.printing-document .history-modal {
+        display: none !important;
+      }
+      body.printing-document .app-shell,
+      body.printing-document .workspace,
+      body.printing-document main {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        min-height: auto !important;
+      }
+      body.printing-document .print-root {
+        display: block !important;
+      }
+      body.printing-document .print-root .pdf-toolbar,
+      body.printing-document .print-root .pdf-print-tip {
+        display: none !important;
+      }
+      body.printing-document .print-root .pdf-shell {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+      }
+      body.printing-document .print-root .pdf-brand-strip {
+        display: flex;
+        justify-content: flex-end;
+        margin: 0 0 5px;
+      }
+      body.printing-document .print-root .pdf-brand-strip img {
+        width: 96px;
+        height: auto;
+        opacity: .82;
+      }
+      body.printing-document .print-root .document {
+        display: block !important;
+        border: 1px solid #d7e7f7;
+        border-radius: 10px;
+        box-shadow: none;
+        min-height: auto;
+        overflow: hidden;
+      }
     }
   </style>
 </head>
@@ -2215,6 +2265,7 @@
       </div>
     </main>
   </div>
+  <div class="print-root" id="printRoot" aria-hidden="true"></div>
 
   <div class="history-modal" id="historyModal" hidden>
     <div class="history-dialog" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
