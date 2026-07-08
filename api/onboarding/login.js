@@ -113,10 +113,6 @@ export default async function handler(request, response) {
       body: { email, password },
     });
 
-    if (session.user?.app_metadata?.status === "activation_pending") {
-      return json(response, 403, { code: "activation_pending" });
-    }
-
     if (session.user?.app_metadata?.status === "pending") {
       return json(response, 403, { code: "account_pending" });
     }

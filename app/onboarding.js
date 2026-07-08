@@ -164,7 +164,7 @@
           session = await refreshSupabaseSession(session);
         }
         const user = await supabaseAuthRequest("user", { accessToken: session.access_token });
-        if (["pending", "activation_pending"].includes(user?.app_metadata?.status)) {
+        if (user?.app_metadata?.status === "pending") {
           clearSupabaseSession();
           return null;
         }
@@ -178,7 +178,6 @@
     function friendlyLoginError(error) {
       if (error?.name === "AbortError") return "O Supabase demorou para responder. Tente novamente.";
       if (error?.code === "account_pending") return "Cadastro aguardando aprovação do administrador.";
-      if (error?.code === "activation_pending") return "Ative sua conta com o codigo enviado ao e-mail.";
       if (error?.code === "too_many_attempts") return "Muitas tentativas. Aguarde 15 minutos antes de tentar novamente.";
       if (error?.code === "invalid_credentials") return "E-mail, usuário ou senha inválidos.";
       if (error?.code === "email_not_confirmed") return "Confirme o e-mail antes de entrar.";
@@ -200,9 +199,9 @@
         });
         const data = await response.json().catch(() => ({}));
         if (response.ok) return data;
-        if (data.code === "account_pending" || data.code === "activation_pending") {
+        if (data.code === "account_pending") {
           const pendingError = new Error("Cadastro pendente.");
-          pendingError.code = data.code;
+          pendingError.code = "account_pending";
           throw pendingError;
         }
         return loginWithSupabaseFunction(normalized, password);
@@ -412,24 +411,8 @@
       const registrationForm = $("registrationForm");
       const registrationStatus = $("registrationStatus");
       const adminDialog = $("adminUsersDialog");
-      let pendingActivationEmail = "";
-
-      const setRegistrationActivationStep = (active) => {
-        const wrap = $("activationCodeWrap");
-        const input = $("activationCode");
-        const submit = $("registrationSubmit");
-        if (wrap) wrap.classList.toggle("hidden", !active);
-        if (input) {
-          input.required = active;
-          if (!active) input.value = "";
-        }
-        if (submit) submit.textContent = active ? "Ativar conta" : "Enviar solicitacao";
-      };
-
       $("openRegistration")?.addEventListener("click", () => {
         registrationForm?.reset();
-        pendingActivationEmail = "";
-        setRegistrationActivationStep(false);
         setAccountStatus(registrationStatus, "");
         registrationDialog?.showModal();
         setTimeout(() => $("registrationName")?.focus(), 50);
@@ -439,33 +422,6 @@
 
       registrationForm?.addEventListener("submit", async (event) => {
         event.preventDefault();
-        if (pendingActivationEmail) {
-          const submit = $("registrationSubmit");
-          if (submit) {
-            submit.disabled = true;
-            submit.textContent = "Ativando...";
-          }
-          try {
-            await onboardingApiRequest("activate", {
-              body: {
-                email: pendingActivationEmail,
-                code: value("activationCode", "").trim()
-              }
-            });
-            registrationForm.reset();
-            pendingActivationEmail = "";
-            setRegistrationActivationStep(false);
-            setAccountStatus(registrationStatus, "Conta ativada com sucesso. Voce ja pode entrar.", true);
-          } catch (error) {
-            setAccountStatus(registrationStatus, error.message || "Nao foi possivel ativar a conta.");
-          } finally {
-            if (submit) {
-              submit.disabled = false;
-              if (pendingActivationEmail) submit.textContent = "Ativar conta";
-            }
-          }
-          return;
-        }
         const password = value("registrationPassword", "");
         if (password !== value("registrationPasswordConfirm", "")) {
           setAccountStatus(registrationStatus, "As senhas não conferem.");
@@ -477,31 +433,23 @@
           submit.textContent = "Enviando...";
         }
         try {
-          const email = value("registrationEmail", "").trim().toLowerCase();
-          const result = await onboardingApiRequest("register", {
+          await onboardingApiRequest("register", {
             body: {
               name: value("registrationName", "").trim(),
               username: value("registrationUsername", "").trim(),
-              email,
+              email: value("registrationEmail", "").trim().toLowerCase(),
               password,
               profile: value("registrationProfile", "orteconte")
             }
           });
-          if (result.requiresActivation) {
-            pendingActivationEmail = email;
-            setRegistrationActivationStep(true);
-            setAccountStatus(registrationStatus, result.message || "Codigo de ativacao enviado ao e-mail cadastrado.", true);
-            setTimeout(() => $("activationCode")?.focus(), 50);
-            return;
-          }
           registrationForm.reset();
-          setAccountStatus(registrationStatus, result.message || "Cadastro realizado com sucesso.", true);
+          setAccountStatus(registrationStatus, "Solicitação enviada. Aguarde a aprovação do administrador.", true);
         } catch (error) {
           setAccountStatus(registrationStatus, error.message || "Não foi possível solicitar o cadastro.");
         } finally {
           if (submit) {
             submit.disabled = false;
-            submit.textContent = pendingActivationEmail ? "Ativar conta" : "Enviar solicitacao";
+            submit.textContent = "Enviar solicitação";
           }
         }
       });
@@ -3413,19 +3361,6 @@
       return sanitizeDocumentHtml(html);
     }
 
-    async function sendSavedBriefingEmail(item) {
-      const session = storedSupabaseSession();
-      if (!session?.access_token) return;
-      await onboardingApiRequest("send-document-email", {
-        body: {
-          title: item.title,
-          serial: item.serial,
-          html: item.html
-        },
-        accessToken: session.access_token
-      });
-    }
-
     async function saveCurrentDocumentToHistory(kind = currentDocumentKind()) {
       currentDocumentSerial = nextDocumentSerial(kind);
       render();
@@ -3446,11 +3381,6 @@
       const draftToDelete = activeDraftId;
       activeDraftId = "";
       await persistHistoryItem(item);
-      if (kind === "briefing") {
-        sendSavedBriefingEmail(item).catch((error) => {
-          console.warn("Nao foi possivel enviar a copia do briefing por e-mail.", error);
-        });
-      }
       if (draftToDelete && draftToDelete !== item.id) await deleteHistoryDocument(draftToDelete, false);
       renderHistory();
     }
