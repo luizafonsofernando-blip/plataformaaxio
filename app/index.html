@@ -1786,6 +1786,7 @@
         <label>Senha<input id="registrationPassword" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="6 dígitos" autocomplete="new-password" required></label>
         <label>Confirmar senha<input id="registrationPasswordConfirm" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="Repita os 6 dígitos" autocomplete="new-password" required></label>
         <label class="span-all">Perfil<select id="registrationProfile"><option value="orteconte">Orteconte</option></select></label>
+        <label class="span-all hidden" id="activationCodeWrap">Código de ativação enviado por e-mail<input id="activationCode" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" placeholder="000000"></label>
         <div class="account-dialog-actions"><button class="btn primary" id="registrationSubmit" type="submit">Enviar solicitação</button></div>
         <p class="account-status" id="registrationStatus" role="status" aria-live="polite"></p>
       </form>
@@ -2137,6 +2138,7 @@
                   <option>Participação final nos aquestos</option>
                   <option>União estável</option>
                 </select></label>
+                <label class="span-2 conditional-field hidden" id="socioEnderecoResidencialWrap">Endereço residencial do sócio que está entrando<input id="socioEnderecoResidencial" placeholder="Rua, número, bairro, cidade/UF e CEP"></label>
                 <label>Qualificação<select id="socioQualificacao">
                   <option>Sócio administrador</option>
                   <option>Sócio Quotista</option>

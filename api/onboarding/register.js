@@ -1,3 +1,5 @@
+import { sendMail, mailConfigured } from "./mail.js";
+
 const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
 const SUPABASE_USER_PAGE_LIMIT = 100;
 const MAX_BODY_BYTES = 10_000;
@@ -5,6 +7,18 @@ const MAX_BODY_BYTES = 10_000;
 async function sha256(value) {
   const { createHash } = await import("node:crypto");
   return createHash("sha256").update(value).digest("hex");
+}
+
+function activationCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function json(response, status, body) {
@@ -106,6 +120,12 @@ export default async function handler(request, response) {
   if (!supabaseUrl || !serviceRoleKey) {
     return json(response, 503, { error: "Servico de cadastro indisponivel." });
   }
+  if (!mailConfigured()) {
+    return json(response, 503, {
+      error: "Envio de e-mail nao configurado. Configure RESEND_API_KEY e MAIL_FROM na Vercel.",
+      code: "mail_not_configured",
+    });
+  }
 
   const input = request.body && typeof request.body === "object" ? request.body : {};
   const name = String(input.name || "").trim();
@@ -125,6 +145,15 @@ export default async function handler(request, response) {
   try {
     const duplicate = await findDuplicateUser({ email, usernameKey, serviceRoleKey, supabaseUrl });
     if (duplicate) return json(response, 409, { error: "E-mail ou usuario ja cadastrado." });
+    const code = activationCode();
+    const activation_hash = await sha256(`${email}:${code}`);
+    const activation_expires_at = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+    await sendMail({
+      to: email,
+      subject: "Codigo de ativacao - Onboarding Contabil",
+      html: `<p>Ola, ${escapeHtml(name)}.</p><p>Seu codigo de ativacao do Onboarding Contabil e:</p><h2>${code}</h2><p>O codigo expira em 30 minutos.</p>`,
+    });
 
     await supabaseFetch("/auth/v1/admin/users", {
       method: "POST",
@@ -134,13 +163,16 @@ export default async function handler(request, response) {
         email,
         password,
         email_confirm: true,
-        user_metadata: { display_name: name, username, profile },
-        app_metadata: { role: "user", status: "pending" },
+        user_metadata: { display_name: name, username, profile, activation_hash, activation_expires_at },
+        app_metadata: { role: "user", status: "activation_pending" },
       },
     });
-
     await auditRegistration({ username, profile, serviceRoleKey, supabaseUrl, request });
-    return json(response, 201, { message: "Solicitacao enviada." });
+    return json(response, 201, {
+      message: "Codigo de ativacao enviado ao e-mail cadastrado.",
+      requiresActivation: true,
+      mailConfigured: true,
+    });
   } catch (error) {
     console.error("Onboarding registration failed", error);
     return json(response, Number(error.status) || 500, {

@@ -81,11 +81,17 @@
       if (user) sessionStorage.setItem(ROLE_KEY, isAdmin ? "admin" : "user");
       else sessionStorage.removeItem(ROLE_KEY);
       if ($("adminUsersButton")) $("adminUsersButton").hidden = !isAdmin;
+      updateAdminOnlyControls();
       if (!isAdmin && $("adminUsersDialog")?.open) $("adminUsersDialog").close();
     }
 
     function isCurrentUserAdmin() {
       return sessionStorage.getItem(ROLE_KEY) === "admin";
+    }
+
+    function updateAdminOnlyControls() {
+      const isAdmin = isCurrentUserAdmin();
+      if ($("fillExample")) $("fillExample").hidden = !isAdmin;
     }
 
     function storedSupabaseSession() {
@@ -158,7 +164,7 @@
           session = await refreshSupabaseSession(session);
         }
         const user = await supabaseAuthRequest("user", { accessToken: session.access_token });
-        if (user?.app_metadata?.status === "pending") {
+        if (["pending", "activation_pending"].includes(user?.app_metadata?.status)) {
           clearSupabaseSession();
           return null;
         }
@@ -172,6 +178,7 @@
     function friendlyLoginError(error) {
       if (error?.name === "AbortError") return "O Supabase demorou para responder. Tente novamente.";
       if (error?.code === "account_pending") return "Cadastro aguardando aprovação do administrador.";
+      if (error?.code === "activation_pending") return "Ative sua conta com o codigo enviado ao e-mail.";
       if (error?.code === "too_many_attempts") return "Muitas tentativas. Aguarde 15 minutos antes de tentar novamente.";
       if (error?.code === "invalid_credentials") return "E-mail, usuário ou senha inválidos.";
       if (error?.code === "email_not_confirmed") return "Confirme o e-mail antes de entrar.";
@@ -193,9 +200,9 @@
         });
         const data = await response.json().catch(() => ({}));
         if (response.ok) return data;
-        if (data.code === "account_pending") {
+        if (data.code === "account_pending" || data.code === "activation_pending") {
           const pendingError = new Error("Cadastro pendente.");
-          pendingError.code = "account_pending";
+          pendingError.code = data.code;
           throw pendingError;
         }
         return loginWithSupabaseFunction(normalized, password);
@@ -255,14 +262,15 @@
       }
     }
 
-    async function onboardingApiRequest(path, { method = "POST", body } = {}) {
+    async function onboardingApiRequest(path, { method = "POST", body, accessToken } = {}) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 12000);
       try {
         const response = await fetch(`/api/onboarding/${path}`, {
           method,
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
           },
           body: body ? JSON.stringify(body) : undefined,
           signal: controller.signal
@@ -404,9 +412,24 @@
       const registrationForm = $("registrationForm");
       const registrationStatus = $("registrationStatus");
       const adminDialog = $("adminUsersDialog");
+      let pendingActivationEmail = "";
+
+      const setRegistrationActivationStep = (active) => {
+        const wrap = $("activationCodeWrap");
+        const input = $("activationCode");
+        const submit = $("registrationSubmit");
+        if (wrap) wrap.classList.toggle("hidden", !active);
+        if (input) {
+          input.required = active;
+          if (!active) input.value = "";
+        }
+        if (submit) submit.textContent = active ? "Ativar conta" : "Enviar solicitacao";
+      };
 
       $("openRegistration")?.addEventListener("click", () => {
         registrationForm?.reset();
+        pendingActivationEmail = "";
+        setRegistrationActivationStep(false);
         setAccountStatus(registrationStatus, "");
         registrationDialog?.showModal();
         setTimeout(() => $("registrationName")?.focus(), 50);
@@ -416,6 +439,33 @@
 
       registrationForm?.addEventListener("submit", async (event) => {
         event.preventDefault();
+        if (pendingActivationEmail) {
+          const submit = $("registrationSubmit");
+          if (submit) {
+            submit.disabled = true;
+            submit.textContent = "Ativando...";
+          }
+          try {
+            await onboardingApiRequest("activate", {
+              body: {
+                email: pendingActivationEmail,
+                code: value("activationCode", "").trim()
+              }
+            });
+            registrationForm.reset();
+            pendingActivationEmail = "";
+            setRegistrationActivationStep(false);
+            setAccountStatus(registrationStatus, "Conta ativada com sucesso. Voce ja pode entrar.", true);
+          } catch (error) {
+            setAccountStatus(registrationStatus, error.message || "Nao foi possivel ativar a conta.");
+          } finally {
+            if (submit) {
+              submit.disabled = false;
+              if (pendingActivationEmail) submit.textContent = "Ativar conta";
+            }
+          }
+          return;
+        }
         const password = value("registrationPassword", "");
         if (password !== value("registrationPasswordConfirm", "")) {
           setAccountStatus(registrationStatus, "As senhas não conferem.");
@@ -427,23 +477,31 @@
           submit.textContent = "Enviando...";
         }
         try {
-          await onboardingApiRequest("register", {
+          const email = value("registrationEmail", "").trim().toLowerCase();
+          const result = await onboardingApiRequest("register", {
             body: {
               name: value("registrationName", "").trim(),
               username: value("registrationUsername", "").trim(),
-              email: value("registrationEmail", "").trim().toLowerCase(),
+              email,
               password,
               profile: value("registrationProfile", "orteconte")
             }
           });
+          if (result.requiresActivation) {
+            pendingActivationEmail = email;
+            setRegistrationActivationStep(true);
+            setAccountStatus(registrationStatus, result.message || "Codigo de ativacao enviado ao e-mail cadastrado.", true);
+            setTimeout(() => $("activationCode")?.focus(), 50);
+            return;
+          }
           registrationForm.reset();
-          setAccountStatus(registrationStatus, "Solicitação enviada. Aguarde a aprovação do administrador.", true);
+          setAccountStatus(registrationStatus, result.message || "Cadastro realizado com sucesso.", true);
         } catch (error) {
           setAccountStatus(registrationStatus, error.message || "Não foi possível solicitar o cadastro.");
         } finally {
           if (submit) {
             submit.disabled = false;
-            submit.textContent = "Enviar solicitação";
+            submit.textContent = pendingActivationEmail ? "Ativar conta" : "Enviar solicitacao";
           }
         }
       });
@@ -1829,6 +1887,17 @@
           control.classList.remove("missing");
         });
       }
+      const socioEnderecoAtivo = isAlteracaoWorkflow() && value("alteracaoSocios", "") === "Sim";
+      const socioEnderecoWrap = $("socioEnderecoResidencialWrap");
+      const socioEndereco = $("socioEnderecoResidencial");
+      if (socioEnderecoWrap && socioEndereco) {
+        socioEnderecoWrap.classList.toggle("hidden", !socioEnderecoAtivo);
+        socioEndereco.dataset.conditionalDisabled = socioEnderecoAtivo ? "false" : "true";
+        if (!socioEnderecoAtivo) {
+          socioEndereco.value = "";
+          socioEndereco.classList.remove("missing");
+        }
+      }
       document.querySelectorAll(".baixa-field").forEach((field) => {
         field.classList.toggle("hidden", !isBaixaWorkflow());
         field.querySelectorAll("input, select, textarea").forEach((control) => {
@@ -2073,6 +2142,7 @@
         globalIds.forEach((id) => setMissing($(id), value(id, "") === ""));
         if (!socios.length) {
           const socioRequiredIds = ["socioNome", "socioCpf", "socioParticipacao", "socioNascimento", "socioEmail", "socioTelefone", "socioSexo", "socioEstadoCivil", "socioRegimeCasamento", "socioQualificacao"];
+          if (isAlteracaoWorkflow() && value("alteracaoSocios", "") === "Sim") socioRequiredIds.push("socioEnderecoResidencial");
           if (!isBaixaWorkflow()) socioRequiredIds.push("socioValorProlabore", "socioMae", "socioTitulo");
           socioRequiredIds.forEach((id) => setMissing($(id), value(id, "") === ""));
         }
@@ -2337,11 +2407,12 @@
     }
 
     function sociosRows() {
+      const enderecoSocio = (s) => s.enderecoResidencial ? `<br>Endereco residencial: ${escapeHtml(s.enderecoResidencial)}` : "";
       if (!socios.length) return "<p>Não informado.</p>";
       if (isBaixaWorkflow()) {
-        return `<table class="doc-table"><thead><tr><th>Nome</th><th>CPF</th><th>Qualificação</th><th>Participação</th></tr></thead><tbody>${socios.map((s) => `<tr><td>${s.nome}<br>${s.email}<br>${s.telefone}</td><td>${s.cpf}</td><td>${s.qualificacao}<br>${s.estadoCivil}<br>${s.regimeCasamento}</td><td>${s.participacao}</td></tr>`).join("")}</tbody></table>`;
+        return `<table class="doc-table"><thead><tr><th>Nome</th><th>CPF</th><th>Qualificação</th><th>Participação</th></tr></thead><tbody>${socios.map((s) => `<tr><td>${s.nome}<br>${s.email}<br>${s.telefone}${enderecoSocio(s)}</td><td>${s.cpf}</td><td>${s.qualificacao}<br>${s.estadoCivil}<br>${s.regimeCasamento}</td><td>${s.participacao}</td></tr>`).join("")}</tbody></table>`;
       }
-      return `<table class="doc-table"><thead><tr><th>Nome</th><th>CPF</th><th>Qualificação</th><th>Participação / Pró-labore</th></tr></thead><tbody>${socios.map((s) => `<tr><td>${s.nome}<br>${s.email}<br>${s.telefone}</td><td>${s.cpf}</td><td>${s.qualificacao}<br>${s.estadoCivil}<br>${s.regimeCasamento}</td><td>Participação: ${s.participacao}<br>Pró-labore: ${s.prolabore}<br>Valor: ${s.valorProlabore}</td></tr>`).join("")}</tbody></table>`;
+      return `<table class="doc-table"><thead><tr><th>Nome</th><th>CPF</th><th>Qualificação</th><th>Participação / Pró-labore</th></tr></thead><tbody>${socios.map((s) => `<tr><td>${s.nome}<br>${s.email}<br>${s.telefone}${enderecoSocio(s)}</td><td>${s.cpf}</td><td>${s.qualificacao}<br>${s.estadoCivil}<br>${s.regimeCasamento}</td><td>Participação: ${s.participacao}<br>Pró-labore: ${s.prolabore}<br>Valor: ${s.valorProlabore}</td></tr>`).join("")}</tbody></table>`;
     }
 
     function docHero(title) {
@@ -3342,6 +3413,19 @@
       return sanitizeDocumentHtml(html);
     }
 
+    async function sendSavedBriefingEmail(item) {
+      const session = storedSupabaseSession();
+      if (!session?.access_token) return;
+      await onboardingApiRequest("send-document-email", {
+        body: {
+          title: item.title,
+          serial: item.serial,
+          html: item.html
+        },
+        accessToken: session.access_token
+      });
+    }
+
     async function saveCurrentDocumentToHistory(kind = currentDocumentKind()) {
       currentDocumentSerial = nextDocumentSerial(kind);
       render();
@@ -3362,6 +3446,11 @@
       const draftToDelete = activeDraftId;
       activeDraftId = "";
       await persistHistoryItem(item);
+      if (kind === "briefing") {
+        sendSavedBriefingEmail(item).catch((error) => {
+          console.warn("Nao foi possivel enviar a copia do briefing por e-mail.", error);
+        });
+      }
       if (draftToDelete && draftToDelete !== item.id) await deleteHistoryDocument(draftToDelete, false);
       renderHistory();
     }
@@ -3619,7 +3708,7 @@
               <button class="btn mini" type="button" data-remove="${index}">Remover</button>
             </div>
           </div>
-          <div>${escapeHtml(socio.cpf)} | ${escapeHtml(socio.participacao)} | ${escapeHtml(socio.email)}</div>
+          <div>${escapeHtml(socio.cpf)} | ${escapeHtml(socio.participacao)} | ${escapeHtml(socio.email)}${socio.enderecoResidencial ? `<br>Endereço residencial: ${escapeHtml(socio.enderecoResidencial)}` : ""}</div>
         </div>
       `).join("");
       document.querySelectorAll("[data-edit]").forEach((button) => {
@@ -3639,6 +3728,7 @@
           $("socioSexo").value = socio.sexo || "";
           $("socioEstadoCivil").value = socio.estadoCivil || "";
           $("socioRegimeCasamento").value = socio.regimeCasamento === "Não aplicável" ? "" : (socio.regimeCasamento || "");
+          if ($("socioEnderecoResidencial")) $("socioEnderecoResidencial").value = socio.enderecoResidencial || "";
           $("socioQualificacao").value = socio.qualificacao || "Sócio administrador";
           if ($("socioMae")) $("socioMae").value = socio.mae || "";
           if ($("socioTitulo")) $("socioTitulo").value = socio.titulo || "";
@@ -3799,6 +3889,7 @@
       const draftIds = ["socioNome", "socioCpf", "socioParticipacao", "socioNascimento", "socioEmail", "socioTelefone", "socioSexo", "socioEstadoCivil"];
       if (!isBaixaWorkflow()) draftIds.push("socioProlabore", "socioValorProlabore", "socioMae", "socioTitulo");
       if (value("socioEstadoCivil", "") === "Casado(a)") draftIds.push("socioRegimeCasamento");
+      if (isAlteracaoWorkflow() && value("alteracaoSocios", "") === "Sim") draftIds.push("socioEnderecoResidencial");
       const missingDraft = draftIds.filter((id) => value(id, "") === "");
       draftIds.forEach((id) => setMissing($(id), missingDraft.includes(id)));
       if (missingDraft.length) {
@@ -3818,6 +3909,7 @@
         sexo: value("socioSexo"),
         estadoCivil: value("socioEstadoCivil"),
         regimeCasamento: value("socioEstadoCivil", "") === "Casado(a)" ? value("socioRegimeCasamento") : "Não aplicável",
+        enderecoResidencial: isAlteracaoWorkflow() && value("alteracaoSocios", "") === "Sim" ? value("socioEnderecoResidencial") : "",
         qualificacao: value("socioQualificacao"),
         mae: isBaixaWorkflow() ? "" : value("socioMae"),
         titulo: isBaixaWorkflow() ? "" : value("socioTitulo")
@@ -3828,7 +3920,7 @@
         socios.push(socioData);
       }
       editingSocioIndex = null;
-      ["socioNome", "socioCpf", "socioParticipacao", "socioProlabore", "socioValorProlabore", "socioNascimento", "socioEmail", "socioTelefone", "socioSexo", "socioEstadoCivil", "socioRegimeCasamento", "socioMae", "socioTitulo"].forEach((id) => {
+      ["socioNome", "socioCpf", "socioParticipacao", "socioProlabore", "socioValorProlabore", "socioNascimento", "socioEmail", "socioTelefone", "socioSexo", "socioEstadoCivil", "socioRegimeCasamento", "socioEnderecoResidencial", "socioMae", "socioTitulo"].forEach((id) => {
         const field = $(id);
         if (field) field.value = "";
       });
