@@ -2050,7 +2050,7 @@
               <label class="conditional-field saida-field hidden">Motivo da saída<input id="motivoSaida" placeholder="Ex.: Falta de pagamento"></label>
               <label class="conditional-field saida-field hidden">E-mail de envio da documentação<input id="emailEnvioDocumentacao" type="email" placeholder="email@dominio.com"></label>
               <label class="abertura-field pf-optional-field">CNAE Principal<input id="cnaePrincipal" placeholder="Ex.: 93.13-1-00 - Atividade de condicionamento físico ou Desconsiderado"></label>
-              <label class="abertura-field">Honorário mensal<input id="honorario" placeholder="R$ 0,00"></label>
+              <label class="abertura-field cadastro-honorario-field">Honorário mensal<input id="honorario" placeholder="R$ 0,00"></label>
               <label class="abertura-field pf-optional-field">Capital social<input id="capitalSocial" placeholder="R$ 0,00 ou Desconsiderado"></label>
               <label class="abertura-field">Tipo de unidade<select id="tipoUnidade">
                 <option>Produtiva</option>
@@ -2166,12 +2166,10 @@
               <label class="alteracao-hidden-field">Honorário mensal<input id="financeiroHonorario" placeholder="R$ 0,00"></label>
               <label class="conditional-field entrada-field hidden">Data de pagamento<select id="financeiroDataPagamento">
                 <option value="">Selecione o dia</option>
-                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
-                <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
-                <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
-                <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
-                <option>21</option><option>22</option><option>23</option><option>24</option><option>25</option>
-                <option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option>
+                <option value="06">06</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
               </select></label>
               <label>Competência<input id="financeiroCompetencia" type="month"></label>
               <label class="conditional-field saida-field hidden">Honorários em aberto?<select id="honorariosAberto"><option>Não</option><option>Sim</option></select></label>

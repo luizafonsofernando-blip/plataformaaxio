@@ -1765,6 +1765,17 @@
           }
         });
       });
+      document.querySelectorAll(".cadastro-honorario-field").forEach((field) => {
+        const hidden = isPortabilidadeEntradaWorkflow();
+        field.classList.toggle("hidden", hidden);
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = hidden ? "true" : "false";
+          if (hidden) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
       document.querySelectorAll(".abertura-only-area-field").forEach((field) => {
         const active = !isPortabilidadeEntradaWorkflow();
         field.classList.toggle("hidden", !active);
