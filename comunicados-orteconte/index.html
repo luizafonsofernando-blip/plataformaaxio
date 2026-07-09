@@ -159,6 +159,7 @@
     .format-toolbar {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 6px;
       padding: 8px;
       border: 1px solid #cbd5e1;
@@ -183,6 +184,31 @@
       color: var(--accent);
       border-color: var(--accent);
       outline: none;
+    }
+
+    .format-button.is-active,
+    .format-button[aria-pressed="true"] {
+      color: #fff;
+      border-color: var(--accent);
+      background: var(--accent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+
+    .format-select {
+      min-height: 32px;
+      border: 1px solid #d5deeb;
+      border-radius: 5px;
+      padding: 0 8px;
+      color: #243244;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      outline: none;
+    }
+
+    .format-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
     }
 
     .rich-editor {
@@ -500,6 +526,10 @@
     .sheet-brand .brand-mark {
       width: 50px;
       height: 54px;
+    }
+
+    .internal-header-copy {
+      display: none;
     }
 
     .content {
@@ -1065,6 +1095,10 @@
       font-weight: 700;
     }
 
+    .internal-footer-logo {
+      display: none;
+    }
+
     .continuation-pages {
       display: contents;
     }
@@ -1083,6 +1117,108 @@
 
     .continuation-sheet .body-main {
       max-width: 170mm;
+    }
+
+    html[data-segment="interno"] .sheet-header {
+      height: 34mm;
+      padding: 7mm 13mm 0;
+      background:
+        linear-gradient(135deg, #2f65a3 0%, #4880c0 62%, #6d9ed0 100%);
+      border-bottom: 1.4mm solid #d8e7f6;
+    }
+
+    html[data-segment="interno"] .sheet-header::after {
+      display: none;
+    }
+
+    html[data-segment="interno"] .sheet-brand {
+      min-height: 20mm;
+      gap: 8mm;
+    }
+
+    html[data-segment="interno"] .sheet-brand .brand-mark {
+      width: 27mm;
+      height: 20mm;
+      opacity: .28;
+    }
+
+    html[data-segment="interno"] .sheet-brand .brand-logo {
+      width: 43mm;
+    }
+
+    html[data-segment="interno"] .internal-header-copy {
+      display: grid;
+      flex: 1;
+      gap: 1.3mm;
+      color: #fff;
+      text-align: left;
+      text-transform: uppercase;
+    }
+
+    html[data-segment="interno"] .internal-header-copy strong {
+      font-size: 23px;
+      line-height: 1;
+      letter-spacing: 1.5px;
+    }
+
+    html[data-segment="interno"] .internal-header-copy span {
+      color: #eaf4ff;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .5px;
+      line-height: 1.25;
+    }
+
+    html[data-segment="interno"] .content {
+      height: calc(297mm - 34mm - 18mm);
+      padding-top: 8mm;
+      padding-bottom: 24mm;
+    }
+
+    html[data-segment="interno"] .tag-row {
+      display: none;
+    }
+
+    html[data-segment="interno"] .headline {
+      margin-top: 0;
+      color: #2f65a3;
+      font-size: 25px;
+      line-height: 1.18;
+    }
+
+    html[data-segment="interno"] .eyebrow {
+      color: #4880c0;
+    }
+
+    html[data-segment="interno"] .summary {
+      background: #eef6fd;
+    }
+
+    html[data-segment="interno"] .continuation-sheet .content {
+      height: calc(297mm - 34mm - 18mm);
+      padding-top: 9mm;
+      padding-bottom: 24mm;
+    }
+
+    html[data-segment="interno"] .sheet-footer {
+      min-height: 16mm;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 13mm;
+      color: #4880c0;
+      background: #fff;
+      border-top: 1px solid #d8e7f6;
+    }
+
+    html[data-segment="interno"] .sheet-footer .footer-item {
+      display: none;
+    }
+
+    html[data-segment="interno"] .sheet-footer .internal-footer-logo {
+      display: block;
+      width: 43mm;
+      height: auto;
     }
 
     .page-art {
@@ -1243,7 +1379,8 @@
       html,
       body {
         width: 210mm;
-        height: 297mm;
+        min-height: 297mm;
+        height: auto;
         margin: 0;
         background: #fff;
       }
@@ -1258,6 +1395,9 @@
 
       body.printing-pdf .print-root {
         display: block !important;
+        width: 210mm;
+        margin: 0;
+        overflow: visible;
       }
 
       .app {
@@ -1344,6 +1484,26 @@
             <button class="format-button" type="button" data-command="justifyCenter" title="Centralizar">C</button>
             <button class="format-button" type="button" data-command="justifyRight" title="Alinhar à direita">D</button>
             <button class="format-button" type="button" data-command="justifyFull" title="Justificar">J</button>
+            <select class="format-select" id="fontFamily" title="Fonte da letra" aria-label="Fonte da letra">
+              <option value="">Fonte</option>
+              <option value="Arial, Helvetica, sans-serif">Arial</option>
+              <option value="Calibri, Arial, sans-serif">Calibri</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="Tahoma, Arial, sans-serif">Tahoma</option>
+              <option value="'Times New Roman', Times, serif">Times</option>
+              <option value="Verdana, Arial, sans-serif">Verdana</option>
+            </select>
+            <select class="format-select" id="fontSize" title="Tamanho da letra" aria-label="Tamanho da letra">
+              <option value="">Tamanho</option>
+              <option value="9px">9</option>
+              <option value="10px">10</option>
+              <option value="11px">11</option>
+              <option value="12px">12</option>
+              <option value="13px">13</option>
+              <option value="14px">14</option>
+              <option value="16px">16</option>
+              <option value="18px">18</option>
+            </select>
           </div>
           <div class="rich-editor" id="message" contenteditable="true" role="textbox" aria-multiline="true"></div>
         </div>
@@ -1487,6 +1647,10 @@
         <header class="sheet-header">
           <div class="sheet-brand">
             <img class="brand-mark" src="orteconte-header-symbol.png" alt="">
+            <div class="internal-header-copy">
+              <strong>Comunicado Interno</strong>
+              <span id="internalHeaderSubject"></span>
+            </div>
             <img class="brand-logo" src="orteconte-header-logo.png" alt="Orteconte Contabilidade">
           </div>
         </header>
@@ -1526,6 +1690,7 @@
         </div>
 
         <footer class="sheet-footer">
+          <img class="internal-footer-logo" src="orteconte-logo-blue-interno.png" alt="Orteconte Contabilidade">
           <div class="footer-item"><img class="footer-icon" src="whatsapp-orteconte.png" alt=""> (33) 3339-1000</div>
           <div class="footer-item">✉ orteconte@orteconte.com.br</div>
           <div class="footer-item">◉ www.orteconte.com.br</div>
@@ -1544,6 +1709,7 @@
       processos: { name: "Departamento Financeiro", color: "#ff6a00", dark: "#c64900", support: "#ff6a00", icon: "⚙", headerStart: "#ff7a1a", headerMid: "#d55500", headerEnd: "#8a3300" },
       boletim: { name: "Boletim Semanal", color: "#68acd0", dark: "#3b83ad", support: "#68acd0", icon: "▦", headerStart: "#68acd0", headerMid: "#5aa1c8", headerEnd: "#347da7" },
       reforma: { name: "Reforma Tributária", color: "#27c600", dark: "#5b8ec9", support: "#27c600", icon: "%", headerStart: "#27c600", headerMid: "#5b8ec9", headerEnd: "#1f5e9c" },
+      interno: { name: "Interno", color: "#4880c0", dark: "#2f65a3", support: "#4880c0", icon: "CI", headerStart: "#2f65a3", headerMid: "#4880c0", headerEnd: "#6d9ed0" },
       geral: { name: "Geral", color: "#4880c0", dark: "#3f76b5", support: "#4880c0", icon: "i", headerStart: "#4880c0", headerMid: "#4880c0", headerEnd: "#4880c0" }
     };
 
@@ -1584,6 +1750,12 @@
         summaryTitle: "Principais pontos da mudança",
         summaryItems: "Novas regras de consumo\nImpactos em documentos fiscais\nAdequação de sistemas e cadastros\nAcompanhamento preventivo pela Orteconte"
       },
+      interno: {
+        title: "CIOT - Código Identificador da Operação de Transporte",
+        subtitle: "Comunicado interno • Orientação à equipe",
+        summaryTitle: "Pontos internos de atenção",
+        summaryItems: "Orientação uniforme aos clientes\nResponsabilidade de emissão do CIOT\nDiferença entre CIOT, CT-e e MDF-e\nRegistro de dúvidas para alinhamento"
+      },
       geral: {
         title: "Atualização informativa",
         subtitle: "Comunicado geral • Divulgação institucional",
@@ -1600,6 +1772,8 @@
       summaryTitle: document.querySelector("#summaryTitle"),
       summaryItems: document.querySelector("#summaryItems"),
       message: document.querySelector("#message"),
+      fontFamily: document.querySelector("#fontFamily"),
+      fontSize: document.querySelector("#fontSize"),
       inlineGraphicType: document.querySelector("#inlineGraphicType"),
       inlineGraphicTitle: document.querySelector("#inlineGraphicTitle"),
       inlineGraphicRows: document.querySelector("#inlineGraphicRows"),
@@ -1638,7 +1812,8 @@
       continuationPages: document.querySelector("#continuationPages"),
       deadlineCard: document.querySelector("#deadlineCard"),
       deadlineDate: document.querySelector("#deadlineDate"),
-      deadlineNote: document.querySelector("#deadlineNotePreview")
+      deadlineNote: document.querySelector("#deadlineNotePreview"),
+      internalHeaderSubject: document.querySelector("#internalHeaderSubject")
     };
 
     const segmentGrid = document.querySelector("#segmentGrid");
@@ -1668,6 +1843,7 @@
     }
 
     function applySegment(segment) {
+      document.documentElement.dataset.segment = selectedSegmentKey();
       document.documentElement.style.setProperty("--accent", segment.color);
       document.documentElement.style.setProperty("--accent-dark", segment.dark);
       document.documentElement.style.setProperty("--support", segment.support || segment.color);
@@ -1727,6 +1903,44 @@
       "import-heading",
       "import-source"
     ]);
+    const allowedFontFamilies = [
+      "Arial, Helvetica, sans-serif",
+      "Calibri, Arial, sans-serif",
+      "Georgia, serif",
+      "Tahoma, Arial, sans-serif",
+      "'Times New Roman', Times, serif",
+      "Verdana, Arial, sans-serif"
+    ];
+    const allowedFontSizes = ["9px", "10px", "11px", "12px", "13px", "14px", "16px", "18px"];
+
+    function normalizeFontFamily(value) {
+      const cleaned = String(value || "").replace(/"/g, "'").trim();
+      if (!cleaned) return "";
+      return allowedFontFamilies.find(font => font.toLowerCase() === cleaned.toLowerCase()) || "";
+    }
+
+    function normalizeFontSize(value) {
+      const cleaned = String(value || "").trim().toLowerCase();
+      if (allowedFontSizes.includes(cleaned)) return cleaned;
+      const ptMatch = cleaned.match(/^(\d+(?:\.\d+)?)pt$/);
+      if (ptMatch) {
+        const px = `${Math.round(Number(ptMatch[1]) * 96 / 72)}px`;
+        return allowedFontSizes.includes(px) ? px : "";
+      }
+      return "";
+    }
+
+    function fontTagSizeToPx(value) {
+      return ({
+        "1": "9px",
+        "2": "10px",
+        "3": "12px",
+        "4": "14px",
+        "5": "16px",
+        "6": "18px",
+        "7": "18px"
+      })[String(value || "")] || "";
+    }
 
     function cleanRichNode(node) {
       if (node.nodeType === Node.TEXT_NODE) {
@@ -1759,6 +1973,8 @@
       const textAlign = (node.style && node.style.textAlign) || node.getAttribute("align");
       const fontWeight = (node.style && node.style.fontWeight) || "";
       const textDecoration = (node.style && node.style.textDecoration) || "";
+      const fontFamily = normalizeFontFamily((node.style && node.style.fontFamily) || node.getAttribute("face"));
+      const fontSize = normalizeFontSize((node.style && node.style.fontSize) || fontTagSizeToPx(node.getAttribute("size")));
 
       if ((allowedRichBlock.has(tag) || tag === "SPAN") && ["left", "center", "right", "justify"].includes(textAlign)) {
         element.style.textAlign = textAlign;
@@ -1776,6 +1992,14 @@
 
       if (tag === "U" || String(textDecoration).includes("underline") || computedStyle.includes("text-decoration-line: underline")) {
         element.style.textDecoration = "underline";
+      }
+
+      if (fontFamily) {
+        element.style.fontFamily = fontFamily;
+      }
+
+      if (fontSize) {
+        element.style.fontSize = fontSize;
       }
 
       const classes = [...node.classList || []].filter(className => allowedRichClasses.has(className));
@@ -1814,7 +2038,7 @@
     }
 
     function hasRichMessageFormatting() {
-      return !!fields.message.querySelector("b, strong, u, [style*='text-align'], [align], [style*='font-weight'], [style*='text-decoration']");
+      return !!fields.message.querySelector("b, strong, u, font, [style*='text-align'], [align], [style*='font-weight'], [style*='text-decoration'], [style*='font-family'], [style*='font-size']");
     }
 
     function paginateMessage(value) {
@@ -1964,10 +2188,14 @@
       const textAlign = node.style && node.style.textAlign;
       const fontWeight = node.style && node.style.fontWeight;
       const textDecoration = node.style && node.style.textDecoration;
+      const fontFamily = normalizeFontFamily(node.style && node.style.fontFamily);
+      const fontSize = normalizeFontSize(node.style && node.style.fontSize);
 
       if (textAlign) styles.push(`text-align: ${textAlign}`);
       if (fontWeight) styles.push(`font-weight: ${fontWeight}`);
       if (textDecoration) styles.push(`text-decoration: ${textDecoration}`);
+      if (fontFamily) styles.push(`font-family: ${fontFamily}`);
+      if (fontSize) styles.push(`font-size: ${fontSize}`);
 
       return styles.length ? ` style="${styles.join("; ")}"` : "";
     }
@@ -2251,6 +2479,10 @@
           <header class="sheet-header">
             <div class="sheet-brand">
               <img class="brand-mark" src="orteconte-header-symbol.png" alt="">
+              <div class="internal-header-copy">
+                <strong>Comunicado Interno</strong>
+                <span>${escapeHtml(fields.title.value || "Comunicado interno")}</span>
+              </div>
               <img class="brand-logo" src="orteconte-header-logo.png" alt="Orteconte Contabilidade">
             </div>
           </header>
@@ -2269,6 +2501,7 @@
           </div>
           ${pageArtHtml(artStyle)}
           <footer class="sheet-footer">
+            <img class="internal-footer-logo" src="orteconte-logo-blue-interno.png" alt="Orteconte Contabilidade">
             <div class="footer-item"><img class="footer-icon" src="whatsapp-orteconte.png" alt=""> (33) 3339-1000</div>
             <div class="footer-item">✉ orteconte@orteconte.com.br</div>
             <div class="footer-item">◉ www.orteconte.com.br</div>
@@ -2518,6 +2751,7 @@
       preview.title.textContent = fields.title.value || "Título do comunicado";
       preview.subtitle.textContent = fields.subtitle.value || "Comunicado Orteconte";
       preview.summaryTitle.textContent = fields.summaryTitle.value || "Resumo";
+      preview.internalHeaderSubject.textContent = fields.title.value || "Comunicado interno";
       renderGraphic();
       normalizeMessageEditor();
       const messageText = getMessageText() || "Digite o texto do comunicado.";
@@ -2567,7 +2801,39 @@
       render();
     }
 
-    function generatePdf() {
+    function waitForImagesIn(container) {
+      const images = [...container.querySelectorAll("img")];
+      if (!images.length) return Promise.resolve();
+
+      return new Promise(resolve => {
+        let pending = images.filter(image => !image.complete).length;
+        if (!pending) {
+          resolve();
+          return;
+        }
+
+        const settle = () => {
+          pending -= 1;
+          if (pending <= 0) resolve();
+        };
+
+        images.forEach(image => {
+          if (image.complete) return;
+          image.addEventListener("load", settle, { once: true });
+          image.addEventListener("error", settle, { once: true });
+        });
+
+        setTimeout(resolve, 1800);
+      });
+    }
+
+    function waitForPrintLayout() {
+      return new Promise(resolve => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+    }
+
+    async function generatePdf() {
       render();
       const printRoot = document.querySelector("#printRoot");
       const pages = [...document.querySelectorAll(".print-page")]
@@ -2584,7 +2850,10 @@
       };
 
       window.addEventListener("afterprint", cleanPrint);
+      await waitForImagesIn(printRoot);
+      await waitForPrintLayout();
       window.print();
+      setTimeout(cleanPrint, 15000);
     }
 
     function visiblePrintPages() {
@@ -2750,12 +3019,108 @@
       selection.addRange(savedMessageRange);
     }
 
+    function selectedMessageElement() {
+      const selection = window.getSelection();
+      if (!selection || !selection.rangeCount) return null;
+      const node = selection.getRangeAt(0).startContainer;
+      const element = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+      return element && fields.message.contains(element) ? element : null;
+    }
+
+    function updateFormatToolbarState() {
+      const activeElement = selectedMessageElement();
+      const blockElement = activeElement && activeElement.closest("p, div, section");
+      const computed = activeElement ? getComputedStyle(activeElement) : null;
+      const blockComputed = blockElement ? getComputedStyle(blockElement) : computed;
+
+      document.querySelectorAll("[data-command]").forEach(button => {
+        const command = button.dataset.command;
+        let active = false;
+
+        try {
+          active = document.queryCommandState(command);
+        } catch (error) {
+          active = false;
+        }
+
+        if (command === "justifyLeft") active = blockComputed ? blockComputed.textAlign === "left" || blockComputed.textAlign === "start" : active;
+        if (command === "justifyCenter") active = blockComputed ? blockComputed.textAlign === "center" : active;
+        if (command === "justifyRight") active = blockComputed ? blockComputed.textAlign === "right" || blockComputed.textAlign === "end" : active;
+        if (command === "justifyFull") active = blockComputed ? blockComputed.textAlign === "justify" : active;
+
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+
+      if (fields.fontFamily) {
+        const family = normalizeFontFamily(computed && computed.fontFamily);
+        fields.fontFamily.value = family || "";
+      }
+
+      if (fields.fontSize) {
+        const size = normalizeFontSize(computed && computed.fontSize);
+        fields.fontSize.value = size || "";
+      }
+    }
+
     function applyTextFormat(command) {
       fields.message.focus();
       restoreMessageSelection();
+      try {
+        document.execCommand("styleWithCSS", false, true);
+      } catch (error) {}
       document.execCommand(command, false, null);
       saveMessageSelection();
       render();
+      updateFormatToolbarState();
+    }
+
+    function applyStyleToCurrentSelection(styles) {
+      fields.message.focus();
+      restoreMessageSelection();
+      const selection = window.getSelection();
+
+      if (!selection || !selection.rangeCount) return;
+
+      const range = selection.getRangeAt(0);
+      if (!fields.message.contains(range.commonAncestorContainer)) return;
+
+      if (range.collapsed) {
+        const element = selectedMessageElement();
+        const target = element && element.closest("p, div, span") && fields.message.contains(element.closest("p, div, span"))
+          ? element.closest("p, div, span")
+          : fields.message;
+        Object.entries(styles).forEach(([key, value]) => {
+          target.style[key] = value;
+        });
+      } else {
+        const wrapper = document.createElement("span");
+        Object.entries(styles).forEach(([key, value]) => {
+          wrapper.style[key] = value;
+        });
+        wrapper.appendChild(range.extractContents());
+        range.insertNode(wrapper);
+        const nextRange = document.createRange();
+        nextRange.selectNodeContents(wrapper);
+        selection.removeAllRanges();
+        selection.addRange(nextRange);
+      }
+
+      saveMessageSelection();
+      render();
+      updateFormatToolbarState();
+    }
+
+    function applyFontFamily(value) {
+      const fontFamily = normalizeFontFamily(value);
+      if (!fontFamily) return;
+      applyStyleToCurrentSelection({ fontFamily });
+    }
+
+    function applyFontSize(value) {
+      const fontSize = normalizeFontSize(value);
+      if (!fontSize) return;
+      applyStyleToCurrentSelection({ fontSize });
     }
 
     function insertHtmlAtSelection(html) {
@@ -3103,9 +3468,25 @@
     document.querySelector("#editor").addEventListener("input", render);
     document.querySelector("#editor").addEventListener("change", render);
     fields.message.addEventListener("paste", handleMessagePaste);
-    fields.message.addEventListener("keyup", saveMessageSelection);
-    fields.message.addEventListener("mouseup", saveMessageSelection);
-    fields.message.addEventListener("focus", saveMessageSelection);
+    fields.message.addEventListener("keyup", () => {
+      saveMessageSelection();
+      updateFormatToolbarState();
+    });
+    fields.message.addEventListener("mouseup", () => {
+      saveMessageSelection();
+      updateFormatToolbarState();
+    });
+    fields.message.addEventListener("focus", () => {
+      saveMessageSelection();
+      updateFormatToolbarState();
+    });
+    fields.message.addEventListener("input", updateFormatToolbarState);
+    document.addEventListener("selectionchange", () => {
+      if (document.activeElement === fields.message || fields.message.contains(document.activeElement)) {
+        saveMessageSelection();
+        updateFormatToolbarState();
+      }
+    });
     fields.inlineGraphicType.addEventListener("change", refreshInlineGraphicControls);
     fields.insertInlineGraphic.addEventListener("click", insertInlineGraphic);
     fields.removeLastGraphic.addEventListener("click", removeLastInlineGraphic);
@@ -3135,6 +3516,10 @@
       button.addEventListener("mousedown", event => event.preventDefault());
       button.addEventListener("click", () => applyTextFormat(button.dataset.command));
     });
+    fields.fontFamily.addEventListener("mousedown", saveMessageSelection);
+    fields.fontFamily.addEventListener("change", () => applyFontFamily(fields.fontFamily.value));
+    fields.fontSize.addEventListener("mousedown", saveMessageSelection);
+    fields.fontSize.addEventListener("change", () => applyFontSize(fields.fontSize.value));
     document.querySelector("#sampleButton").addEventListener("click", fillExample);
     document.querySelector("#printButton").addEventListener("click", generatePdf);
     document.querySelector("#wordButton").addEventListener("click", generateWord);
