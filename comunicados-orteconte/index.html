@@ -376,6 +376,34 @@
       display: grid;
     }
 
+    .import-box {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid #d9e2ef;
+      border-radius: 7px;
+      background: #fbfdff;
+    }
+
+    .import-box-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .import-status {
+      min-height: 16px;
+      color: #526070;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .import-status.is-error {
+      color: #b91c1c;
+    }
+
     .summary-style-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1494,6 +1522,17 @@
         </div>
 
         <div class="field">
+          <span class="group-label">Importar texto de arquivo</span>
+          <div class="import-box">
+            <div class="import-box-actions">
+              <input class="input" id="documentFile" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+              <button class="small-action" type="button" id="importDocumentButton">Formatar arquivo</button>
+            </div>
+            <div class="import-status" id="importStatus">Selecione PDF ou Word (.docx). O texto serÃ¡ justificado e aplicado ao layout do segmento selecionado.</div>
+          </div>
+        </div>
+
+        <div class="field">
           <label for="message">Texto do comunicado</label>
           <div class="format-toolbar" aria-label="Formatação do texto do comunicado">
             <button class="format-button" type="button" data-command="bold" title="Negrito">B</button>
@@ -1790,6 +1829,9 @@
       summaryTitle: document.querySelector("#summaryTitle"),
       summaryItems: document.querySelector("#summaryItems"),
       message: document.querySelector("#message"),
+      documentFile: document.querySelector("#documentFile"),
+      importDocumentButton: document.querySelector("#importDocumentButton"),
+      importStatus: document.querySelector("#importStatus"),
       fontFamily: document.querySelector("#fontFamily"),
       fontSize: document.querySelector("#fontSize"),
       inlineGraphicType: document.querySelector("#inlineGraphicType"),
@@ -3267,6 +3309,63 @@
       return html.join("");
     }
 
+    function formatImportedDocumentHtml(value) {
+      const container = document.createElement("div");
+      container.innerHTML = plainTextToEditorHtml(value);
+      container.querySelectorAll("p").forEach(paragraph => {
+        if (!paragraph.classList.contains("import-title") && !paragraph.classList.contains("import-subtitle")) {
+          paragraph.style.textAlign = "justify";
+        }
+      });
+      return container.innerHTML;
+    }
+
+    function setImportStatus(message, isError = false) {
+      fields.importStatus.textContent = message;
+      fields.importStatus.classList.toggle("is-error", isError);
+    }
+
+    async function importDocumentFile() {
+      const file = fields.documentFile.files && fields.documentFile.files[0];
+      if (!file) {
+        setImportStatus("Selecione um arquivo PDF ou Word (.docx) para importar.", true);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+      fields.importDocumentButton.disabled = true;
+      setImportStatus("Importando e formatando o arquivo...");
+
+      try {
+        const response = await fetch("/api/comunicados/import", {
+          method: "POST",
+          body: formData,
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || "Nao foi possivel importar o arquivo.");
+        }
+
+        fields.message.innerHTML = formatImportedDocumentHtml(result.text || "");
+        if (!fields.title.value.trim() && result.title) {
+          fields.title.value = result.title.slice(0, 95);
+        }
+        if (!fields.subtitle.value.trim()) {
+          fields.subtitle.value = "Comunicado Orteconte";
+        }
+        setImportStatus(`Arquivo formatado com sucesso. ${result.characters || 0} caracteres importados.`);
+        saveMessageSelection();
+        updateFormatToolbarState();
+        render();
+      } catch (error) {
+        setImportStatus(error.message || "Nao foi possivel importar o arquivo.", true);
+      } finally {
+        fields.importDocumentButton.disabled = false;
+      }
+    }
+
     function handleMessagePaste(event) {
       const clipboard = event.clipboardData;
       const html = clipboard && clipboard.getData("text/html");
@@ -3401,6 +3500,8 @@
       fields.summaryTitle.value = "";
       fields.summaryItems.value = "";
       fields.message.innerHTML = "";
+      fields.documentFile.value = "";
+      setImportStatus("Selecione PDF ou Word (.docx). O texto serÃ¡ justificado e aplicado ao layout do segmento selecionado.");
       fields.inlineGraphicTitle.value = "";
       fields.inlineGraphicRows.value = "";
       fields.inlineGraphicCols.value = "";
@@ -3432,6 +3533,11 @@
     document.querySelector("#editor").addEventListener("input", render);
     document.querySelector("#editor").addEventListener("change", render);
     fields.message.addEventListener("paste", handleMessagePaste);
+    fields.importDocumentButton.addEventListener("click", importDocumentFile);
+    fields.documentFile.addEventListener("change", () => {
+      const file = fields.documentFile.files && fields.documentFile.files[0];
+      setImportStatus(file ? `Arquivo selecionado: ${file.name}` : "Selecione PDF ou Word (.docx). O texto serÃ¡ justificado e aplicado ao layout do segmento selecionado.");
+    });
     fields.message.addEventListener("keyup", () => {
       saveMessageSelection();
       updateFormatToolbarState();
