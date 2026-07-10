@@ -2676,6 +2676,32 @@
       });
       if (value("aberturaSolicitarAlvara", "")) setSelectValue("alvara", value("aberturaSolicitarAlvara"));
       if (value("aberturaLicitacoes", "")) setSelectValue("licitacoes", value("aberturaLicitacoes"));
+      aberturaAdministradores.forEach(upsertSocioFromAbertura);
+    }
+
+    function upsertSocioFromAbertura(admin) {
+      if (!admin || !admin.nome || !admin.cpf) return;
+      const cpf = formatCpfDigits(admin.cpf);
+      const existing = socios.find((socio) => onlyDigits(socio.cpf) === onlyDigits(cpf));
+      const socio = {
+        nome: admin.nome,
+        cpf,
+        participacao: admin.percentual || "Não informado",
+        prolabore: admin.possuiProlabore || "Não informado",
+        valorProlabore: admin.valorProlabore || "Não informado",
+        nascimento: "",
+        email: value("aberturaEmailGestta", "Não informado"),
+        telefone: value("aberturaContatoEmail", "Não informado"),
+        situacao: "Regular",
+        sexo: "Não informado",
+        estadoCivil: admin.estadoCivil || "Não informado",
+        regimeCasamento: admin.regimeCasamento || "Não aplicável",
+        qualificacao: admin.qualificacao || (admin.socioAdministrador === "Sim" ? "Sócio administrador" : "Sócio Quotista"),
+        mae: "Não informado",
+        titulo: "Não informado"
+      };
+      if (existing) Object.assign(existing, socio);
+      else socios.push(socio);
     }
 
     function aberturaAdministradoresDocumento() {
@@ -3366,7 +3392,7 @@
       render();
       const now = new Date();
       const item = {
-        id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        id: activeDraftId || ((window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`),
         serial: currentDocumentSerial,
         emitente: activeUsername(),
         kind,
@@ -3378,10 +3404,8 @@
         formState: captureCurrentFormState(),
         html: persistedDocumentHtml()
       };
-      const draftToDelete = activeDraftId;
       activeDraftId = "";
       await persistHistoryItem(item);
-      if (draftToDelete && draftToDelete !== item.id) await deleteHistoryDocument(draftToDelete, false);
       renderHistory();
     }
 
@@ -3395,6 +3419,9 @@
 
     async function saveDraftToHistory() {
       const kind = "briefing";
+      if (isBriefingAberturaWorkflow()) {
+        syncOpeningBriefingToMainFields();
+      }
       currentDocumentSerial = nextDocumentSerial("rascunho");
       render();
       const now = new Date();
@@ -3529,6 +3556,9 @@
       const inferredAddress = findHistoryRow(rowsData, ["endereço"]);
 
       if (inferredType) setSelectValue("tipoBriefing", inferredType);
+      if (item.status === "rascunho" && inferredType === "BRIEFING ABERTURA") {
+        aberturaCompletaLiberada = false;
+      }
       if (inferredType === "BRIEFING ABERTURA" || inferredType === "PORTABILIDADE ENTRADA") {
         setSelectValue("tipoPessoa", findHistoryRow(rowsData, ["tipo de pessoa"]) || "Pessoa jurídica");
       }
@@ -3565,7 +3595,9 @@
       }
       const state = item.formState;
       resetSocioEditState();
-      aberturaCompletaLiberada = true;
+      const savedBriefingType = state.fields ? state.fields.tipoBriefing : "";
+      const editingOpeningDraft = item.status === "rascunho" && savedBriefingType === "BRIEFING ABERTURA";
+      aberturaCompletaLiberada = !editingOpeningDraft;
       document.querySelectorAll("input, select, textarea").forEach((field) => {
         if (!field.id || field.type === "file") return;
         const saved = state.fields ? state.fields[field.id] : undefined;
@@ -3577,7 +3609,9 @@
       });
       socios.splice(0, socios.length, ...((state.socios || []).map((socio) => ({ ...socio }))));
       aberturaAdministradores.splice(0, aberturaAdministradores.length, ...((state.aberturaAdministradores || []).map((admin) => ({ ...admin }))));
-      if (typeof state.aberturaCompletaLiberada === "boolean") aberturaCompletaLiberada = state.aberturaCompletaLiberada || true;
+      if (typeof state.aberturaCompletaLiberada === "boolean") {
+        aberturaCompletaLiberada = editingOpeningDraft ? false : state.aberturaCompletaLiberada;
+      }
       currentDoc = state.currentDoc || (item.kind === "briefing" ? "briefing" : "contrato");
       activeDraftId = item.status === "rascunho" ? item.id : "";
       document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.doc === currentDoc));
@@ -3734,7 +3768,11 @@
       document.querySelectorAll("[data-remove-abertura-admin]").forEach((button) => {
         button.addEventListener("click", () => {
           const removeIndex = Number(button.dataset.removeAberturaAdmin);
-          aberturaAdministradores.splice(removeIndex, 1);
+          const removed = aberturaAdministradores.splice(removeIndex, 1)[0];
+          if (removed) {
+            const socioIndex = socios.findIndex((socio) => onlyDigits(socio.cpf) === onlyDigits(removed.cpf));
+            if (socioIndex >= 0) socios.splice(socioIndex, 1);
+          }
           if (editingAberturaAdminIndex === removeIndex) {
             editingAberturaAdminIndex = null;
             $("addAberturaAdmin").textContent = "Adicionar sócio";
@@ -3742,6 +3780,7 @@
             editingAberturaAdminIndex -= 1;
           }
           renderAberturaAdministradores();
+          renderSocios();
           updateFlowState();
         });
       });
@@ -3786,6 +3825,7 @@
       } else {
         aberturaAdministradores.push(adminData);
       }
+      upsertSocioFromAbertura(adminData);
       editingAberturaAdminIndex = null;
       [
         "aberturaSocioNome",
@@ -3811,6 +3851,7 @@
       $("aberturaSocioQualificacao").value = "";
       $("addAberturaAdmin").textContent = "Adicionar sócio";
       renderAberturaAdministradores();
+      renderSocios();
       syncAllFieldsFilled();
       updateFlowState();
     });
