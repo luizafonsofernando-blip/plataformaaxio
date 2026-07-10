@@ -478,8 +478,8 @@
 
     .sheet-header {
       position: relative;
-      height: 39mm;
-      padding: 12mm 12mm 0;
+      height: 28mm;
+      padding: 7mm 12mm 0;
       color: #fff;
       background: var(--header-start);
     }
@@ -519,8 +519,8 @@
       position: absolute;
       left: -6mm;
       right: -6mm;
-      bottom: -15mm;
-      height: 24mm;
+      bottom: -11mm;
+      height: 17mm;
       background: #fff;
       border-radius: 50% 50% 0 0 / 100% 100% 0 0;
       transform: rotate(2deg);
@@ -533,17 +533,17 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      min-height: 18mm;
+      min-height: 14mm;
     }
 
     .sheet-brand .brand-logo {
-      width: 198px;
+      width: 168px;
       height: auto;
     }
 
     .sheet-brand .brand-mark {
-      width: 50px;
-      height: 54px;
+      width: 38px;
+      height: 42px;
     }
 
     .internal-header-copy {
@@ -553,10 +553,10 @@
     .content {
       position: relative;
       z-index: 2;
-      height: calc(297mm - 39mm - 18mm);
+      height: calc(297mm - 28mm - 9mm);
       box-sizing: border-box;
       overflow: hidden;
-      padding: 0 13mm 22mm;
+      padding: 0 12mm 12mm;
     }
 
     .tag-row {
@@ -585,16 +585,16 @@
 
     .headline {
       max-width: 168mm;
-      margin: 6mm 0 0;
+      margin: 4mm 0 0;
       color: var(--navy);
-      font-size: 30px;
-      line-height: 1.15;
+      font-size: 27px;
+      line-height: 1.12;
       letter-spacing: .2px;
       text-transform: uppercase;
     }
 
     .eyebrow {
-      margin: 3mm 0 0;
+      margin: 2mm 0 0;
       color: var(--accent);
       font-size: 13px;
       font-weight: 900;
@@ -603,7 +603,7 @@
     }
 
     .summary {
-      margin-top: 9mm;
+      margin-top: 6mm;
       border-radius: 7px;
       padding: 6mm 6mm 5mm;
       background: color-mix(in srgb, var(--accent) 9%, #fff);
@@ -741,7 +741,7 @@
     }
 
     .body-block {
-      margin-top: 4mm;
+      margin-top: 3mm;
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 7mm;
@@ -754,13 +754,13 @@
 
     .message {
       color: #111827;
-      font-size: 10.6px;
-      line-height: 1.38;
+      font-size: 10.4px;
+      line-height: 1.32;
       white-space: pre-wrap;
     }
 
     .message p {
-      margin: 0 0 2.1mm;
+      margin: 0 0 1.6mm;
     }
 
     .message .import-heading {
@@ -1101,15 +1101,15 @@
       left: 0;
       right: 0;
       bottom: 0;
-      min-height: 11mm;
+      min-height: 8mm;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       align-items: center;
       gap: 4mm;
-      padding: 0 13mm;
+      padding: 0 12mm;
       color: #fff;
       background: var(--footer-bg);
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
     }
 
@@ -1122,15 +1122,15 @@
     }
 
     .continuation-sheet .content {
-      height: calc(297mm - 39mm - 18mm);
+      height: calc(297mm - 28mm - 9mm);
       min-height: 0;
-      padding-top: 8mm;
-      padding-bottom: 30mm;
+      padding-top: 5mm;
+      padding-bottom: 12mm;
     }
 
     .continuation-sheet .body-block {
       display: block;
-      margin-top: 6mm;
+      margin-top: 3mm;
     }
 
     .continuation-sheet .body-main {
@@ -1138,8 +1138,8 @@
     }
 
     html[data-segment="interno"] .sheet-header {
-      height: 34mm;
-      padding: 7mm 13mm 0;
+      height: 27mm;
+      padding: 6mm 12mm 0;
       background:
         linear-gradient(135deg, #2f65a3 0%, #4880c0 62%, #6d9ed0 100%);
       border-bottom: 1.4mm solid #d8e7f6;
@@ -1150,18 +1150,18 @@
     }
 
     html[data-segment="interno"] .sheet-brand {
-      min-height: 20mm;
-      gap: 8mm;
+      min-height: 14mm;
+      gap: 6mm;
     }
 
     html[data-segment="interno"] .sheet-brand .brand-mark {
-      width: 27mm;
-      height: 20mm;
+      width: 22mm;
+      height: 15mm;
       opacity: .28;
     }
 
     html[data-segment="interno"] .sheet-brand .brand-logo {
-      width: 43mm;
+      width: 37mm;
     }
 
     html[data-segment="interno"] .internal-header-copy {
@@ -1174,23 +1174,23 @@
     }
 
     html[data-segment="interno"] .internal-header-copy strong {
-      font-size: 23px;
+      font-size: 19px;
       line-height: 1;
       letter-spacing: 1.5px;
     }
 
     html[data-segment="interno"] .internal-header-copy span {
       color: #eaf4ff;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 800;
       letter-spacing: .5px;
       line-height: 1.25;
     }
 
     html[data-segment="interno"] .content {
-      height: calc(297mm - 34mm - 18mm);
-      padding-top: 8mm;
-      padding-bottom: 24mm;
+      height: calc(297mm - 27mm - 9mm);
+      padding-top: 6mm;
+      padding-bottom: 12mm;
     }
 
     html[data-segment="interno"] .tag-row {
@@ -1213,17 +1213,17 @@
     }
 
     html[data-segment="interno"] .continuation-sheet .content {
-      height: calc(297mm - 34mm - 18mm);
-      padding-top: 9mm;
-      padding-bottom: 24mm;
+      height: calc(297mm - 27mm - 9mm);
+      padding-top: 6mm;
+      padding-bottom: 12mm;
     }
 
     html[data-segment="interno"] .sheet-footer {
-      min-height: 16mm;
+      min-height: 9mm;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 0 13mm;
+      padding: 0 12mm;
       color: #4880c0;
       background: #fff;
       border-top: 1px solid #d8e7f6;
@@ -1235,7 +1235,7 @@
 
     html[data-segment="interno"] .sheet-footer .internal-footer-logo {
       display: block;
-      width: 43mm;
+      width: 34mm;
       height: auto;
     }
 
@@ -2060,79 +2060,20 @@
     }
 
     function paginateMessage(value) {
-      const blocks = value
-        .split(/\n{2,}/)
-        .map(block => block.trim())
-        .filter(Boolean);
-      const hasGraphic = hasGraphicContent();
-      const visualItems = graphicItems.length + (bodyImageData ? 1 : 0);
-      const visualPenalty = hasGraphic ? Math.min(1400, 650 + (visualItems * 300)) : 0;
-      const isReforma = selectedSegmentKey() === "reforma";
-      const firstBaseLimit = fields.showSummary.checked
-        ? (isReforma ? 1850 : 1550)
-        : (isReforma ? 2350 : 2150);
-      const firstLimit = Math.max(760, firstBaseLimit - visualPenalty);
-      const nextLimit = Math.max(1150, (isReforma ? 2250 : 2050) - Math.max(0, visualPenalty - 500));
-      const pages = [];
-      let current = "";
-      let limit = firstLimit;
+      const html = textToParagraphs(value || "Digite o texto do comunicado.");
+      const temporary = document.createElement("div");
+      temporary.innerHTML = html;
+      const measurer = createPaginationMeasurer();
+      const blocks = [];
 
-      function splitOversizedBlock(block, maxLength) {
-        if (block.length <= maxLength) return [block];
-
-        const sentenceParts = block
-          .split(/(?<=[.!?;:])\s+/)
-          .map(part => part.trim())
-          .filter(Boolean);
-        const parts = sentenceParts.length > 1 ? sentenceParts : block.split(/\s+/);
-        const chunks = [];
-        let chunk = "";
-
-        parts.forEach(part => {
-          const next = chunk ? `${chunk} ${part}` : part;
-          if (next.length > maxLength && chunk) {
-            chunks.push(chunk);
-            chunk = part;
-          } else if (part.length > maxLength) {
-            for (let start = 0; start < part.length; start += maxLength) {
-              chunks.push(part.slice(start, start + maxLength));
-            }
-            chunk = "";
-          } else {
-            chunk = next;
-          }
-        });
-
-        if (chunk) chunks.push(chunk);
-        return chunks;
-      }
-
-      blocks.forEach(block => {
-        const usableLimit = current ? limit : Math.min(limit, nextLimit);
-        const chunks = splitOversizedBlock(block, usableLimit);
-
-        chunks.forEach(chunk => {
-          const next = current ? `${current}\n\n${chunk}` : chunk;
-          if (next.length > limit && current) {
-            pages.push(current);
-            current = chunk;
-            limit = nextLimit;
-          } else if (chunk.length > limit) {
-            pages.push(chunk);
-            current = "";
-            limit = nextLimit;
-          } else {
-            current = next;
-          }
-        });
-
-        if (pages.length && !current) {
-          limit = nextLimit;
+      [...temporary.childNodes].forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          splitOversizedCleanNode(node, measurer, mmToPx(232)).forEach(block => blocks.push(block));
         }
       });
 
-      if (current) pages.push(current);
-      return pages.length ? pages : ["Digite o texto do comunicado."];
+      measurer.remove();
+      return paginateHtmlBlocks(blocks, mmToPx(fields.showSummary.checked ? 142 : 190), mmToPx(232));
     }
 
     function hasInlineGraphicBlocks() {
@@ -2175,6 +2116,29 @@
     function fitsMeasuredPage(measurer, html, maxHeight) {
       measurer.innerHTML = html;
       return measurer.scrollHeight <= maxHeight;
+    }
+
+    function paginateHtmlBlocks(blocks, firstLimit, nextLimit) {
+      const pages = [];
+      let current = "";
+      let limit = firstLimit;
+      const measurer = createPaginationMeasurer();
+
+      blocks.forEach(html => {
+        const next = current + html;
+
+        if (current && !fitsMeasuredPage(measurer, next, limit)) {
+          pages.push(current);
+          current = html;
+          limit = nextLimit;
+        } else {
+          current = next;
+        }
+      });
+
+      measurer.remove();
+      if (current) pages.push(current);
+      return pages;
     }
 
     function splitTextForPage(text, maxLength = 900) {
@@ -2272,28 +2236,12 @@
     }
 
     function paginateEditorHtml() {
-      const firstLimit = mmToPx(fields.showSummary.checked ? 118 : 150);
-      const nextLimit = mmToPx(205);
-      const pages = [];
-      let current = "";
+      const firstLimit = mmToPx(fields.showSummary.checked ? 142 : 190);
+      const nextLimit = mmToPx(232);
       const measurer = createPaginationMeasurer();
-      let limit = firstLimit;
       const blocks = paginationBlocks(measurer, nextLimit);
-
-      blocks.forEach(html => {
-        const next = current + html;
-
-        if (current && !fitsMeasuredPage(measurer, next, limit)) {
-          pages.push(current);
-          current = html;
-          limit = nextLimit;
-        } else {
-          current = next;
-        }
-      });
-
       measurer.remove();
-      if (current) pages.push(current);
+      const pages = paginateHtmlBlocks(blocks, firstLimit, nextLimit);
       return pages.length ? pages : [textToParagraphs("Digite o texto do comunicado.")];
     }
 
@@ -2437,6 +2385,14 @@
       return pages;
     }
 
+    function textHtmlBlocks(value) {
+      return (value || "")
+        .split(/\n{2,}/)
+        .map(block => block.trim())
+        .filter(Boolean)
+        .map(block => `<p>${escapeHtml(block.replace(/\n/g, " "))}</p>`);
+    }
+
     function bodyImageBoxOnlyHtml() {
       if (!bodyImageData) return "";
       return `
@@ -2459,20 +2415,19 @@
 
     function visualFlowPages() {
       const pages = [];
+      const nextLimit = mmToPx(232);
 
       if (bodyImageData) {
-        const chunks = splitFlowText(fields.bodyImageAfterText.value, 760);
-        pages.push(`${bodyImageBoxOnlyHtml()}${chunks[0] ? `<div class="message after-graphic-message">${textToParagraphs(chunks[0], false)}</div>` : ""}`);
-        chunks.slice(1).forEach(chunk => {
-          pages.push(`<div class="message">${textToParagraphs(chunk, false)}</div>`);
+        const blocks = [bodyImageBoxOnlyHtml(), ...textHtmlBlocks(fields.bodyImageAfterText.value)];
+        paginateHtmlBlocks(blocks, nextLimit, nextLimit).forEach(page => {
+          pages.push(`<div class="message after-graphic-message">${page}</div>`);
         });
       }
 
       graphicItems.forEach(item => {
-        const chunks = splitFlowText(item.afterText, item.type === "table" ? 620 : 760);
-        pages.push(`${graphicBoxOnlyHtml(item)}${chunks[0] ? `<div class="message after-graphic-message">${textToParagraphs(chunks[0], false)}</div>` : ""}`);
-        chunks.slice(1).forEach(chunk => {
-          pages.push(`<div class="message">${textToParagraphs(chunk, false)}</div>`);
+        const blocks = [graphicBoxOnlyHtml(item), ...textHtmlBlocks(item.afterText)];
+        paginateHtmlBlocks(blocks, nextLimit, nextLimit).forEach(page => {
+          pages.push(`<div class="message after-graphic-message">${page}</div>`);
         });
       });
 
@@ -2773,25 +2728,16 @@
       renderGraphic();
       normalizeMessageEditor();
       const messageText = getMessageText() || "Digite o texto do comunicado.";
-      const inlineMode = hasInlineGraphicBlocks();
       let messagePages = [];
       let flowPages = visualFlowPages();
 
-      if (inlineMode || hasRichMessageFormatting()) {
-        const htmlPages = paginateEditorHtml();
-        messagePages = htmlPages;
-        preview.message.innerHTML = htmlPages[0] || sanitizeRichMessage();
-        renderContinuationPages(htmlPages.slice(1).map(html => ({
-          kind: "html",
-          html: `<div class="message">${html}</div>`
-        })), flowPages);
-      } else {
-        messagePages = paginateMessage(messageText);
-        preview.message.innerHTML = messagePages.length === 1
-          ? sanitizeRichMessage()
-          : textToParagraphs(messagePages[0]);
-        renderContinuationPages(messagePages.slice(1), flowPages);
-      }
+      const htmlPages = paginateEditorHtml();
+      messagePages = htmlPages;
+      preview.message.innerHTML = htmlPages[0] || textToParagraphs(messageText);
+      renderContinuationPages(htmlPages.slice(1).map(html => ({
+        kind: "html",
+        html: `<div class="message">${html}</div>`
+      })), flowPages);
       preview.sender.textContent = fields.sender.value || "Orteconte Contabilidade";
       preview.graphicList.style.display = "none";
       document.querySelector("#afterGraphicPreview").innerHTML = "";
