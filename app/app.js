@@ -3331,10 +3331,11 @@
       render();
       const now = new Date();
       const item = {
-        id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        id: activeDraftId || ((window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`),
         serial: currentDocumentSerial,
         emitente: activeUsername(),
         kind,
+        status: "final",
         title: currentHistoryTitle(kind),
         empresa: value("razao", value("nomeFantasia", "")),
         documento: value("cnpj", ""),
@@ -3343,10 +3344,8 @@
         formState: captureCurrentFormState(),
         html: persistedDocumentHtml()
       };
-      const draftToDelete = activeDraftId;
       activeDraftId = "";
       await persistHistoryItem(item);
-      if (draftToDelete && draftToDelete !== item.id) await deleteHistoryDocument(draftToDelete, false);
       renderHistory();
     }
 
