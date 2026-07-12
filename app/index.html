@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'sha256-IX5VIitU7Na9PZX5Fl3WDd9fzom5SX5fXWTKCI42iYI='; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self'; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co https://viacep.com.br https://brasilapi.com.br https://servicodados.ibge.gov.br https://nominatim.openstreetmap.org; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
@@ -116,25 +116,12 @@
       }
     }
 
-    @keyframes loginStarFloat {
+    @keyframes loginStarDrift {
       from {
         transform: translate3d(0, 0, 0);
-        opacity: .58;
       }
       to {
-        transform: translate3d(-30px, 18px, 0);
-        opacity: .86;
-      }
-    }
-
-    @keyframes loginPortalBreath {
-      from {
-        opacity: .78;
-        filter: blur(.2px) drop-shadow(0 0 34px rgba(30, 136, 255, .36));
-      }
-      to {
-        opacity: .98;
-        filter: blur(.2px) drop-shadow(0 0 58px rgba(0, 102, 255, .48));
+        transform: translate3d(-72px, 54px, 0);
       }
     }
 
@@ -152,10 +139,9 @@
       place-items: center;
       padding: 24px;
       background:
-        radial-gradient(circle at 22% 18%, rgba(30, 136, 255, .18), transparent 30%),
-        radial-gradient(circle at 78% 28%, rgba(125, 211, 252, .08), transparent 28%),
-        radial-gradient(ellipse at center, rgba(4, 25, 64, .9) 0%, rgba(2, 7, 18, .98) 72%),
-        linear-gradient(180deg, #020712 0%, #06173a 48%, #020916 100%);
+        radial-gradient(circle at 68% 34%, rgba(30, 136, 255, .22), transparent 31%),
+        radial-gradient(circle at 16% 82%, rgba(30, 136, 255, .12), transparent 27%),
+        linear-gradient(180deg, #020712 0%, #071d49 54%, #030815 100%);
       position: relative;
       overflow: hidden;
       isolation: isolate;
@@ -166,130 +152,36 @@
       content: "";
       position: absolute;
       inset: -18%;
-      z-index: -1;
+      z-index: -2;
       opacity: .72;
       background-image:
         radial-gradient(circle, rgba(255, 255, 255, .9) 0 1px, transparent 1.5px),
-        radial-gradient(circle, rgba(125, 211, 252, .7) 0 1px, transparent 1.5px),
-        radial-gradient(circle, rgba(147, 197, 253, .46) 0 1px, transparent 1.5px);
+        radial-gradient(circle, rgba(108, 183, 255, .75) 0 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255, 255, 255, .5) 0 1px, transparent 1.5px);
       background-position: 0 0, 38px 26px, 18px 54px;
-      background-size: 92px 92px, 137px 137px, 187px 187px;
-      mask-image: linear-gradient(180deg, #000 0 76%, transparent 100%);
-      animation: loginStarFloat 22s ease-in-out infinite alternate;
+      background-size: 86px 86px, 127px 127px, 173px 173px;
+      animation: loginStarDrift 24s linear infinite alternate;
     }
 
     .login-screen::after {
-      content: "";
+      content: "A";
       position: absolute;
-      left: 50%;
-      bottom: -2px;
-      width: min(1120px, 112vw);
-      height: min(500px, 50vw);
+      right: clamp(-80px, 3vw, 40px);
+      top: 50%;
       z-index: -1;
-      display: none;
-      border-radius: 50% 50% 0 0;
-      background:
-        linear-gradient(90deg, transparent 0 4%, rgba(30, 136, 255, .5) 20%, rgba(255, 255, 255, .98) 50%, rgba(0, 102, 255, .54) 80%, transparent 96%) 50% 100% / 100% 4px no-repeat,
-        radial-gradient(ellipse at 50% 100%, #01030a 0 23%, rgba(2, 11, 28, .98) 25%, transparent 28%),
-        radial-gradient(ellipse at 50% 100%, transparent 0 28%, rgba(255, 255, 255, .98) 30%, rgba(219, 234, 254, .92) 32%, rgba(30, 136, 255, .8) 36%, rgba(125, 211, 252, .28) 43%, transparent 52%),
-        radial-gradient(ellipse at 50% 100%, transparent 0 38%, rgba(125, 211, 252, .18) 43%, transparent 64%),
-        radial-gradient(ellipse at 50% 100%, rgba(255, 255, 255, .82) 0 1%, rgba(30, 136, 255, .78) 6%, rgba(4, 25, 64, .34) 28%, transparent 58%);
-      transform: translateX(-50%);
-      animation: loginPortalBreath 4.8s ease-in-out infinite alternate;
-    }
-
-    .axion-vortex {
-      position: absolute;
-      left: 50%;
-      bottom: -1px;
-      width: min(980px, 96vw);
-      height: min(430px, 43vw);
-      pointer-events: none;
-      transform: translateX(-50%);
-      z-index: -1;
-      display: none;
-      opacity: .9;
-      overflow: hidden;
-    }
-
-    .axion-black-hole-bg {
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      display: none;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    .axion-black-hole-bg canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
-
-    .axion-vortex::before,
-    .axion-vortex::after,
-    .vortex-ring {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-    }
-
-    .axion-vortex::before {
-      left: 50%;
-      bottom: -2px;
-      width: min(330px, 34vw);
-      aspect-ratio: 1;
-      background:
-        radial-gradient(circle at 50% 56%, #01030a 0 44%, rgba(4, 25, 64, .9) 47%, rgba(255, 255, 255, .92) 50%, rgba(30, 136, 255, .9) 53%, transparent 61%);
-      transform: translateX(-50%);
-      clip-path: inset(0 0 50% 0);
-      filter: drop-shadow(0 0 36px rgba(255, 255, 255, .42)) drop-shadow(0 0 78px rgba(30, 136, 255, .48));
-    }
-
-    .axion-vortex::after {
-      left: 50%;
-      bottom: 0;
-      width: 114%;
-      height: 44%;
-      background:
-        radial-gradient(ellipse at 50% 100%, rgba(255, 255, 255, .72) 0 2%, rgba(30, 136, 255, .5) 9%, rgba(125, 211, 252, .18) 28%, transparent 64%);
-      filter: blur(20px);
-      transform: translateX(-50%);
-      opacity: .82;
-    }
-
-    .vortex-ring {
-      left: 50%;
-      bottom: 0;
-      border: 1px solid rgba(125, 211, 252, .18);
-      border-bottom: 0;
-      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-      transform: translateX(-50%);
-    }
-
-    .ring-one {
-      width: 98%;
-      height: 94%;
-    }
-
-    .ring-two {
-      width: 72%;
-      height: 68%;
-      border-color: rgba(30, 136, 255, .24);
-      border-bottom: 0;
-    }
-
-    .ring-three {
-      width: 48%;
-      height: 48%;
-      border-color: rgba(255, 255, 255, .18);
-      border-bottom: 0;
+      color: rgba(30, 136, 255, .08);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: clamp(320px, 52vw, 760px);
+      font-weight: 900;
+      line-height: .75;
+      transform: translateY(-50%);
+      -webkit-text-stroke: 2px rgba(128, 198, 255, .16);
+      text-shadow: 0 0 80px rgba(30, 136, 255, .18);
     }
 
     .login-card {
       width: min(420px, 100%);
-      background: rgba(2, 11, 28, .93);
+      background: rgba(2, 11, 28, .84);
       border: 1px solid rgba(230, 236, 243, .2);
       border-radius: 8px;
       box-shadow: 0 30px 90px rgba(0, 0, 0, .52);
@@ -298,8 +190,6 @@
       display: grid;
       gap: 16px;
       animation: softReveal .32s ease both;
-      position: relative;
-      z-index: 2;
     }
 
     .login-logo {
@@ -370,16 +260,6 @@
       width: 100%;
       justify-content: center;
       margin-top: 4px;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .login-screen::before,
-      .login-screen::after,
-      .axion-vortex::before,
-      .axion-vortex::after,
-      .vortex-ring {
-        animation: none;
-      }
     }
 
     .account-dialog {
@@ -1143,10 +1023,6 @@
       display: none !important;
     }
 
-    .print-root {
-      display: none;
-    }
-
     textarea {
       min-height: 88px;
       resize: vertical;
@@ -1704,62 +1580,11 @@
       .signature-line {
         min-height: 23mm;
       }
-      body.printing-document aside,
-      body.printing-document .topbar,
-      body.printing-document .form-column,
-      body.printing-document .preview-panel,
-      body.printing-document .login-screen,
-      body.printing-document .history-modal {
-        display: none !important;
-      }
-      body.printing-document .app-shell,
-      body.printing-document .workspace,
-      body.printing-document main {
-        display: block !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        min-height: auto !important;
-      }
-      body.printing-document .print-root {
-        display: block !important;
-      }
-      body.printing-document .print-root .pdf-toolbar,
-      body.printing-document .print-root .pdf-print-tip {
-        display: none !important;
-      }
-      body.printing-document .print-root .pdf-shell {
-        max-width: none;
-        margin: 0;
-        padding: 0;
-      }
-      body.printing-document .print-root .pdf-brand-strip {
-        display: flex;
-        justify-content: flex-end;
-        margin: 0 0 5px;
-      }
-      body.printing-document .print-root .pdf-brand-strip img {
-        width: 96px;
-        height: auto;
-        opacity: .82;
-      }
-      body.printing-document .print-root .document {
-        display: block !important;
-        border: 1px solid #d7e7f7;
-        border-radius: 10px;
-        box-shadow: none;
-        min-height: auto;
-        overflow: hidden;
-      }
     }
   </style>
 </head>
 <body class="auth-locked">
   <section class="login-screen" id="loginScreen">
-    <div class="axion-vortex" aria-hidden="true">
-      <span class="vortex-ring ring-one"></span>
-      <span class="vortex-ring ring-two"></span>
-      <span class="vortex-ring ring-three"></span>
-    </div>
     <form class="login-card" id="loginForm" autocomplete="off">
       <div class="login-logo">
         <img src="logo-axion-login.png" alt="Axion Solutions">
@@ -1786,7 +1611,8 @@
         <label>Senha<input id="registrationPassword" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="6 dígitos" autocomplete="new-password" required></label>
         <label>Confirmar senha<input id="registrationPasswordConfirm" type="password" minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="Repita os 6 dígitos" autocomplete="new-password" required></label>
         <label class="span-all">Perfil<select id="registrationProfile"><option value="orteconte">Orteconte</option></select></label>
-        <div class="account-dialog-actions"><button class="btn primary" id="registrationSubmit" type="submit">Enviar solicitação</button></div>
+        <label class="span-all conditional-field hidden" id="registrationCodeWrap">Código recebido por e-mail<input id="registrationCode" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="Digite os 6 dígitos"></label>
+        <div class="account-dialog-actions"><button class="btn primary" id="registrationSubmit" type="submit">Enviar código</button></div>
         <p class="account-status" id="registrationStatus" role="status" aria-live="polite"></p>
       </form>
     </div>
@@ -1845,9 +1671,8 @@
           <button class="btn draft workflow-hidden" type="button" id="saveDraft">Salvar Rascunho</button>
           <button class="btn" type="button" id="fillExample">Preencher exemplo</button>
           <button class="btn danger" type="button" id="clearForm">Limpar</button>
-          <button class="btn primary" type="button" id="saveDocument">Salvar</button>
-          <button class="btn primary" type="button" id="printDoc">Imprimir PDF</button>
-          <button class="btn primary" type="button" id="generateWord">Imprimir Word</button>
+          <button class="btn primary" type="button" id="printDoc">Gerar PDF</button>
+          <button class="btn primary" type="button" id="generateWord">Gerar Word</button>
           <button class="btn" type="button" id="adminUsersButton" hidden>Usuários</button>
           <span class="action-divider" aria-hidden="true"></span>
           <button class="btn danger" type="button" id="logoutButton">Sair</button>
@@ -1909,16 +1734,18 @@
               <label>Valor de honorário<input id="aberturaValorHonorario" placeholder="R$ 0,00"></label>
               <label>Data de pagamento<select id="aberturaDataPagamento">
                 <option value="">Selecione o dia</option>
-                <option>06</option>
-                <option>10</option>
-                <option>15</option>
-                <option>20</option>
+                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+                <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+                <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+                <option>21</option><option>22</option><option>23</option><option>24</option><option>25</option>
+                <option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option>
               </select></label>
               <label>Razão Social<input id="aberturaRazao" placeholder="Nome empresarial pretendido"></label>
               <label>Nome fantasia<input id="aberturaFantasia" placeholder="Nome fantasia pretendido"></label>
               <label>Filial?<select id="aberturaFilial"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
-              <label>Pertence a grupo?<select id="aberturaGrupo"><option value="">Selecione</option><option>Não</option><option>Sim</option></select></label>
-              <label class="conditional-field hidden" id="aberturaNomeGrupoWrap">Nome do grupo<input id="aberturaNomeGrupo" placeholder="Informe o nome do grupo"></label>
+              <label>Pertence a grupo?<select id="aberturaGrupo"><option value="">Selecione</option><option>Não</option><option>Sim</option><option>Será criado</option></select></label>
+              <label class="conditional-field hidden" id="aberturaNomeGrupoWrap">Qual será o nome do grupo<input id="aberturaNomeGrupo" placeholder="Informe o nome do grupo"></label>
               <label>Tipo jurídico<select id="aberturaTipoJuridico">
                 <option value="">Selecione</option>
                 <option>Microempreendedor Individual (MEI)</option>
@@ -1946,11 +1773,30 @@
               <label>CEP comercial<div class="lookup-row"><input id="aberturaCep" placeholder="00.000-000" title="CEP consulta a base pública ViaCEP/Correios para preencher rua, cidade e estado."><button class="btn mini" type="button" id="buscarAberturaCep">Buscar CEP</button></div></label>
               <label>Rua<input id="aberturaRua" placeholder="Rua / avenida"></label>
               <label>Número<input id="aberturaNumero" placeholder="Nº"></label>
-              <label>Complemento<input id="aberturaComplemento" placeholder="Sala, loja, bloco ou Não possui"></label>
+              <label>Complemento<input id="aberturaComplemento" placeholder="Sala, loja ou bloco"></label>
+              <label class="check inline-check"><input type="checkbox" id="aberturaSemComplemento">Sem complemento</label>
               <label>Cidade<input id="aberturaCidade" placeholder="Cidade"></label>
               <label>Estado<select id="aberturaEstado">
                 <option value="">Selecione</option><option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option>
               </select></label>
+              <label class="span-2 conditional-field hidden abertura-es-field">Dados do Estabelecimento / Imóvel</label>
+              <div class="grid span-2 conditional-field hidden abertura-es-field">
+                <label>Estabelecimento é inócuo ou virtual<select id="aberturaEstabelecimentoInocuoVirtual"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
+                <label>Área total do imóvel<input id="aberturaAreaTotalImovel" placeholder="Ex.: 120 m²"></label>
+                <label>Área total utilizada pela empresa<input id="aberturaAreaTotalUtilizadaEmpresa" placeholder="Ex.: 80 m²"></label>
+                <label>Imóvel próprio ou alugado<input id="aberturaImovelProprioAlugado" placeholder="Próprio ou alugado"></label>
+                <label>Quantidade de cômodos do imóvel<input id="aberturaQuantidadeComodos" type="number" min="0" placeholder="Ex.: 5"></label>
+                <label>Quantidade máxima de pessoas no ambiente<input id="aberturaQuantidadeMaximaPessoas" type="number" min="0" placeholder="Ex.: 12"></label>
+                <label>Edificação possui subsolo com uso distinto de estacionamento<select id="aberturaSubsoloUsoDistinto"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
+                <label>As atividades exercidas pelo empreendimento perpassam dois ou mais municípios<select id="aberturaAtividadesMultiplosMunicipios"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
+                <label>As atividades serão exercidas na residência do empreendedor<select id="aberturaAtividadesResidenciaEmpreendedor"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
+                <label>Latitude<input id="aberturaLatitude" placeholder="-20.3155"></label>
+                <label>Longitude<input id="aberturaLongitude" placeholder="-40.3128"></label>
+                <div class="lookup-row span-2">
+                  <button class="btn mini" type="button" id="buscarAberturaCoordenadas">Buscar coordenadas pelo endereço</button>
+                  <a class="btn mini" id="abrirAberturaMapa" href="https://www.google.com/maps" target="_blank" rel="noopener">Abrir mapa</a>
+                </div>
+              </div>
               <label>Capital Social<input id="aberturaCapitalSocial" placeholder="R$ 0,00"></label>
               <label class="span-2 baixa-saida-hidden-field">Forma de atuação</label>
               <div class="checkbox-grid span-2 baixa-saida-hidden-field">
@@ -1964,20 +1810,20 @@
                 <label class="check"><input type="checkbox" class="aberturaFormaAtuacao" value="Televendas">Televendas</label>
                 <label class="check"><input type="checkbox" class="aberturaFormaAtuacao" value="Máquinas Automáticas">Máquinas Automáticas</label>
               </div>
+              <label>Área total da edificação (m²)<input id="aberturaAreaTotal" placeholder="Ex.: 120"></label>
+              <label>Área utilizada (m²)<input id="aberturaAreaUtilizada" placeholder="Ex.: 80"></label>
+              <label>Atividade principal<input id="aberturaAtividadePrincipal" placeholder="Descrição da atividade principal"></label>
               <label>CNAE principal<input id="aberturaCnaePrincipal" placeholder="Ex.: 69.20-6-01"></label>
-              <label>Atividade principal<input id="aberturaAtividadePrincipal" placeholder="Preenchida automaticamente pelo CNAE"></label>
-              <label>Área total da edificação (m²)<input id="aberturaAreaTotal" placeholder="Ex.: 120,00 m²"></label>
-              <label>Área utilizada (m²)<input id="aberturaAreaUtilizada" placeholder="Ex.: 80,00 m²"></label>
               <label class="span-2">CNAEs secundários<textarea id="aberturaCnaesSecundarios" placeholder="Informe um CNAE por linha"></textarea></label>
               <label class="span-2">Objeto social<textarea id="aberturaObjetoSocial" placeholder="Descreva o objeto social"></textarea></label>
+              <label>Possui pró-labore?<select id="aberturaPossuiProlabore"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
+              <label class="conditional-field hidden" id="aberturaProlaboreWrap">Valor da retirada<input id="aberturaProlabore" placeholder="R$ 0,00"></label>
               <label>Contato e e-mail da empresa<input id="aberturaContatoEmail" placeholder="Telefone / e-mail"></label>
               <label>E-mail usuário externo Gestta<input id="aberturaEmailGestta" type="email" placeholder="email@dominio.com"></label>
               <label>Representante perante a Receita Federal<input id="aberturaRepresentanteReceita" placeholder="Nome do representante"></label>
               <label class="span-2">Dados do sócio</label>
               <div class="grid span-2">
                 <label>Nome do sócio<input id="aberturaSocioNome" placeholder="Nome completo"></label>
-                <label>CPF do sócio<input id="aberturaSocioCpf" placeholder="000.000.000-00" title="CPF é formatado e validado pelos dígitos verificadores. Não há consulta pública de dados pessoais."></label>
-                <label>Sócio administrador?<select id="aberturaSocioAdministrador"><option>Sim</option><option>Não</option></select></label>
                 <label>CEP residencial<div class="lookup-row"><input id="aberturaSocioCep" placeholder="00.000-000" title="CEP consulta a base pública ViaCEP/Correios para preencher o endereço residencial."><button class="btn mini" type="button" id="buscarAberturaSocioCep">Buscar CEP</button></div></label>
                 <label>Endereço residencial<input id="aberturaSocioEndereco" placeholder="Endereço residencial"></label>
                 <label>Estado civil<select id="aberturaSocioEstadoCivil"><option value="">Selecione</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option></select></label>
@@ -1989,11 +1835,9 @@
                   <option>Separação obrigatória de bens</option>
                   <option>Participação final nos aquestos</option>
                 </select></label>
-                <label>Possui pró-labore?<select id="aberturaPossuiProlabore"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
-                <label class="conditional-field hidden" id="aberturaProlaboreWrap">Valor da retirada<input id="aberturaProlabore" placeholder="R$ 0,00"></label>
                 <label>Profissão<input id="aberturaSocioProfissao" placeholder="Profissão"></label>
                 <label>Quotas<input id="aberturaSocioQuotas" placeholder="Ex.: 10.000 quotas"></label>
-                <label>Porcentagem<input id="aberturaSocioPercentual" placeholder="Ex.: 100,00%"></label>
+                <label>Porcentagem<input id="aberturaSocioPercentual" placeholder="Ex.: 100%"></label>
                 <label>Qualificação<select id="aberturaSocioQualificacao">
                   <option value="">Selecione</option>
                   <option>Sócio administrador</option>
@@ -2012,9 +1856,16 @@
                 <label class="check"><input type="checkbox" class="aberturaDocumento" value="Contrato de locação ou documento de posse do imóvel">Contrato de locação ou posse</label>
                 <label class="check"><input type="checkbox" class="aberturaDocumento" value="Comprovante de endereço comercial e residencial">Comprovante comercial/residencial</label>
               </div>
-              <label>Solicitar alvará?<select id="aberturaSolicitarAlvara"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
+              <label>Solicitar alvará específico?<select id="aberturaSolicitarAlvara"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
+              <label class="conditional-field hidden" id="aberturaAlvaraEspecificoWrap">Qual será o alvará a ser solicitado<input id="aberturaAlvaraEspecifico" placeholder="Informe o alvará específico"></label>
               <label>Licitações?<select id="aberturaLicitacoes"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
-              <button class="btn mini" type="button" id="addAberturaAdmin">Adicionar sócio</button>
+              <label class="span-2">Sócio</label>
+              <div class="grid span-2">
+                <label>Nome do sócio<input id="aberturaAdminNome" placeholder="Nome completo"></label>
+                <label>CPF do sócio<input id="aberturaAdminCpf" placeholder="000.000.000-00" title="CPF é formatado e validado pelos dígitos verificadores. Não há consulta pública de dados pessoais."></label>
+                <label>Sócio administrador?<select id="aberturaAdminSocioAdministrador"><option>Sim</option><option>Não</option></select></label>
+                <button class="btn mini" type="button" id="addAberturaAdmin">Adicionar sócio</button>
+              </div>
               <div class="socios-list span-2" id="aberturaAdminsList"></div>
               <label class="span-2">Observação<textarea id="aberturaObservacao" placeholder="Informe observações da abertura, pendências, particularidades e orientações relevantes."></textarea></label>
             </div>
@@ -2026,8 +1877,8 @@
               <label>Razão Social<input id="razao" placeholder="Ex.: Academia Black Gym Evolution LTDA"></label>
               <label>Nome Fantasia<input id="fantasia" placeholder="Ex.: Black Gym Evolution"></label>
               <label class="entrada-abertura-field">Filial?<select id="filialCadastro"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
-              <label>Pertence a grupo?<select id="grupoCadastro"><option>Não</option><option>Sim</option></select></label>
-              <label class="conditional-field hidden" id="nomeGrupoCadastroWrap">Nome do grupo<input id="nomeGrupoCadastro" placeholder="Informe o nome do grupo"></label>
+              <label>Pertence a grupo?<select id="grupoCadastro"><option>Não</option><option>Sim</option><option>Será criado</option></select></label>
+              <label class="conditional-field hidden" id="nomeGrupoCadastroWrap">Qual será o nome do grupo<input id="nomeGrupoCadastro" placeholder="Informe o nome do grupo"></label>
               <label id="identificacaoWrap"><span id="identificacaoLabel">CNPJ</span><div class="lookup-row"><input id="cnpj" placeholder="00.000.000/0000-00" title="CNPJ consulta dados públicos disponíveis. CPF/CEI é apenas formatado e validado quando aplicável."><button class="btn mini" type="button" id="buscarCnpj">Buscar CNPJ</button></div></label>
               <input id="constituicao" type="hidden">
               <input id="inicio" type="hidden">
@@ -2050,7 +1901,7 @@
               <label class="conditional-field saida-field hidden">Motivo da saída<input id="motivoSaida" placeholder="Ex.: Falta de pagamento"></label>
               <label class="conditional-field saida-field hidden">E-mail de envio da documentação<input id="emailEnvioDocumentacao" type="email" placeholder="email@dominio.com"></label>
               <label class="abertura-field pf-optional-field">CNAE Principal<input id="cnaePrincipal" placeholder="Ex.: 93.13-1-00 - Atividade de condicionamento físico ou Desconsiderado"></label>
-              <label class="abertura-field entrada-hidden-field cadastro-honorario-field">Honorário mensal<input id="honorario" placeholder="R$ 0,00"></label>
+              <label class="abertura-field">Honorário mensal<input id="honorario" placeholder="R$ 0,00"></label>
               <label class="abertura-field pf-optional-field">Capital social<input id="capitalSocial" placeholder="R$ 0,00 ou Desconsiderado"></label>
               <label class="abertura-field">Tipo de unidade<select id="tipoUnidade">
                 <option>Produtiva</option>
@@ -2137,7 +1988,6 @@
                   <option>Participação final nos aquestos</option>
                   <option>União estável</option>
                 </select></label>
-                <label class="span-2 conditional-field hidden" id="socioEnderecoResidencialWrap">Endereço residencial do sócio que está entrando<input id="socioEnderecoResidencial" placeholder="Rua, número, bairro, cidade/UF e CEP"></label>
                 <label>Qualificação<select id="socioQualificacao">
                   <option>Sócio administrador</option>
                   <option>Sócio Quotista</option>
@@ -2164,13 +2014,15 @@
                 <option>Parcelado</option>
                 <option>Depósito em conta</option>
               </select></label>
-              <label class="alteracao-hidden-field">Honorário mensal<input id="financeiroHonorario" placeholder="R$ 0,00"></label>
+              <label>Honorário mensal<input id="financeiroHonorario" placeholder="R$ 0,00"></label>
               <label class="conditional-field entrada-field hidden">Data de pagamento<select id="financeiroDataPagamento">
                 <option value="">Selecione o dia</option>
-                <option value="06">06</option>
-                <option value="10">10</option>
-                <option value="15">15</option>
-                <option value="20">20</option>
+                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+                <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+                <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+                <option>21</option><option>22</option><option>23</option><option>24</option><option>25</option>
+                <option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option>
               </select></label>
               <label>Competência<input id="financeiroCompetencia" type="month"></label>
               <label class="conditional-field saida-field hidden">Honorários em aberto?<select id="honorariosAberto"><option>Não</option><option>Sim</option></select></label>
@@ -2264,7 +2116,6 @@
       </div>
     </main>
   </div>
-  <div class="print-root" id="printRoot" aria-hidden="true"></div>
 
   <div class="history-modal" id="historyModal" hidden>
     <div class="history-dialog" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
@@ -2292,6 +2143,7 @@
       <div class="history-list" id="historyList"></div>
     </div>
   </div>
-  <script src="onboarding.js"></script>
+  <script src="app.js" defer></script>
 </body>
 </html>
+
