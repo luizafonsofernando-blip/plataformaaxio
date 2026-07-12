@@ -3350,6 +3350,14 @@
       renderHistory();
     }
 
+    async function saveFinalDocument() {
+      if (isBriefingAberturaWorkflow()) {
+        syncOpeningBriefingToMainFields();
+      }
+      render();
+      await saveCurrentDocumentToHistory(currentDocumentKind());
+    }
+
     async function saveDraftToHistory() {
       const kind = "briefing";
       currentDocumentSerial = nextDocumentSerial("rascunho");
@@ -4077,6 +4085,25 @@
 
     $("generateWord").addEventListener("click", () => {
       generateWordDocument();
+    });
+
+    $("saveDocument").addEventListener("click", async () => {
+      const button = $("saveDocument");
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = "Salvando...";
+      try {
+        await saveFinalDocument();
+        button.textContent = "Salvo";
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.disabled = false;
+        }, 1200);
+      } catch (error) {
+        button.textContent = "Erro ao salvar";
+        button.disabled = false;
+        alert(error.message || "Não foi possível salvar o documento no histórico.");
+      }
     });
 
     $("saveDraft").addEventListener("click", async () => {
