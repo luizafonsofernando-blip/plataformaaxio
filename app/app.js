@@ -1633,6 +1633,35 @@
       }
     }
 
+    async function consultarAberturaSocioCnpjPublico(silent = false) {
+      const button = $("buscarAberturaSocioCnpj");
+      const cnpj = onlyDigits(value("aberturaSocioCnpj", ""));
+      if (cnpj.length !== 14) {
+        if (!silent) alert("Informe um CNPJ com 14 dígitos para buscar os dados públicos do sócio PJ.");
+        return;
+      }
+      setLoading(button, true, "Buscar");
+      try {
+        const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`);
+        if (!response.ok) throw new Error("CNPJ não encontrado.");
+        const data = await response.json();
+        setFieldValue("aberturaSocioNome", data.razao_social || data.nome_fantasia || "");
+        setFieldValue("aberturaSocioCnpj", formatCnpjDigits(cnpj));
+        setFieldValue("aberturaSocioEndereco", [
+          buildEnderecoCnpj(data),
+          [data.municipio, data.uf].filter(Boolean).join("/"),
+          data.cep ? `CEP ${data.cep}` : ""
+        ].filter(Boolean).join(" - "));
+        if (data.cep) setFieldValue("aberturaSocioCep", data.cep);
+        syncAllFieldsFilled();
+        updateFlowState();
+      } catch (error) {
+        if (!silent) alert(`Não foi possível buscar o CNPJ do sócio PJ. ${error.message || "Tente novamente em instantes."}`);
+      } finally {
+        setLoading(button, false, "Buscar");
+      }
+    }
+
     function validarCpfPublico() {
       const documento = onlyDigits(value("cnpj", ""));
       if (documento.length > 11) {
@@ -1955,7 +1984,32 @@
           aberturaProlabore.classList.remove("missing");
         }
       }
-      const aberturaSocioCasado = $("aberturaSocioEstadoCivil") && $("aberturaSocioEstadoCivil").value === "Casado(a)";
+      const aberturaSocioPessoaJuridica = value("aberturaSocioTipo", "Pessoa física") === "Pessoa jurídica";
+      const aberturaSocioCnpjWrap = $("aberturaSocioCnpjWrap");
+      if (aberturaSocioCnpjWrap) {
+        aberturaSocioCnpjWrap.classList.toggle("hidden", !aberturaSocioPessoaJuridica);
+        aberturaSocioCnpjWrap.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = aberturaSocioPessoaJuridica ? "false" : "true";
+          if (!aberturaSocioPessoaJuridica) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      }
+      ["aberturaSocioCep", "aberturaSocioEstadoCivil", "aberturaSocioRegimeCasamento", "aberturaSocioProfissao", "aberturaCertificadoPf", "aberturaPossuiSenhaGov", "aberturaSenhaGov"].forEach((id) => {
+        const field = $(id);
+        if (!field) return;
+        const wrap = field.closest("label");
+        if (wrap) wrap.classList.toggle("hidden", aberturaSocioPessoaJuridica);
+        field.dataset.conditionalDisabled = aberturaSocioPessoaJuridica ? "true" : "false";
+        if (aberturaSocioPessoaJuridica) {
+          field.value = "";
+          field.classList.remove("missing");
+        }
+      });
+      const aberturaSocioEnderecoWrap = $("aberturaSocioEnderecoWrap");
+      if (aberturaSocioEnderecoWrap) aberturaSocioEnderecoWrap.querySelector("input").placeholder = aberturaSocioPessoaJuridica ? "Endereço obtido pelo CNPJ ou preenchido manualmente" : "Endereço residencial";
+      const aberturaSocioCasado = !aberturaSocioPessoaJuridica && $("aberturaSocioEstadoCivil") && $("aberturaSocioEstadoCivil").value === "Casado(a)";
       const aberturaSocioRegimeWrap = $("aberturaSocioRegimeWrap");
       if (aberturaSocioRegimeWrap) {
         aberturaSocioRegimeWrap.classList.toggle("hidden", !aberturaSocioCasado);
@@ -2888,18 +2942,23 @@
         ["Representante perante a Receita Federal", value("aberturaRepresentanteReceita", "")]
       ]);
       const socioRows = rowsFilled([
+        ["Tipo de sócio", value("aberturaSocioTipo", "Pessoa física")],
         ["Nome do sócio", value("aberturaSocioNome", "")],
-        ["CEP residencial", value("aberturaSocioCep", "")],
-        ["Endereço residencial", value("aberturaSocioEndereco", "")],
-        ["Estado civil", value("aberturaSocioEstadoCivil", "")],
-        ["Regime de casamento", value("aberturaSocioRegimeCasamento", "")],
-        ["Profissão", value("aberturaSocioProfissao", "")],
+        ...(value("aberturaSocioTipo", "Pessoa física") === "Pessoa jurídica" ? [["CNPJ do sócio PJ", value("aberturaSocioCnpj", "")]] : [["CEP residencial", value("aberturaSocioCep", "")]]),
+        [value("aberturaSocioTipo", "Pessoa física") === "Pessoa jurídica" ? "Endereço do sócio PJ" : "Endereço residencial", value("aberturaSocioEndereco", "")],
+        ...(value("aberturaSocioTipo", "Pessoa física") === "Pessoa jurídica" ? [] : [
+          ["Estado civil", value("aberturaSocioEstadoCivil", "")],
+          ["Regime de casamento", value("aberturaSocioRegimeCasamento", "")],
+          ["Profissão", value("aberturaSocioProfissao", "")]
+        ]),
         ["Quotas", value("aberturaSocioQuotas", "")],
         ["Porcentagem", value("aberturaSocioPercentual", "")],
         ["Qualificação", value("aberturaSocioQualificacao", "")],
-        ["Certificado digital Pessoa Física", value("aberturaCertificadoPf", "")],
-        ["Possui senha gov", value("aberturaPossuiSenhaGov", "")],
-        ["Senha gov", value("aberturaSenhaGov", "")]
+        ...(value("aberturaSocioTipo", "Pessoa física") === "Pessoa jurídica" ? [] : [
+          ["Certificado digital Pessoa Física", value("aberturaCertificadoPf", "")],
+          ["Possui senha gov", value("aberturaPossuiSenhaGov", "")],
+          ["Senha gov", value("aberturaSenhaGov", "")]
+        ])
       ]);
       const docsRows = rowsFilled([
         ["Cópia de documentos", selectedAberturaDocumentos()],
@@ -2934,11 +2993,12 @@
     function aberturaSociosRows() {
       const rowsList = [];
       if (value("aberturaSocioNome", "")) {
+        const socioPj = value("aberturaSocioTipo", "Pessoa física") === "Pessoa jurídica";
         rowsList.push(`
           <tr>
-            <td>${value("aberturaSocioNome", "")}<br>${value("aberturaSocioProfissao", "")}</td>
-            <td>${value("aberturaSocioCep", "")}<br>${value("aberturaSocioEndereco", "")}</td>
-            <td>${value("aberturaSocioEstadoCivil", "")}<br>${value("aberturaSocioRegimeCasamento", "")}</td>
+            <td>${value("aberturaSocioNome", "")}<br>${socioPj ? value("aberturaSocioCnpj", "") : value("aberturaSocioProfissao", "")}</td>
+            <td>${socioPj ? "Pessoa jurídica" : value("aberturaSocioCep", "")}<br>${value("aberturaSocioEndereco", "")}</td>
+            <td>${socioPj ? "Não aplicável" : `${value("aberturaSocioEstadoCivil", "")}<br>${value("aberturaSocioRegimeCasamento", "")}`}</td>
             <td>Quotas: ${value("aberturaSocioQuotas", "")}<br>Porcentagem: ${value("aberturaSocioPercentual", "")}<br>Qualificação: ${value("aberturaSocioQualificacao", "")}</td>
           </tr>
         `);
@@ -2974,9 +3034,11 @@
       const areaTotal = value("aberturaAreaTotal", "");
       const areaUtilizada = value("aberturaAreaUtilizada", "");
       const socioComplementarRows = rowsFilled([
-        ["Certificado digital Pessoa Física", value("aberturaCertificadoPf", "")],
-        ["Possui senha GOV", value("aberturaPossuiSenhaGov", "")],
-        ["Senha GOV", value("aberturaSenhaGov", "")]
+        ...(value("aberturaSocioTipo", "Pessoa física") === "Pessoa jurídica" ? [] : [
+          ["Certificado digital Pessoa Física", value("aberturaCertificadoPf", "")],
+          ["Possui senha GOV", value("aberturaPossuiSenhaGov", "")],
+          ["Senha GOV", value("aberturaSenhaGov", "")]
+        ])
       ]);
       const documentosProcessosRows = rowsFilled([
         ["Cópia de documentos", selectedAberturaDocumentos()],
@@ -3957,6 +4019,7 @@
         if (field.id === "cep") normalizeCepField("cep");
         if (field.id === "aberturaCep") normalizeCepField("aberturaCep");
         if (field.id === "aberturaSocioCep") normalizeCepField("aberturaSocioCep");
+        if (field.id === "aberturaSocioCnpj") field.value = formatCnpjDigits(field.value);
         if (field.id === "aberturaCnaePrincipal") field.value = formatCnaeDigits(field.value);
         if (field.id === "cnaePrincipal" && onlyDigits(field.value).length <= 7) field.value = formatCnaeDigits(field.value);
         if (field.id === "socioCnpj") field.value = formatCnpjDigits(field.value);
@@ -3971,6 +4034,7 @@
         if (field.id === "cep") normalizeCepField("cep");
         if (field.id === "aberturaCep") normalizeCepField("aberturaCep");
         if (field.id === "aberturaSocioCep") normalizeCepField("aberturaSocioCep");
+        if (field.id === "aberturaSocioCnpj") field.value = formatCnpjDigits(field.value);
         if (field.id === "socioCpf" || field.id === "aberturaAdminCpf") normalizeCpfField(field.id);
         field.classList.remove("draft-missing");
         syncFieldFilled(field);
@@ -3981,6 +4045,7 @@
         if (field.id === "aberturaSocioCep") autoConsultarAberturaSocioCepSeCompleto();
         if (field.id === "aberturaCnaePrincipal") autoPreencherCnaePrincipal("aberturaCnaePrincipal", "aberturaAtividadePrincipal");
         if (field.id === "cnaePrincipal") autoPreencherCnaePrincipal("cnaePrincipal");
+        if (field.id === "aberturaSocioCnpj" && onlyDigits(field.value).length === 14) consultarAberturaSocioCnpjPublico(true);
         if (field.id === "socioCnpj" && onlyDigits(field.value).length === 14) consultarSocioCnpjPublico(true);
       });
       field.addEventListener("blur", () => {
@@ -3990,6 +4055,7 @@
 
     $("buscarCnpj").addEventListener("click", consultarCnpjPublico);
     $("buscarSocioCnpj").addEventListener("click", consultarSocioCnpjPublico);
+    $("buscarAberturaSocioCnpj").addEventListener("click", consultarAberturaSocioCnpjPublico);
     $("buscarCep").addEventListener("click", consultarCepPublico);
     $("buscarAberturaCep").addEventListener("click", consultarAberturaCepPublico);
     $("buscarAberturaSocioCep").addEventListener("click", consultarAberturaSocioCepPublico);

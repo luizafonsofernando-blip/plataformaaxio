@@ -1826,10 +1826,12 @@
               <label>Representante perante a Receita Federal<input id="aberturaRepresentanteReceita" placeholder="Nome do representante"></label>
               <label class="span-2">Dados do sócio</label>
               <div class="grid span-2">
+                <label>Tipo de sócio<select id="aberturaSocioTipo"><option>Pessoa física</option><option>Pessoa jurídica</option></select></label>
                 <label>Nome do sócio<input id="aberturaSocioNome" placeholder="Nome completo"></label>
-                <label>CEP residencial<div class="lookup-row"><input id="aberturaSocioCep" placeholder="00.000-000" title="CEP consulta a base pública ViaCEP/Correios para preencher o endereço residencial."><button class="btn mini" type="button" id="buscarAberturaSocioCep">Buscar CEP</button></div></label>
-                <label>Endereço residencial<input id="aberturaSocioEndereco" placeholder="Endereço residencial"></label>
-                <label>Estado civil<select id="aberturaSocioEstadoCivil"><option value="">Selecione</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option></select></label>
+                <label class="conditional-field hidden" id="aberturaSocioCnpjWrap">CNPJ do sócio PJ<div class="lookup-row"><input id="aberturaSocioCnpj" placeholder="00.000.000/0000-00" title="CNPJ consulta dados públicos disponíveis para preencher nome, endereço e contato."><button class="btn mini" type="button" id="buscarAberturaSocioCnpj">Buscar</button></div></label>
+                <label id="aberturaSocioCepWrap">CEP residencial<div class="lookup-row"><input id="aberturaSocioCep" placeholder="00.000-000" title="CEP consulta a base pública ViaCEP/Correios para preencher o endereço residencial."><button class="btn mini" type="button" id="buscarAberturaSocioCep">Buscar CEP</button></div></label>
+                <label id="aberturaSocioEnderecoWrap">Endereço residencial<input id="aberturaSocioEndereco" placeholder="Endereço residencial"></label>
+                <label id="aberturaSocioEstadoCivilWrap">Estado civil<select id="aberturaSocioEstadoCivil"><option value="">Selecione</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option></select></label>
                 <label class="conditional-field hidden" id="aberturaSocioRegimeWrap">Regime de casamento<select id="aberturaSocioRegimeCasamento">
                   <option value="">Selecione</option>
                   <option>Comunhão parcial de bens</option>
@@ -1838,7 +1840,7 @@
                   <option>Separação obrigatória de bens</option>
                   <option>Participação final nos aquestos</option>
                 </select></label>
-                <label>Profissão<input id="aberturaSocioProfissao" placeholder="Profissão"></label>
+                <label id="aberturaSocioProfissaoWrap">Profissão<input id="aberturaSocioProfissao" placeholder="Profissão"></label>
                 <label>Quotas<input id="aberturaSocioQuotas" placeholder="Ex.: 10.000 quotas"></label>
                 <label>Porcentagem<input id="aberturaSocioPercentual" placeholder="Ex.: 100%"></label>
                 <label>Qualificação<select id="aberturaSocioQualificacao">
@@ -1847,8 +1849,8 @@
                   <option>Sócio Quotista</option>
                   <option>Administrador não sócio</option>
                 </select></label>
-                <label>Certificado digital Pessoa Física<select id="aberturaCertificadoPf"><option value="">Selecione</option><option>Sim</option><option>Não</option><option>Providenciar</option></select></label>
-                <label>Possui senha gov?<select id="aberturaPossuiSenhaGov"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
+                <label id="aberturaCertificadoPfWrap">Certificado digital Pessoa Física<select id="aberturaCertificadoPf"><option value="">Selecione</option><option>Sim</option><option>Não</option><option>Providenciar</option></select></label>
+                <label id="aberturaPossuiSenhaGovWrap">Possui senha gov?<select id="aberturaPossuiSenhaGov"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
                 <label class="conditional-field hidden" id="aberturaSenhaGovWrap">Senha gov<input id="aberturaSenhaGov" placeholder="Informe a senha GOV"></label>
               </div>
               <label class="span-2">Cópia de documentos</label>
