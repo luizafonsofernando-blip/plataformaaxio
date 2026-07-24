@@ -1817,7 +1817,7 @@
               <label>CNAE principal<input id="aberturaCnaePrincipal" placeholder="Ex.: 69.20-6-01"></label>
               <label class="span-2">CNAEs secundários<textarea id="aberturaCnaesSecundarios" placeholder="Informe um CNAE por linha"></textarea></label>
               <label>Terá receita de venda de imóvel ou locação?<select id="aberturaReceitaImobiliaria"><option value="">Selecione</option><option>Sim</option><option>Não</option><option>Verificar</option></select></label>
-              <div class="step-note span-2 hidden" id="aberturaReceitaImobiliariaAlert">Caso tenha receita de aluguel de imóveis próprios ou venda, precisa avaliar a inclusão de um CNAE para essas atividades.</div>
+              <label class="span-2 hidden" id="aberturaReceitaImobiliariaObsWrap">Avaliação de CNAE para aluguel/venda de imóveis próprios<textarea id="aberturaReceitaImobiliariaObs" placeholder="Caso tenha receita de aluguel de imóveis próprios ou venda, avalie e registre aqui a inclusão de CNAE para essas atividades."></textarea></label>
               <label class="span-2">Objeto social<textarea id="aberturaObjetoSocial" placeholder="Descreva o objeto social"></textarea></label>
               <label>Possui pró-labore?<select id="aberturaPossuiProlabore"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
               <label class="conditional-field hidden" id="aberturaProlaboreWrap">Valor da retirada<input id="aberturaProlabore" placeholder="R$ 0,00"></label>
@@ -1915,7 +1915,7 @@
               <label class="abertura-field pf-optional-field abertura-only-area-field">Área utilizada (m²)<input id="areaUtilizada" placeholder="Ex.: 80 ou Desconsiderado"></label>
               <label class="span-2 abertura-field pf-optional-field">CNAEs Secundários<textarea id="cnaesSecundarios" placeholder="Informe um por linha ou Desconsiderado"></textarea></label>
               <label class="conditional-field receita-imobiliaria-field hidden">Terá receita de venda de imóvel ou locação?<select id="receitaImobiliaria"><option value="">Selecione</option><option>Sim</option><option>Não</option><option>Verificar</option></select></label>
-              <div class="step-note span-2 conditional-field receita-imobiliaria-alert hidden" id="receitaImobiliariaAlert">Caso tenha receita de aluguel de imóveis próprios ou venda, precisa avaliar a inclusão de um CNAE para essas atividades.</div>
+              <label class="span-2 conditional-field receita-imobiliaria-obs hidden" id="receitaImobiliariaObsWrap">Avaliação de CNAE para aluguel/venda de imóveis próprios<textarea id="receitaImobiliariaObs" placeholder="Caso tenha receita de aluguel de imóveis próprios ou venda, avalie e registre aqui a inclusão de CNAE para essas atividades."></textarea></label>
               <label class="span-2 abertura-field baixa-saida-hidden-field">Forma de atuação</label>
               <div class="checkbox-grid span-2 abertura-field baixa-saida-hidden-field">
                 <label class="check"><input type="checkbox" class="formaAtuacao" value="Estabelecimento fixo">Estabelecimento fixo</label>
@@ -1959,6 +1959,10 @@
           <section class="section" id="socios">
             <h2>Sócios</h2>
               <div class="section-body">
+              <div class="lookup-row" style="margin-bottom: 12px;">
+                <button class="btn mini" type="button" id="startSocioPf">Adicionar sócio PF</button>
+                <button class="btn mini" type="button" id="startSocioPj">Adicionar sócio PJ</button>
+              </div>
               <div class="grid three">
                 <label>Tipo de sócio<select id="socioTipo"><option>Pessoa física</option><option>Pessoa jurídica</option></select></label>
                 <label>Nome<input id="socioNome" placeholder="Nome completo"></label>

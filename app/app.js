@@ -1748,17 +1748,29 @@
           }
         });
       });
-      const receitaAlert = $("receitaImobiliariaAlert");
-      if (receitaAlert) {
-        const showAlert = hasReceitaImobiliariaQuestion() && value("receitaImobiliaria", "") === "Sim";
-        receitaAlert.classList.toggle("hidden", !showAlert);
-        receitaAlert.classList.toggle("visible", showAlert);
+      const receitaObsWrap = $("receitaImobiliariaObsWrap");
+      if (receitaObsWrap) {
+        const showObs = hasReceitaImobiliariaQuestion() && value("receitaImobiliaria", "") === "Sim";
+        receitaObsWrap.classList.toggle("hidden", !showObs);
+        receitaObsWrap.querySelectorAll("textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = showObs ? "false" : "true";
+          if (!showObs) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
       }
-      const aberturaReceitaAlert = $("aberturaReceitaImobiliariaAlert");
-      if (aberturaReceitaAlert) {
-        const showAlert = value("aberturaReceitaImobiliaria", "") === "Sim";
-        aberturaReceitaAlert.classList.toggle("hidden", !showAlert);
-        aberturaReceitaAlert.classList.toggle("visible", showAlert);
+      const aberturaReceitaObsWrap = $("aberturaReceitaImobiliariaObsWrap");
+      if (aberturaReceitaObsWrap) {
+        const showObs = value("aberturaReceitaImobiliaria", "") === "Sim";
+        aberturaReceitaObsWrap.classList.toggle("hidden", !showObs);
+        aberturaReceitaObsWrap.querySelectorAll("textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = showObs ? "false" : "true";
+          if (!showObs) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
       }
       const socioTipo = value("socioTipo", "Pessoa física");
       const socioPessoaJuridica = socioTipo === "Pessoa jurídica";
@@ -2554,7 +2566,7 @@
       const resposta = value("receitaImobiliaria", "Não informado");
       return [
         ["Receita de venda de imóvel ou locação", resposta],
-        ...(resposta === "Sim" ? [["Alerta de CNAE", "Caso tenha receita de aluguel de imóveis próprios ou venda, precisa avaliar a inclusão de um CNAE para essas atividades."]] : [])
+        ...(resposta === "Sim" ? [["Avaliação de CNAE para aluguel/venda de imóveis próprios", value("receitaImobiliariaObs")]] : [])
       ];
     }
 
@@ -2790,6 +2802,7 @@
       setFieldValue("cnaePrincipal", [value("aberturaCnaePrincipal", ""), value("aberturaAtividadePrincipal", "")].filter(Boolean).join(" - "));
       setFieldValue("cnaesSecundarios", value("aberturaCnaesSecundarios", ""));
       setSelectValue("receitaImobiliaria", value("aberturaReceitaImobiliaria", ""));
+      setFieldValue("receitaImobiliariaObs", value("aberturaReceitaImobiliariaObs", ""));
       setFieldValue("servicos", value("aberturaObjetoSocial", ""));
       setFieldValue("usuarioExterno", value("aberturaEmailGestta", ""));
       setFieldValue("govObs", value("aberturaPossuiSenhaGov", "") === "Sim" ? value("aberturaSenhaGov", "") : value("aberturaPossuiSenhaGov", ""));
@@ -2862,7 +2875,7 @@
         ["CNAE principal", value("aberturaCnaePrincipal", "")],
         ["CNAEs secundários", value("aberturaCnaesSecundarios", "")],
         ["Receita de venda de imóvel ou locação", value("aberturaReceitaImobiliaria", "")],
-        ...(value("aberturaReceitaImobiliaria", "") === "Sim" ? [["Alerta de CNAE", "Caso tenha receita de aluguel de imóveis próprios ou venda, precisa avaliar a inclusão de um CNAE para essas atividades."]] : []),
+        ...(value("aberturaReceitaImobiliaria", "") === "Sim" ? [["Avaliação de CNAE para aluguel/venda de imóveis próprios", value("aberturaReceitaImobiliariaObs", "")]] : []),
         ["Objeto social", value("aberturaObjetoSocial", "")],
         ["Capital Social", value("aberturaCapitalSocial", "")],
         ["Possui pró-labore", value("aberturaPossuiProlabore", "")],
@@ -2995,7 +3008,7 @@
             ["CNAE principal", value("aberturaCnaePrincipal", "")],
             ["CNAEs secundários", value("aberturaCnaesSecundarios", "")],
             ["Receita de venda de imóvel ou locação", value("aberturaReceitaImobiliaria", "")],
-            ...(value("aberturaReceitaImobiliaria", "") === "Sim" ? [["Alerta de CNAE", "Caso tenha receita de aluguel de imóveis próprios ou venda, precisa avaliar a inclusão de um CNAE para essas atividades."]] : []),
+            ...(value("aberturaReceitaImobiliaria", "") === "Sim" ? [["Avaliação de CNAE para aluguel/venda de imóveis próprios", value("aberturaReceitaImobiliariaObs", "")]] : []),
             ["Objeto social", value("aberturaObjetoSocial", "")],
             ["Capital social", value("aberturaCapitalSocial", "")],
             ["Pró-labore", `${value("aberturaPossuiProlabore", "")} ${value("aberturaPossuiProlabore", "") === "Sim" ? "- " + value("aberturaProlabore", "") : ""}`],
@@ -3920,6 +3933,19 @@
       renderSocios();
       updateFlowState();
     });
+
+    function startSocio(tipo) {
+      $("socioTipo").value = tipo;
+      updateFlowState();
+      const focusField = tipo === "Pessoa jurídica" ? $("socioCnpj") : $("socioNome");
+      focusField?.scrollIntoView({ behavior: "smooth", block: "center" });
+      focusField?.focus();
+    }
+
+    const startSocioPfButton = $("startSocioPf");
+    if (startSocioPfButton) startSocioPfButton.addEventListener("click", () => startSocio("Pessoa física"));
+    const startSocioPjButton = $("startSocioPj");
+    if (startSocioPjButton) startSocioPjButton.addEventListener("click", () => startSocio("Pessoa jurídica"));
 
     document.querySelectorAll("input, select, textarea").forEach((field) => {
       syncFieldFilled(field);
