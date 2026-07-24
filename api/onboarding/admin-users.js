@@ -1,6 +1,7 @@
 const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
 const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
 const ADMIN_EMAILS = new Set(["admin01@axionsolutions.com.br", "fernanddo46@axionsolutions.com.br"]);
+const PENDING_CLEANUP_CUTOFF = new Date("2026-07-25T03:00:00.000Z");
 
 function json(response, status, body) {
   response.status(status).setHeader("Cache-Control", "no-store");
@@ -66,6 +67,13 @@ function isPendingUser(user) {
 
 function isRejectedUser(user) {
   return userStatus(user) === "rejected";
+}
+
+function isCleanupPendingUser(user) {
+  if (!isPendingUser(user)) return false;
+  const requestedAt = user.user_metadata?.registration_requested_at || user.created_at;
+  const date = new Date(requestedAt || 0);
+  return !Number.isNaN(date.getTime()) && date <= PENDING_CLEANUP_CUTOFF;
 }
 
 function isLegacyActiveUser(user) {
@@ -236,6 +244,7 @@ export default async function handler(request, response) {
       const users = Array.isArray(data?.users) ? data.users : [];
       for (const user of users) {
         if (isRejectedUser(user)) continue;
+        if (isCleanupPendingUser(user)) continue;
         if (isLegacyActiveUser(user)) {
           await supabaseFetch(`/auth/v1/admin/users/${user.id}`, {
             method: "PUT",
@@ -275,30 +284,21 @@ export default async function handler(request, response) {
     let deleted = 0;
     let marked = 0;
     const failed = [];
-    for (let pass = 1; pass <= 10; pass += 1) {
-      let data;
+    let pendingUsers = [];
+    try {
+      pendingUsers = (await listAllUsers(serviceRoleKey)).filter(isPendingUser);
+    } catch (error) {
+      failed.push({ scope: "list", reason: error.message });
+    }
+    for (const user of pendingUsers) {
       try {
-        data = await supabaseFetch("/auth/v1/admin/users?page=1&per_page=100", {
-          key: serviceRoleKey,
-          bearer: serviceRoleKey,
-        });
+        const result = await rejectUser(user, serviceRoleKey);
+        if (result.mode === "deleted") deleted += 1;
+        if (result.mode === "marked_rejected") marked += 1;
+        rejected += 1;
       } catch (error) {
-        failed.push({ scope: "list", reason: error.message });
-        break;
+        failed.push({ id: user.id, email: user.email, reason: error.message });
       }
-      const pendingUsers = (Array.isArray(data?.users) ? data.users : []).filter(isPendingUser);
-      if (!pendingUsers.length) break;
-      for (const user of pendingUsers) {
-        try {
-          const result = await rejectUser(user, serviceRoleKey);
-          if (result.mode === "deleted") deleted += 1;
-          if (result.mode === "marked_rejected") marked += 1;
-          rejected += 1;
-        } catch (error) {
-          failed.push({ id: user.id, email: user.email, reason: error.message });
-        }
-      }
-      if (pendingUsers.length === failed.length) break;
     }
     return json(response, 200, {
       message: `${rejected} solicitacao(oes) removida(s) da lista de pendentes.`,
@@ -316,7 +316,7 @@ export default async function handler(request, response) {
   }
   if (action === "approve") {
     const target = await supabaseFetch(`/auth/v1/admin/users/${userId}`, { key: serviceRoleKey, bearer: serviceRoleKey });
-    if (!isPendingUser(target.user)) return json(response, 404, { error: "Solicitacao nao encontrada." });
+    if (!isPendingUser(target.user)) return json(response, 200, { message: "Solicitacao ja nao esta pendente." });
     await supabaseFetch(`/auth/v1/admin/users/${userId}`, {
       method: "PUT",
       key: serviceRoleKey,
@@ -326,8 +326,13 @@ export default async function handler(request, response) {
     return json(response, 200, { message: "Cadastro aprovado." });
   }
   if (action === "reject") {
-    const target = await supabaseFetch(`/auth/v1/admin/users/${userId}`, { key: serviceRoleKey, bearer: serviceRoleKey });
-    if (!target.user) return json(response, 404, { error: "Solicitacao nao encontrada." });
+    let target;
+    try {
+      target = await supabaseFetch(`/auth/v1/admin/users/${userId}`, { key: serviceRoleKey, bearer: serviceRoleKey });
+    } catch (_error) {
+      return json(response, 200, { message: "Solicitacao ja nao esta pendente." });
+    }
+    if (!target.user || !isPendingUser(target.user)) return json(response, 200, { message: "Solicitacao ja nao esta pendente." });
     await rejectUser(target.user, serviceRoleKey);
     return json(response, 200, { message: "Cadastro removido da lista de pendentes." });
   }
