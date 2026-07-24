@@ -64,6 +64,10 @@ function isPendingUser(user) {
   return userStatus(user) === "pending";
 }
 
+function isRejectedUser(user) {
+  return userStatus(user) === "rejected";
+}
+
 function isLegacyActiveUser(user) {
   return !userStatus(user);
 }
@@ -190,6 +194,24 @@ async function restoreUsersFromHistory(serviceRoleKey) {
   return { created, reactivated, skipped };
 }
 
+async function rejectUser(user, serviceRoleKey) {
+  try {
+    await supabaseFetch(`/auth/v1/admin/users/${user.id}`, { method: "DELETE", key: serviceRoleKey, bearer: serviceRoleKey });
+    return { mode: "deleted" };
+  } catch (deleteError) {
+    await supabaseFetch(`/auth/v1/admin/users/${user.id}`, {
+      method: "PUT",
+      key: serviceRoleKey,
+      bearer: serviceRoleKey,
+      body: {
+        app_metadata: { ...(user.app_metadata || {}), role: user.app_metadata?.role || "user", status: "rejected" },
+        user_metadata: { ...(user.user_metadata || {}), rejected_at: new Date().toISOString() },
+      },
+    });
+    return { mode: "marked_rejected", deleteError: deleteError.message };
+  }
+}
+
 export default async function handler(request, response) {
   if (!["GET", "POST"].includes(request.method)) return json(response, 405, { error: "Metodo nao permitido." });
   const { publicKey, serviceRoleKey } = supabaseConfig();
@@ -213,6 +235,7 @@ export default async function handler(request, response) {
       });
       const users = Array.isArray(data?.users) ? data.users : [];
       for (const user of users) {
+        if (isRejectedUser(user)) continue;
         if (isLegacyActiveUser(user)) {
           await supabaseFetch(`/auth/v1/admin/users/${user.id}`, {
             method: "PUT",
@@ -249,25 +272,41 @@ export default async function handler(request, response) {
   }
   if (action === "reject_all") {
     let rejected = 0;
+    let deleted = 0;
+    let marked = 0;
     const failed = [];
     for (let pass = 1; pass <= 10; pass += 1) {
-      const data = await supabaseFetch("/auth/v1/admin/users?page=1&per_page=100", {
-        key: serviceRoleKey,
-        bearer: serviceRoleKey,
-      });
+      let data;
+      try {
+        data = await supabaseFetch("/auth/v1/admin/users?page=1&per_page=100", {
+          key: serviceRoleKey,
+          bearer: serviceRoleKey,
+        });
+      } catch (error) {
+        failed.push({ scope: "list", reason: error.message });
+        break;
+      }
       const pendingUsers = (Array.isArray(data?.users) ? data.users : []).filter(isPendingUser);
       if (!pendingUsers.length) break;
       for (const user of pendingUsers) {
         try {
-          await supabaseFetch(`/auth/v1/admin/users/${user.id}`, { method: "DELETE", key: serviceRoleKey, bearer: serviceRoleKey });
+          const result = await rejectUser(user, serviceRoleKey);
+          if (result.mode === "deleted") deleted += 1;
+          if (result.mode === "marked_rejected") marked += 1;
           rejected += 1;
         } catch (error) {
           failed.push({ id: user.id, email: user.email, reason: error.message });
         }
       }
-      if (failed.length && rejected === 0) break;
+      if (pendingUsers.length === failed.length) break;
     }
-    return json(response, 200, { message: `${rejected} solicitacao(oes) rejeitada(s).`, rejected, failed });
+    return json(response, 200, {
+      message: `${rejected} solicitacao(oes) removida(s) da lista de pendentes.`,
+      rejected,
+      deleted,
+      marked,
+      failed,
+    });
   }
   if (!/^[0-9a-f-]{36}$/i.test(userId) || !["approve", "reject", "delete"].includes(action)) {
     return json(response, 400, { error: "Solicitacao invalida." });
@@ -286,6 +325,12 @@ export default async function handler(request, response) {
     });
     return json(response, 200, { message: "Cadastro aprovado." });
   }
+  if (action === "reject") {
+    const target = await supabaseFetch(`/auth/v1/admin/users/${userId}`, { key: serviceRoleKey, bearer: serviceRoleKey });
+    if (!target.user) return json(response, 404, { error: "Solicitacao nao encontrada." });
+    await rejectUser(target.user, serviceRoleKey);
+    return json(response, 200, { message: "Cadastro removido da lista de pendentes." });
+  }
   await supabaseFetch(`/auth/v1/admin/users/${userId}`, { method: "DELETE", key: serviceRoleKey, bearer: serviceRoleKey });
-  return json(response, 200, { message: action === "reject" ? "Cadastro rejeitado." : "Usuario excluido." });
+  return json(response, 200, { message: "Usuario excluido." });
 }
