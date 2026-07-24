@@ -5,7 +5,6 @@
     let currentDoc = "briefing";
     let aberturaCompletaLiberada = false;
     let currentDocumentSerial = "";
-    let currentEmissionDateLabel = "";
     let activeDraftId = "";
     let historyCache = [];
     let historyLoaded = false;
@@ -2353,44 +2352,23 @@
       return new Date().toLocaleDateString("pt-BR");
     }
 
-    function parseDateLabel(raw) {
-      const match = String(raw || "").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if (!match) return "";
-      const day = match[1].padStart(2, "0");
-      const month = match[2].padStart(2, "0");
-      const year = match[3];
-      const parsed = new Date(`${year}-${month}-${day}T12:00:00`);
-      if (
-        parsed.getFullYear() !== Number(year) ||
-        parsed.getMonth() + 1 !== Number(month) ||
-        parsed.getDate() !== Number(day)
-      ) {
-        return "";
-      }
-      return `${day}/${month}/${year}`;
-    }
-
-    function requestEmissionDate() {
-      const defaultDate = currentEmissionDateLabel || todayDateLabel();
-      const rawDate = window.prompt("Informe a data de emissao do documento (dd/mm/aaaa):", defaultDate);
-      if (rawDate === null) return "";
-      const parsedDate = parseDateLabel(rawDate);
-      if (!parsedDate) {
-        alert("Data invalida. Informe a data no formato dd/mm/aaaa.");
-        return "";
-      }
-      currentEmissionDateLabel = parsedDate;
-      return parsedDate;
+    function contractDistratoDateLabel() {
+      return dateLabel(value("dataContratoDistrato", ""));
     }
 
     function currentDisplayDate() {
-      return currentDoc === "contrato" ? (currentEmissionDateLabel || todayDateLabel()) : todayDateLabel();
+      return currentDoc === "contrato" ? (contractDistratoDateLabel() || todayDateLabel()) : todayDateLabel();
     }
 
     function ensureEmissionDateForCurrentContract() {
       if (currentDoc !== "contrato") return true;
-      if (currentEmissionDateLabel) return true;
-      return Boolean(requestEmissionDate());
+      if (value("dataContratoDistrato", "")) return true;
+      const field = $("dataContratoDistrato");
+      setMissing(field, true);
+      stepNote("financeiro", "Informe a Data do contrato-distrato antes de gerar contrato, distrato, PDF ou Word.");
+      field?.scrollIntoView({ behavior: "smooth", block: "center" });
+      field?.focus();
+      return false;
     }
 
     function monthLabel(raw) {
@@ -2617,6 +2595,7 @@
         ...(isSaidaWorkflow() || isPortabilidadeEntradaWorkflow() ? [] : [["Valor dos serviços", value("financeiroValor")]]),
         ["Forma de pagamento", value("formaPagamento")],
         ["Honorário mensal", honorarioFinanceiro()],
+        ["Data do contrato-distrato", contractDistratoDateLabel()],
         ...(isPortabilidadeEntradaWorkflow() ? [["Data de pagamento", value("financeiroDataPagamento", "") ? `Dia ${value("financeiroDataPagamento", "")}` : "Não informado"]] : []),
         ["Competência", competenciaFinanceira()],
         ["Observação financeira", value("financeiroObservacao", "Dependendo do processo, esse valor pode ser reajustado.")]
@@ -3037,6 +3016,7 @@
             ["Valor dos serviços", value("financeiroValor")],
             ["Forma de pagamento", value("formaPagamento")],
             ["Honorário mensal", honorarioFinanceiro()],
+            ["Data do contrato-distrato", contractDistratoDateLabel()],
             ["Data de pagamento", value("aberturaDataPagamento", "") ? `Dia ${value("aberturaDataPagamento", "")}` : ""],
             ["Competência", competenciaFinanceira()],
             ["Observação financeira", value("financeiroObservacao", "")]
@@ -3189,7 +3169,7 @@
       const socioNome = socio.nome || "Não informado";
       const socioCpf = socio.tipo === "Pessoa jurídica" ? (socio.cnpj || "Não informado") : (socio.cpf || "Não informado");
       const endereco = `${value("endereco")} - ${value("municipio")}/${value("estado", "UF")} - CEP ${value("cep")}`;
-      const dataHoje = currentEmissionDateLabel || todayDateLabel();
+      const dataHoje = contractDistratoDateLabel();
       const inicioServicos = monthLongLabel($("inicio").value);
       const vencimento = value("financeiroObservacao", "Dependendo do processo, esse valor pode ser reajustado.");
 
@@ -3250,7 +3230,7 @@
         ? value("valorHonorariosAberto")
         : value("financeiroValor", "R$ 0,00");
       const dataDistrato = distratoDateLabel();
-      const dataEmissao = currentEmissionDateLabel || todayDateLabel();
+      const dataEmissao = contractDistratoDateLabel();
 
       return `
         ${docHero("Distrato de prestação de serviços profissionais")}
@@ -3500,7 +3480,6 @@
       });
       return {
         currentDoc,
-        currentEmissionDateLabel,
         fields,
         socios: socios.map((socio) => ({ ...socio })),
         aberturaAdministradores: aberturaAdministradores.map((admin) => ({ ...admin })),
@@ -3696,6 +3675,11 @@
       setFieldValue("financeiroValor", findHistoryRow(rowsData, ["valor"]));
       setFieldValue("formaPagamento", findHistoryRow(rowsData, ["forma de pagamento"]));
       setFieldValue("financeiroHonorario", findHistoryRow(rowsData, ["honorário mensal", "honorário acordado"]));
+      const historyContractDate = findHistoryRow(rowsData, ["data do contrato-distrato", "data de emissão", "data de emissao"]);
+      if (historyContractDate) {
+        const match = historyContractDate.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+        if (match) setFieldValue("dataContratoDistrato", `${match[3]}-${match[2]}-${match[1]}`);
+      }
       setFieldValue("financeiroObservacao", findHistoryRow(rowsData, ["observação financeira"]));
       setFieldValue("observacaoInicial", findHistoryRow(rowsData, ["observação inicial"]) || "Documento restaurado a partir do histórico para conferência e edição.");
       setFieldValue("docs", `Registro recuperado do histórico.\n${plainText.slice(0, 1200)}`);
@@ -3732,7 +3716,6 @@
       aberturaAdministradores.splice(0, aberturaAdministradores.length, ...((state.aberturaAdministradores || []).map((admin) => ({ ...admin }))));
       if (typeof state.aberturaCompletaLiberada === "boolean") aberturaCompletaLiberada = state.aberturaCompletaLiberada || true;
       currentDoc = state.currentDoc || (item.kind === "briefing" ? "briefing" : "contrato");
-      currentEmissionDateLabel = state.currentEmissionDateLabel || "";
       activeDraftId = item.status === "rascunho" ? item.id : "";
       document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.doc === currentDoc));
       $("historyModal").hidden = true;
@@ -4033,8 +4016,8 @@
     const generateContractButton = $("generateContract");
     if (generateContractButton) generateContractButton.addEventListener("click", async () => {
       validateVisibleSteps();
-      if (!requestEmissionDate()) return;
       currentDoc = "contrato";
+      if (!ensureEmissionDateForCurrentContract()) return;
       document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.doc === "contrato"));
       render();
       await saveCurrentDocumentToHistory(isBaixaWorkflow() ? "distrato" : "contrato");
@@ -4415,7 +4398,6 @@
       aberturaAdministradores.splice(0, aberturaAdministradores.length);
       aberturaCompletaLiberada = false;
       currentDocumentSerial = "";
-      currentEmissionDateLabel = "";
       activeDraftId = "";
       renderAberturaAdministradores();
       renderSocios();
@@ -4448,7 +4430,6 @@
       aberturaAdministradores.splice(0, aberturaAdministradores.length);
       aberturaCompletaLiberada = false;
       currentDocumentSerial = "";
-      currentEmissionDateLabel = "";
       activeDraftId = "";
       renderAberturaAdministradores();
       $("tipoBriefing").value = selectedType;
@@ -4505,6 +4486,7 @@
       $("financeiroValor").value = selectedType === "PORTABILIDADE DE SAÍDA" ? "R$ 1.196,00" : "R$ 0,00";
       $("formaPagamento").value = "Pix";
       $("financeiroHonorario").value = selectedType === "PORTABILIDADE DE SAÍDA" ? "R$ 200,00" : "R$ 0,00";
+      $("dataContratoDistrato").value = "2026-05-31";
       $("financeiroCompetencia").value = "2026-05";
       $("financeiroObservacao").value = selectedType === "PORTABILIDADE DE SAÍDA"
         ? "Conforme briefing de saída, verificar inadimplência com financeiro/diretoria."
@@ -4535,6 +4517,7 @@
       $("financeiroValor").value = "R$ 80,00";
       $("formaPagamento").value = "Pix";
       $("financeiroHonorario").value = "R$ 80,00";
+      $("dataContratoDistrato").value = "2026-06-01";
       $("financeiroCompetencia").value = "2026-06";
       $("financeiroObservacao").value = "Honorário acordado para atendimento de pessoa física/doméstica.";
       $("tipoUnidade").value = "Produtiva";
@@ -4702,6 +4685,7 @@
       $("financeiroValor").value = "R$ 380,00";
       $("formaPagamento").value = "Boleto";
       $("financeiroHonorario").value = "R$ 380,00";
+      $("dataContratoDistrato").value = "2025-06-24";
       if (isPortabilidadeEntradaWorkflow()) $("financeiroDataPagamento").value = "15";
       $("financeiroCompetencia").value = "2025-06";
       $("financeiroObservacao").value = "Dependendo do processo, esse valor pode ser reajustado. Cobrança a partir da competência 06/2025, com vencimento no dia 15.";
