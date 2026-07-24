@@ -40,6 +40,18 @@ const legacyEmailForIdentifier = (identifier: string) => {
   return aliases[identifier] || "";
 };
 
+const uniqueValues = (values: string[]) => values.filter(Boolean).filter((value, index, all) => all.indexOf(value) === index);
+
+const fallbackEmailCandidates = (identifier: string) => {
+  const directEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier) ? identifier : "";
+  if (directEmail) return [directEmail];
+  return uniqueValues([
+    legacyEmailForIdentifier(identifier),
+    `${identifier}@axionsolutions.com.br`,
+    `${identifier}@orteconte.com.br`,
+  ]);
+};
+
 const isPendingUser = (user: { app_metadata?: Record<string, unknown> }) =>
   user.app_metadata?.status === "pending";
 
@@ -99,7 +111,8 @@ Deno.serve(async (request) => {
     if (data.users.length < 100) break;
   }
 
-  if (!email) {
+  const emailCandidates = email ? [email] : fallbackEmailCandidates(identifier);
+  if (emailCandidates.length === 0) {
     const { data: allowed, error: rateError } = await adminClient.rpc("check_auth_rate_limit", {
       p_key_hash: rateKey,
       p_action: "login",
@@ -119,8 +132,15 @@ Deno.serve(async (request) => {
   const authClient = createClient(supabaseUrl, authKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
-  const { data, error } = await authClient.auth.signInWithPassword({ email, password });
-  if (error || !data.session || !data.user) {
+  let data: Awaited<ReturnType<typeof authClient.auth.signInWithPassword>>["data"] | null = null;
+  let error: Awaited<ReturnType<typeof authClient.auth.signInWithPassword>>["error"] | null = null;
+  for (const candidateEmail of emailCandidates) {
+    const result = await authClient.auth.signInWithPassword({ email: candidateEmail, password });
+    data = result.data;
+    error = result.error;
+    if (!result.error && result.data.session && result.data.user) break;
+  }
+  if (error || !data?.session || !data.user) {
     const { data: allowed, error: rateError } = await adminClient.rpc("check_auth_rate_limit", {
       p_key_hash: rateKey,
       p_action: "login",

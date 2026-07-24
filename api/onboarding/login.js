@@ -14,6 +14,17 @@ function legacyEmailForIdentifier(identifier) {
   return aliases[identifier] || "";
 }
 
+function fallbackEmailCandidates(identifier) {
+  const directEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier) ? identifier : "";
+  const legacyEmail = legacyEmailForIdentifier(identifier);
+  if (directEmail) return [directEmail];
+  return uniqueKeys([
+    legacyEmail,
+    `${identifier}@axionsolutions.com.br`,
+    `${identifier}@orteconte.com.br`,
+  ]);
+}
+
 function uniqueKeys(keys) {
   return keys.filter(Boolean).filter((key, index, all) => all.indexOf(key) === index);
 }
@@ -101,6 +112,18 @@ async function signInWithPassword(email, password, keys) {
   throw lastError || new Error("Falha de autenticacao.");
 }
 
+async function signInWithEmailCandidates(emailCandidates, password, keys) {
+  let lastError;
+  for (const email of emailCandidates) {
+    try {
+      return await signInWithPassword(email, password, keys);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("Falha de autenticacao.");
+}
+
 async function approveLegacyUserIfNeeded(user, serviceRoleKey) {
   if (!serviceRoleKey || !user?.id || user.app_metadata?.status) return user;
   const appMetadata = {
@@ -139,9 +162,10 @@ export default async function handler(request, response) {
 
   try {
     const email = await findEmailByIdentifier(identifier, serviceRoleKey);
-    if (!email) return json(response, 401, { code: "invalid_credentials" });
+    const emailCandidates = email ? [email] : fallbackEmailCandidates(identifier);
+    if (emailCandidates.length === 0) return json(response, 401, { code: "invalid_credentials" });
 
-    const session = await signInWithPassword(email, password, authKeys);
+    const session = await signInWithEmailCandidates(emailCandidates, password, authKeys);
 
     if (session.user?.app_metadata?.status === "pending") {
       return json(response, 403, { code: "account_pending" });
