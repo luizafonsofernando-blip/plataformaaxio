@@ -207,18 +207,43 @@
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 12000);
       try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/login`, {
+        const response = await fetch("/api/onboarding/login", {
           method: "POST",
           headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({ identifier: normalized, password }),
           signal: controller.signal
         });
         const data = await response.json().catch(() => ({}));
+        if (response.ok) return data;
+        if (data.code === "account_pending") {
+          const pendingError = new Error("Cadastro pendente.");
+          pendingError.code = "account_pending";
+          throw pendingError;
+        }
+        return loginWithSupabaseFunction(normalized, password);
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    async function loginWithSupabaseFunction(identifier, password) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/login`, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ identifier, password }),
+          signal: controller.signal
+        });
+        const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          const authError = new Error("Credenciais inválidas.");
+          const authError = new Error("Credenciais invalidas.");
           authError.code = data.code || "invalid_credentials";
           throw authError;
         }
@@ -227,7 +252,6 @@
         clearTimeout(timeout);
       }
     }
-
     async function supabaseFunctionRequest(functionName, { method = "POST", body, accessToken } = {}) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 12000);
