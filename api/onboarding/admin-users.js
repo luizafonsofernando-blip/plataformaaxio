@@ -72,6 +72,124 @@ function displayName(user) {
   return user.user_metadata?.display_name || user.user_metadata?.name || String(user.email || "").split("@")[0] || "";
 }
 
+function normalizeLookup(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function slugifyName(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ".")
+    .replace(/^\.+|\.+$/g, "")
+    .slice(0, 50);
+}
+
+async function listAllUsers(serviceRoleKey) {
+  const users = [];
+  for (let page = 1; page <= 10; page += 1) {
+    const data = await supabaseFetch(`/auth/v1/admin/users?page=${page}&per_page=100`, {
+      key: serviceRoleKey,
+      bearer: serviceRoleKey,
+    });
+    const pageUsers = Array.isArray(data?.users) ? data.users : [];
+    users.push(...pageUsers);
+    if (pageUsers.length < 100) break;
+  }
+  return users;
+}
+
+function userMatchesCandidate(user, candidate) {
+  const email = normalizeLookup(user.email);
+  const username = normalizeLookup(user.user_metadata?.username);
+  const name = normalizeLookup(displayName(user));
+  return Boolean(
+    (candidate.email && email === normalizeLookup(candidate.email)) ||
+      (candidate.username && username === normalizeLookup(candidate.username)) ||
+      (candidate.name && name === normalizeLookup(candidate.name)),
+  );
+}
+
+async function restoreUsersFromHistory(serviceRoleKey) {
+  const [documents, auditRows, users] = await Promise.all([
+    supabaseFetch("/rest/v1/onboarding_documents?select=emitente&limit=1000", {
+      key: serviceRoleKey,
+      bearer: serviceRoleKey,
+    }).catch(() => []),
+    supabaseFetch("/rest/v1/security_audit_log?select=metadata&event_type=in.(onboarding_document_saved,onboarding_document_updated,onboarding_draft_saved)&limit=1000", {
+      key: serviceRoleKey,
+      bearer: serviceRoleKey,
+    }).catch(() => []),
+    listAllUsers(serviceRoleKey),
+  ]);
+  const candidates = new Map();
+  const addCandidate = ({ name, email, username }) => {
+    const cleanName = String(name || "").trim();
+    const cleanEmail = String(email || "").trim().toLowerCase();
+    const cleanUsername = String(username || cleanName || cleanEmail.split("@")[0] || "").trim();
+    if (!cleanName && !cleanEmail && !cleanUsername) return;
+    if (/^(usuario autenticado|usuário autenticado|não registrado|nao registrado)$/i.test(cleanName)) return;
+    const slug = slugifyName(cleanUsername || cleanName || cleanEmail.split("@")[0]);
+    if (!slug || slug === "admin01" || slug === "fernanddo46") return;
+    const key = cleanEmail || slug;
+    candidates.set(key, {
+      name: cleanName || cleanUsername,
+      username: cleanUsername || cleanName,
+      email: cleanEmail || `${slug}@axionsolutions.com.br`,
+    });
+  };
+  (Array.isArray(documents) ? documents : []).forEach((row) => addCandidate({ name: row.emitente, username: row.emitente }));
+  (Array.isArray(auditRows) ? auditRows : []).forEach((row) => {
+    const metadata = row.metadata || {};
+    addCandidate({ name: metadata.actor_name, email: metadata.actor_email, username: metadata.actor_name });
+  });
+
+  let created = 0;
+  let reactivated = 0;
+  const skipped = [];
+  for (const candidate of candidates.values()) {
+    const existing = users.find((user) => userMatchesCandidate(user, candidate));
+    if (existing) {
+      await supabaseFetch(`/auth/v1/admin/users/${existing.id}`, {
+        method: "PUT",
+        key: serviceRoleKey,
+        bearer: serviceRoleKey,
+        body: {
+          app_metadata: { ...(existing.app_metadata || {}), role: existing.app_metadata?.role || "user", status: "approved" },
+          user_metadata: {
+            ...(existing.user_metadata || {}),
+            display_name: displayName(existing) || candidate.name,
+            username: existing.user_metadata?.username || candidate.username,
+            profile: existing.user_metadata?.profile || "orteconte",
+          },
+        },
+      });
+      reactivated += 1;
+      continue;
+    }
+    try {
+      const createdUser = await supabaseFetch("/auth/v1/admin/users", {
+        method: "POST",
+        key: serviceRoleKey,
+        bearer: serviceRoleKey,
+        body: {
+          email: candidate.email,
+          password: "123456",
+          email_confirm: true,
+          user_metadata: { display_name: candidate.name, username: candidate.username, profile: "orteconte" },
+          app_metadata: { role: "user", status: "approved" },
+        },
+      });
+      if (createdUser?.user) users.push(createdUser.user);
+      created += 1;
+    } catch (error) {
+      skipped.push({ name: candidate.name, email: candidate.email, reason: error.message });
+    }
+  }
+  return { created, reactivated, skipped };
+}
+
 export default async function handler(request, response) {
   if (!["GET", "POST"].includes(request.method)) return json(response, 405, { error: "Metodo nao permitido." });
   const { publicKey, serviceRoleKey } = supabaseConfig();
@@ -125,8 +243,13 @@ export default async function handler(request, response) {
 
   const userId = String(request.body?.userId || "");
   const action = String(request.body?.action || "");
+  if (action === "restore_from_history") {
+    const result = await restoreUsersFromHistory(serviceRoleKey);
+    return json(response, 200, { message: `${result.created} usuario(s) criado(s), ${result.reactivated} reativado(s).`, ...result });
+  }
   if (action === "reject_all") {
     let rejected = 0;
+    const failed = [];
     for (let pass = 1; pass <= 10; pass += 1) {
       const data = await supabaseFetch("/auth/v1/admin/users?page=1&per_page=100", {
         key: serviceRoleKey,
@@ -135,11 +258,16 @@ export default async function handler(request, response) {
       const pendingUsers = (Array.isArray(data?.users) ? data.users : []).filter(isPendingUser);
       if (!pendingUsers.length) break;
       for (const user of pendingUsers) {
-        await supabaseFetch(`/auth/v1/admin/users/${user.id}`, { method: "DELETE", key: serviceRoleKey, bearer: serviceRoleKey });
-        rejected += 1;
+        try {
+          await supabaseFetch(`/auth/v1/admin/users/${user.id}`, { method: "DELETE", key: serviceRoleKey, bearer: serviceRoleKey });
+          rejected += 1;
+        } catch (error) {
+          failed.push({ id: user.id, email: user.email, reason: error.message });
+        }
       }
+      if (failed.length && rejected === 0) break;
     }
-    return json(response, 200, { message: `${rejected} solicitacao(oes) rejeitada(s).`, rejected });
+    return json(response, 200, { message: `${rejected} solicitacao(oes) rejeitada(s).`, rejected, failed });
   }
   if (!/^[0-9a-f-]{36}$/i.test(userId) || !["approve", "reject", "delete"].includes(action)) {
     return json(response, 400, { error: "Solicitacao invalida." });

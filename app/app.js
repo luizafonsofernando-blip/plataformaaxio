@@ -362,21 +362,29 @@
       const list = $("pendingUsersList");
       if (!list) return;
       if (!users.length) {
-        list.innerHTML = '<div class="pending-user"><strong>Nenhuma solicitação pendente.</strong></div>';
+        list.innerHTML = `
+          <div class="pending-user">
+            <strong>Nenhuma solicitacao pendente.</strong>
+            <div class="pending-user-actions">
+              <button class="btn" type="button" data-user-action="restore_from_history">Restaurar usuarios do historico</button>
+            </div>
+          </div>
+        `;
         return;
       }
       list.innerHTML = `
         <article class="pending-user">
-          <strong>${users.length} solicitação(ões) pendente(s)</strong>
-          <span>Use esta ação somente quando todos os cadastros pendentes devem ser recusados.</span>
+          <strong>${users.length} solicitacao(oes) pendente(s)</strong>
+          <span>Use esta acao somente quando todos os cadastros pendentes devem ser recusados.</span>
           <div class="pending-user-actions">
             <button class="btn danger" type="button" data-user-action="reject_all">Rejeitar todas</button>
+            <button class="btn" type="button" data-user-action="restore_from_history">Restaurar usuarios do historico</button>
           </div>
         </article>
       ` + users.map((user) => `
         <article class="pending-user">
-          <strong>${escapeHtml(user.name || "Nome não informado")}</strong>
-          <span>@${escapeHtml(user.username || "sem-usuario")} · ${escapeHtml(user.email || "")}</span>
+          <strong>${escapeHtml(user.name || "Nome nao informado")}</strong>
+          <span>@${escapeHtml(user.username || "sem-usuario")} - ${escapeHtml(user.email || "")}</span>
           <span>Perfil: ${escapeHtml(user.profile || "orteconte")}</span>
           <span>Solicitado em: ${escapeHtml(dateTimeLabel(user.requested_at || user.created_at))}</span>
           <div class="pending-user-actions">
@@ -500,16 +508,18 @@
         if (!button) return;
         const action = button.dataset.userAction;
         if (action === "reject_all" && !window.confirm("Rejeitar e excluir todas as solicitações pendentes?")) return;
+        if (action === "restore_from_history" && !window.confirm("Restaurar usuarios encontrados no historico? A senha temporaria dos usuarios recriados sera 123456.")) return;
         if (action === "reject" && !window.confirm("Rejeitar e excluir esta solicitação?")) return;
         if (action === "delete" && !window.confirm("Excluir este usuário ativo? Esta ação remove o acesso ao sistema.")) return;
         const session = storedSupabaseSession();
         if (!session?.access_token) return;
         button.disabled = true;
         try {
-          await supabaseFunctionRequest("admin-users", {
+          const result = await supabaseFunctionRequest("admin-users", {
             body: { userId: button.dataset.userId, action },
             accessToken: session.access_token
           });
+          if (result?.message) setAccountStatus($("adminUsersStatus"), result.message, true);
           await loadAdminUsers();
         } catch (error) {
           button.disabled = false;
