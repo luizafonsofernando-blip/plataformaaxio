@@ -2128,10 +2128,12 @@
         });
       });
       document.querySelectorAll(".non-baixa-socio-field").forEach((field) => {
-        field.classList.toggle("hidden", isBaixaWorkflow());
+        const hideForCompanyPartner = value("socioTipo", "Pessoa física") === "Pessoa jurídica";
+        const hidden = isBaixaWorkflow() || hideForCompanyPartner;
+        field.classList.toggle("hidden", hidden);
         field.querySelectorAll("input, select, textarea").forEach((control) => {
-          control.dataset.conditionalDisabled = isBaixaWorkflow() ? "true" : "false";
-          if (isBaixaWorkflow()) {
+          control.dataset.conditionalDisabled = hidden ? "true" : "false";
+          if (hidden) {
             control.value = "";
             control.classList.remove("missing");
           }
