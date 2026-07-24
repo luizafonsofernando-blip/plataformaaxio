@@ -255,15 +255,19 @@
     async function supabaseFunctionRequest(functionName, { method = "POST", body, accessToken } = {}) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 12000);
-      const localApiFunctions = new Set(["admin-users", "onboarding-documents"]);
-      const url = localApiFunctions.has(functionName)
-        ? `/api/onboarding/${functionName}`
+      const localApiRoutes = {
+        "admin-users": "/api/onboarding/admin-users",
+        "onboarding-documents": "/api/onboarding/onboarding-documents",
+        "request-registration": "/api/onboarding/register"
+      };
+      const url = localApiRoutes[functionName]
+        ? localApiRoutes[functionName]
         : `${SUPABASE_URL}/functions/v1/${functionName}`;
       try {
         const response = await fetch(url, {
           method,
           headers: {
-            ...(localApiFunctions.has(functionName) ? {} : { apikey: SUPABASE_PUBLISHABLE_KEY }),
+            ...(localApiRoutes[functionName] ? {} : { apikey: SUPABASE_PUBLISHABLE_KEY }),
             "Content-Type": "application/json",
             ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
           },
@@ -415,28 +419,25 @@
       const registrationForm = $("registrationForm");
       const registrationStatus = $("registrationStatus");
       const adminDialog = $("adminUsersDialog");
-      let registrationStep = "request";
 
-      const setRegistrationStep = (step) => {
-        registrationStep = step;
-        const verifying = step === "verify";
-        $("registrationCodeWrap")?.classList.toggle("hidden", !verifying);
+      const setRegistrationStep = () => {
+        $("registrationCodeWrap")?.classList.toggle("hidden", true);
         if ($("registrationCode")) {
-          $("registrationCode").required = verifying;
-          if (!verifying) $("registrationCode").value = "";
+          $("registrationCode").required = false;
+          $("registrationCode").value = "";
         }
-        if ($("registrationSubmit")) $("registrationSubmit").textContent = verifying ? "Confirmar código" : "Enviar código";
+        if ($("registrationSubmit")) $("registrationSubmit").textContent = "Solicitar cadastro";
       };
 
       $("openRegistration")?.addEventListener("click", () => {
         registrationForm?.reset();
-        setRegistrationStep("request");
+        setRegistrationStep();
         setAccountStatus(registrationStatus, "");
         registrationDialog?.showModal();
         setTimeout(() => $("registrationName")?.focus(), 50);
       });
       $("closeRegistration")?.addEventListener("click", () => {
-        setRegistrationStep("request");
+        setRegistrationStep();
         registrationDialog?.close();
       });
       $("closeAdminUsers")?.addEventListener("click", () => adminDialog?.close());
@@ -445,46 +446,33 @@
         event.preventDefault();
         const password = value("registrationPassword", "");
         if (password !== value("registrationPasswordConfirm", "")) {
-          setAccountStatus(registrationStatus, "As senhas não conferem.");
+          setAccountStatus(registrationStatus, "As senhas nao conferem.");
           return;
         }
         const submit = $("registrationSubmit");
         if (submit) {
           submit.disabled = true;
-          submit.textContent = registrationStep === "verify" ? "Confirmando..." : "Enviando...";
+          submit.textContent = "Enviando...";
         }
         try {
-          if (registrationStep === "verify") {
-            await supabaseFunctionRequest("request-registration", {
-              body: {
-                action: "verify",
-                email: value("registrationEmail", "").trim().toLowerCase(),
-                code: value("registrationCode", "").trim()
-              }
-            });
-            registrationForm.reset();
-            setRegistrationStep("request");
-            setAccountStatus(registrationStatus, "E-mail confirmado. Solicitação enviada para aprovação do administrador.", true);
-          } else {
-            await supabaseFunctionRequest("request-registration", {
-              body: {
-                name: value("registrationName", "").trim(),
-                username: value("registrationUsername", "").trim(),
-                email: value("registrationEmail", "").trim().toLowerCase(),
-                password,
-                profile: value("registrationProfile", "orteconte")
-              }
-            });
-            setRegistrationStep("verify");
-            setAccountStatus(registrationStatus, "Enviamos um código de 6 dígitos para o e-mail informado. Digite o código para confirmar o cadastro.", true);
-            setTimeout(() => $("registrationCode")?.focus(), 50);
-          }
+          await supabaseFunctionRequest("request-registration", {
+            body: {
+              name: value("registrationName", "").trim(),
+              username: value("registrationUsername", "").trim(),
+              email: value("registrationEmail", "").trim().toLowerCase(),
+              password,
+              profile: value("registrationProfile", "orteconte")
+            }
+          });
+          registrationForm.reset();
+          setRegistrationStep();
+          setAccountStatus(registrationStatus, "Solicitacao enviada. Aguarde a aprovacao do administrador.", true);
         } catch (error) {
-          setAccountStatus(registrationStatus, error.message || "Não foi possível solicitar o cadastro.");
+          setAccountStatus(registrationStatus, error.message || "Nao foi possivel solicitar o cadastro.");
         } finally {
           if (submit) {
             submit.disabled = false;
-            submit.textContent = registrationStep === "verify" ? "Confirmar código" : "Enviar código";
+            submit.textContent = "Solicitar cadastro";
           }
         }
       });

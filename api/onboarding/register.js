@@ -27,14 +27,23 @@ function safeError(error) {
   return error instanceof Error ? error.message : "Nao foi possivel solicitar o cadastro.";
 }
 
-async function supabaseFetch(path, { method = "GET", body, serviceRoleKey, supabaseUrl }) {
+function clientAddress(request) {
+  return String(
+    request.headers["cf-connecting-ip"] ||
+      request.headers["x-real-ip"] ||
+      request.headers["x-forwarded-for"]?.split(",")[0] ||
+      "unknown",
+  ).trim();
+}
+
+async function supabaseFetch(path, { method = "GET", body, serviceRoleKey, supabaseUrl, preferMinimal = method === "POST" } = {}) {
   const response = await fetch(`${supabaseUrl}${path}`, {
     method,
     headers: {
       apikey: serviceRoleKey,
       authorization: `Bearer ${serviceRoleKey}`,
       "content-type": "application/json",
-      ...(method === "POST" ? { prefer: "return=minimal" } : {}),
+      ...(preferMinimal ? { prefer: "return=minimal" } : {}),
     },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -67,12 +76,9 @@ async function findDuplicateUser({ email, usernameKey, serviceRoleKey, supabaseU
 }
 
 async function auditRegistration({ username, profile, serviceRoleKey, supabaseUrl, request }) {
-  const clientAddress =
-    request.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
-    request.headers["x-real-ip"] ||
-    "unknown";
   try {
-    const ipHash = clientAddress === "unknown" ? null : await sha256(clientAddress);
+    const address = clientAddress(request);
+    const ipHash = address === "unknown" ? null : await sha256(address);
     await supabaseFetch("/rest/v1/security_audit_log", {
       method: "POST",
       serviceRoleKey,
@@ -85,6 +91,41 @@ async function auditRegistration({ username, profile, serviceRoleKey, supabaseUr
     });
   } catch (error) {
     console.warn("Onboarding registration audit failed", safeError(error));
+  }
+}
+
+async function checkRateLimit({ key, action, limit, windowSeconds, serviceRoleKey, supabaseUrl }) {
+  const data = await supabaseFetch("/rest/v1/rpc/check_auth_rate_limit", {
+    method: "POST",
+    serviceRoleKey,
+    supabaseUrl,
+    preferMinimal: false,
+    body: {
+      p_key_hash: key,
+      p_action: action,
+      p_limit: limit,
+      p_window_seconds: windowSeconds,
+    },
+  });
+  return data === true;
+}
+
+async function auditRateLimited({ action, metadata, serviceRoleKey, supabaseUrl, request }) {
+  try {
+    const address = clientAddress(request);
+    const ipHash = address === "unknown" ? null : await sha256(address);
+    await supabaseFetch("/rest/v1/security_audit_log", {
+      method: "POST",
+      serviceRoleKey,
+      supabaseUrl,
+      body: {
+        event_type: `${action}_rate_limited`,
+        ip_hash: ipHash,
+        metadata,
+      },
+    });
+  } catch (error) {
+    console.warn("Onboarding rate-limit audit failed", safeError(error));
   }
 }
 
@@ -114,6 +155,9 @@ export default async function handler(request, response) {
   const email = String(input.email || "").trim().toLowerCase();
   const password = String(input.password || "");
   const profile = "orteconte";
+  const address = clientAddress(request);
+  const ipHash = await sha256(address);
+  const emailHash = await sha256(email || "empty-email");
 
   if (name.length < 2 || name.length > 80) return json(response, 400, { error: "Nome invalido." });
   if (!/^[\p{L}\p{N}._ -]{3,60}$/u.test(username)) return json(response, 400, { error: "Usuario invalido." });
@@ -123,6 +167,33 @@ export default async function handler(request, response) {
   }
 
   try {
+    const ipAllowed = await checkRateLimit({
+      key: ipHash,
+      action: "registration_ip",
+      limit: 3,
+      windowSeconds: 3600,
+      serviceRoleKey,
+      supabaseUrl,
+    });
+    const emailAllowed = await checkRateLimit({
+      key: emailHash,
+      action: "registration_email",
+      limit: 2,
+      windowSeconds: 86400,
+      serviceRoleKey,
+      supabaseUrl,
+    });
+    if (!ipAllowed || !emailAllowed) {
+      await auditRateLimited({
+        action: "registration",
+        metadata: { username, profile, scope: ipAllowed ? "email" : "ip" },
+        serviceRoleKey,
+        supabaseUrl,
+        request,
+      });
+      return json(response, 429, { error: "Muitas tentativas. Tente novamente mais tarde." });
+    }
+
     const duplicate = await findDuplicateUser({ email, usernameKey, serviceRoleKey, supabaseUrl });
     if (duplicate) return json(response, 409, { error: "E-mail ou usuario ja cadastrado." });
 
