@@ -5,6 +5,7 @@
     let currentDoc = "briefing";
     let aberturaCompletaLiberada = false;
     let currentDocumentSerial = "";
+    let currentEmissionDateLabel = "";
     let activeDraftId = "";
     let historyCache = [];
     let historyLoaded = false;
@@ -2266,6 +2267,50 @@
       return `${day}/${month}/${year}`;
     }
 
+    function todayDateLabel() {
+      return new Date().toLocaleDateString("pt-BR");
+    }
+
+    function parseDateLabel(raw) {
+      const match = String(raw || "").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (!match) return "";
+      const day = match[1].padStart(2, "0");
+      const month = match[2].padStart(2, "0");
+      const year = match[3];
+      const parsed = new Date(`${year}-${month}-${day}T12:00:00`);
+      if (
+        parsed.getFullYear() !== Number(year) ||
+        parsed.getMonth() + 1 !== Number(month) ||
+        parsed.getDate() !== Number(day)
+      ) {
+        return "";
+      }
+      return `${day}/${month}/${year}`;
+    }
+
+    function requestEmissionDate() {
+      const defaultDate = currentEmissionDateLabel || todayDateLabel();
+      const rawDate = window.prompt("Informe a data de emissao do documento (dd/mm/aaaa):", defaultDate);
+      if (rawDate === null) return "";
+      const parsedDate = parseDateLabel(rawDate);
+      if (!parsedDate) {
+        alert("Data invalida. Informe a data no formato dd/mm/aaaa.");
+        return "";
+      }
+      currentEmissionDateLabel = parsedDate;
+      return parsedDate;
+    }
+
+    function currentDisplayDate() {
+      return currentDoc === "contrato" ? (currentEmissionDateLabel || todayDateLabel()) : todayDateLabel();
+    }
+
+    function ensureEmissionDateForCurrentContract() {
+      if (currentDoc !== "contrato") return true;
+      if (currentEmissionDateLabel) return true;
+      return Boolean(requestEmissionDate());
+    }
+
     function monthLabel(raw) {
       if (!raw) return "Não informado";
       const [year, month] = raw.split("-");
@@ -2383,7 +2428,7 @@
         <div class="doc-hero">
           <div class="doc-logo-bar ${brand.logoClass}"><img src="${brand.logo}" alt="${brand.name}"></div>
           <div class="doc-cover">
-            <div class="doc-eyebrow">${brand.name} · ${new Date().toLocaleDateString("pt-BR")}</div>
+            <div class="doc-eyebrow">${brand.name} · ${currentDisplayDate()}</div>
             <h2>${title}<br>${value("razao")}</h2>
             <div class="doc-meta">
               <span class="doc-chip">${identificacaoTitulo()}: ${value("cnpj")}</span>
@@ -3048,7 +3093,7 @@
       const socioNome = socio.nome || "Não informado";
       const socioCpf = socio.cpf || "Não informado";
       const endereco = `${value("endereco")} - ${value("municipio")}/${value("estado", "UF")} - CEP ${value("cep")}`;
-      const dataHoje = new Date().toLocaleDateString("pt-BR");
+      const dataHoje = currentEmissionDateLabel || todayDateLabel();
       const inicioServicos = monthLongLabel($("inicio").value);
       const vencimento = value("financeiroObservacao", "Dependendo do processo, esse valor pode ser reajustado.");
 
@@ -3109,6 +3154,7 @@
         ? value("valorHonorariosAberto")
         : value("financeiroValor", "R$ 0,00");
       const dataDistrato = distratoDateLabel();
+      const dataEmissao = currentEmissionDateLabel || todayDateLabel();
 
       return `
         ${docHero("Distrato de prestação de serviços profissionais")}
@@ -3137,7 +3183,7 @@
 
           <p class="contract-lead contract-closing">E, para firmeza e como prova de assim haverem rescindido o contrato, firmam este instrumento particular, impresso em duas vias de igual teor e forma, assinado pelas partes contratantes.</p>
 
-          <p class="contract-lead" style="text-align:right; margin-top: 20px;">Manhuaçu-MG, ${dataDistrato}</p>
+          <p class="contract-lead" style="text-align:right; margin-top: 20px;">Manhuaçu-MG, ${dataEmissao}</p>
 
           <div class="signature-grid">
             <div class="signature-line">CONTRATANTE<br>${value("razao")}<br>${value("cnpj")}</div>
@@ -3358,6 +3404,7 @@
       });
       return {
         currentDoc,
+        currentEmissionDateLabel,
         fields,
         socios: socios.map((socio) => ({ ...socio })),
         aberturaAdministradores: aberturaAdministradores.map((admin) => ({ ...admin })),
@@ -3401,8 +3448,10 @@
       if (isBriefingAberturaWorkflow()) {
         syncOpeningBriefingToMainFields();
       }
+      if (!ensureEmissionDateForCurrentContract()) return false;
       render();
       await saveCurrentDocumentToHistory(currentDocumentKind());
+      return true;
     }
 
     async function saveDraftToHistory() {
@@ -3587,6 +3636,7 @@
       aberturaAdministradores.splice(0, aberturaAdministradores.length, ...((state.aberturaAdministradores || []).map((admin) => ({ ...admin }))));
       if (typeof state.aberturaCompletaLiberada === "boolean") aberturaCompletaLiberada = state.aberturaCompletaLiberada || true;
       currentDoc = state.currentDoc || (item.kind === "briefing" ? "briefing" : "contrato");
+      currentEmissionDateLabel = state.currentEmissionDateLabel || "";
       activeDraftId = item.status === "rascunho" ? item.id : "";
       document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.doc === currentDoc));
       $("historyModal").hidden = true;
@@ -3871,6 +3921,7 @@
     const generateContractButton = $("generateContract");
     if (generateContractButton) generateContractButton.addEventListener("click", async () => {
       validateVisibleSteps();
+      if (!requestEmissionDate()) return;
       currentDoc = "contrato";
       document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.doc === "contrato"));
       render();
@@ -4073,6 +4124,7 @@
         currentDoc = "briefing";
         document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.doc === "briefing"));
       }
+      if (!ensureEmissionDateForCurrentContract()) return;
       render();
       await saveCurrentDocumentToHistory();
       const kind = currentDocumentKind();
@@ -4132,6 +4184,7 @@
       } else if (currentDoc === "briefing") {
         render();
       }
+      if (!ensureEmissionDateForCurrentContract()) return;
       await saveCurrentDocumentToHistory();
       openPdfDocument();
     });
@@ -4146,7 +4199,12 @@
       button.disabled = true;
       button.textContent = "Salvando...";
       try {
-        await saveFinalDocument();
+        const saved = await saveFinalDocument();
+        if (!saved) {
+          button.textContent = originalText;
+          button.disabled = false;
+          return;
+        }
         button.textContent = "Salvo";
         setTimeout(() => {
           button.textContent = originalText;
@@ -4245,6 +4303,7 @@
       aberturaAdministradores.splice(0, aberturaAdministradores.length);
       aberturaCompletaLiberada = false;
       currentDocumentSerial = "";
+      currentEmissionDateLabel = "";
       activeDraftId = "";
       renderAberturaAdministradores();
       renderSocios();
@@ -4277,6 +4336,7 @@
       aberturaAdministradores.splice(0, aberturaAdministradores.length);
       aberturaCompletaLiberada = false;
       currentDocumentSerial = "";
+      currentEmissionDateLabel = "";
       activeDraftId = "";
       renderAberturaAdministradores();
       $("tipoBriefing").value = selectedType;
