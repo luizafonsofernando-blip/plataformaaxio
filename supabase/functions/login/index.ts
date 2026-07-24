@@ -99,7 +99,10 @@ Deno.serve(async (request) => {
   let email = isEmail ? identifier : legacyEmailForIdentifier(identifier);
   for (let page = 1; page <= 10 && !email; page += 1) {
     const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage: 100 });
-    if (error) return json(request, { code: "invalid_credentials" }, 401);
+    if (error) {
+      console.warn("Onboarding user lookup failed", error);
+      break;
+    }
     const match = data.users.find((user) => {
       const username = String(user.user_metadata?.username || "").trim().toLowerCase();
       const displayName = String(user.user_metadata?.display_name || user.user_metadata?.name || "")

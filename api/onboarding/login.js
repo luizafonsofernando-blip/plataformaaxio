@@ -72,24 +72,28 @@ async function findEmailByIdentifier(identifier, serviceRoleKey) {
   if (directEmail) return directEmail;
   if (!serviceRoleKey) return "";
 
-  for (let page = 1; page <= 10; page += 1) {
-    const data = await supabaseFetch(`/auth/v1/admin/users?page=${page}&per_page=${SUPABASE_USER_PAGE_LIMIT}`, {
-      key: serviceRoleKey,
-      bearer: serviceRoleKey,
-    });
-    const users = Array.isArray(data?.users) ? data.users : [];
-    const match = users.find((user) => {
-      const metadata = user.user_metadata || {};
-      const aliases = [
-        metadata.username,
-        metadata.display_name,
-        metadata.name,
-        String(user.email || "").split("@")[0],
-      ];
-      return aliases.map((value) => String(value || "").trim().toLowerCase()).includes(identifier);
-    });
-    if (match?.email) return match.email;
-    if (users.length < SUPABASE_USER_PAGE_LIMIT) break;
+  try {
+    for (let page = 1; page <= 10; page += 1) {
+      const data = await supabaseFetch(`/auth/v1/admin/users?page=${page}&per_page=${SUPABASE_USER_PAGE_LIMIT}`, {
+        key: serviceRoleKey,
+        bearer: serviceRoleKey,
+      });
+      const users = Array.isArray(data?.users) ? data.users : [];
+      const match = users.find((user) => {
+        const metadata = user.user_metadata || {};
+        const aliases = [
+          metadata.username,
+          metadata.display_name,
+          metadata.name,
+          String(user.email || "").split("@")[0],
+        ];
+        return aliases.map((value) => String(value || "").trim().toLowerCase()).includes(identifier);
+      });
+      if (match?.email) return match.email;
+      if (users.length < SUPABASE_USER_PAGE_LIMIT) break;
+    }
+  } catch (error) {
+    console.warn("Onboarding user lookup failed", error);
   }
 
   return "";
