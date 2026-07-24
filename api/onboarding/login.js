@@ -14,6 +14,27 @@ function legacyEmailForIdentifier(identifier) {
   return aliases[identifier] || "";
 }
 
+function uniqueKeys(keys) {
+  return keys.filter(Boolean).filter((key, index, all) => all.indexOf(key) === index);
+}
+
+function authKeyCandidates(serviceRoleKey) {
+  return uniqueKeys([
+    process.env.SUPABASE_PUBLISHABLE_KEY,
+    process.env.SUPABASE_ANON_KEY,
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    process.env.VITE_SUPABASE_ANON_KEY,
+    DEFAULT_SUPABASE_PUBLISHABLE_KEY,
+    serviceRoleKey,
+  ]);
+}
+
+function isKeyConfigurationError(error) {
+  const payloadText = JSON.stringify(error?.payload || {}).toLowerCase();
+  const message = String(error?.message || "").toLowerCase();
+  return error?.status === 401 && /api key|apikey|jwt|token/.test(`${payloadText} ${message}`);
+}
+
 async function supabaseFetch(path, { method = "GET", key, body, bearer } = {}) {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
   const response = await fetch(`${supabaseUrl}${path}`, {
@@ -63,6 +84,23 @@ async function findEmailByIdentifier(identifier, serviceRoleKey) {
   return "";
 }
 
+async function signInWithPassword(email, password, keys) {
+  let lastError;
+  for (const key of keys) {
+    try {
+      return await supabaseFetch("/auth/v1/token?grant_type=password", {
+        method: "POST",
+        key,
+        body: { email, password },
+      });
+    } catch (error) {
+      lastError = error;
+      if (!isKeyConfigurationError(error)) throw error;
+    }
+  }
+  throw lastError || new Error("Falha de autenticacao.");
+}
+
 async function approveLegacyUserIfNeeded(user, serviceRoleKey) {
   if (!serviceRoleKey || !user?.id || user.app_metadata?.status) return user;
   const appMetadata = {
@@ -85,13 +123,9 @@ export default async function handler(request, response) {
   }
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  const anonKey =
-    process.env.SUPABASE_ANON_KEY ||
-    process.env.SUPABASE_PUBLISHABLE_KEY ||
-    process.env.VITE_SUPABASE_ANON_KEY ||
-    DEFAULT_SUPABASE_PUBLISHABLE_KEY;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !anonKey) {
+  const authKeys = authKeyCandidates(serviceRoleKey);
+  if (!supabaseUrl || authKeys.length === 0) {
     return json(response, 503, { code: "service_unavailable" });
   }
 
@@ -107,11 +141,7 @@ export default async function handler(request, response) {
     const email = await findEmailByIdentifier(identifier, serviceRoleKey);
     if (!email) return json(response, 401, { code: "invalid_credentials" });
 
-    const session = await supabaseFetch("/auth/v1/token?grant_type=password", {
-      method: "POST",
-      key: anonKey,
-      body: { email, password },
-    });
+    const session = await signInWithPassword(email, password, authKeys);
 
     if (session.user?.app_metadata?.status === "pending") {
       return json(response, 403, { code: "account_pending" });

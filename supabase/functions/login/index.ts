@@ -50,9 +50,13 @@ Deno.serve(async (request) => {
   if (contentLength > 10_000) return json(request, { code: "invalid_credentials" }, 413);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const publishableKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const publishableKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ||
+    Deno.env.get("SUPABASE_ANON_KEY") ||
+    Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY") ||
+    Deno.env.get("VITE_SUPABASE_ANON_KEY");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!supabaseUrl || !publishableKey || !serviceRoleKey) {
+  const authKey = publishableKey || serviceRoleKey;
+  if (!supabaseUrl || !authKey || !serviceRoleKey) {
     return json(request, { code: "invalid_credentials" }, 401);
   }
 
@@ -112,7 +116,7 @@ Deno.serve(async (request) => {
       : json(request, { code: "invalid_credentials" }, 401);
   }
 
-  const authClient = createClient(supabaseUrl, publishableKey, {
+  const authClient = createClient(supabaseUrl, authKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
   const { data, error } = await authClient.auth.signInWithPassword({ email, password });
