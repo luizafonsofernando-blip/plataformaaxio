@@ -41,7 +41,10 @@ Deno.serve(async (request) => {
   if (contentLength > 10_000) return json(request, { error: "Solicitacao muito grande." }, 413);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const publishableKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const publishableKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ||
+    Deno.env.get("SUPABASE_ANON_KEY") ||
+    Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY") ||
+    Deno.env.get("VITE_SUPABASE_ANON_KEY");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const authorization = request.headers.get("Authorization") || "";
   if (!supabaseUrl || !publishableKey || !serviceRoleKey || !authorization.startsWith("Bearer ")) {

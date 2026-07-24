@@ -255,11 +255,15 @@
     async function supabaseFunctionRequest(functionName, { method = "POST", body, accessToken } = {}) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 12000);
+      const localApiFunctions = new Set(["admin-users", "onboarding-documents"]);
+      const url = localApiFunctions.has(functionName)
+        ? `/api/onboarding/${functionName}`
+        : `${SUPABASE_URL}/functions/v1/${functionName}`;
       try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/${functionName}`, {
+        const response = await fetch(url, {
           method,
           headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
+            ...(localApiFunctions.has(functionName) ? {} : { apikey: SUPABASE_PUBLISHABLE_KEY }),
             "Content-Type": "application/json",
             ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
           },
@@ -3247,10 +3251,10 @@
     }
 
     async function persistHistoryItem(item) {
-      const rows = await supabaseDataRequest("onboarding_documents?on_conflict=id", {
-        method: "POST",
+      const session = storedSupabaseSession();
+      const rows = await supabaseFunctionRequest("onboarding-documents", {
         body: historyRowFromItem(item),
-        prefer: "resolution=merge-duplicates,return=representation"
+        accessToken: session?.access_token
       });
       const saved = historyItemFromRow(rows[0]);
       historyCache = [saved, ...historyCache.filter((entry) => entry.id !== saved.id)]
@@ -3272,7 +3276,11 @@
       historyLoaded = false;
       renderHistory();
       try {
-        const rows = await supabaseDataRequest("onboarding_documents?select=*&order=updated_at.desc&limit=200");
+        const session = storedSupabaseSession();
+        const rows = await supabaseFunctionRequest("onboarding-documents", {
+          method: "GET",
+          accessToken: session?.access_token
+        });
         historyCache = (rows || []).map(historyItemFromRow);
         await migrateLegacyHistory();
         historyLoaded = true;
@@ -3574,7 +3582,13 @@
     }
 
     async function deleteHistoryDocument(id, refresh = true) {
-      await supabaseDataRequest(`onboarding_documents?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
+      if (!isCurrentUserAdmin()) throw new Error("Somente o administrador pode excluir documentos.");
+      const session = storedSupabaseSession();
+      await supabaseFunctionRequest("onboarding-documents", {
+        method: "DELETE",
+        body: { id },
+        accessToken: session?.access_token
+      });
       historyCache = historyItems().filter((entry) => entry.id !== id);
       if (activeDraftId === id) activeDraftId = "";
       if (refresh) renderHistory();
