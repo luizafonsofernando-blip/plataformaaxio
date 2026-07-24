@@ -1786,7 +1786,7 @@
           }
         });
       });
-      ["socioCpf", "socioNascimento", "socioSexo", "socioEstadoCivil", "socioRegimeCasamento", "socioMae", "socioTitulo"].forEach((id) => {
+      ["socioCpf", "socioProlabore", "socioValorProlabore", "socioNascimento", "socioSexo", "socioEstadoCivil", "socioRegimeCasamento", "socioMae", "socioTitulo"].forEach((id) => {
         const field = $(id);
         if (!field) return;
         const wrap = field.closest("label");
@@ -2208,8 +2208,11 @@
       if (showMissing) {
         globalIds.forEach((id) => setMissing($(id), value(id, "") === ""));
         if (!socios.length) {
-          const socioRequiredIds = ["socioNome", "socioCpf", "socioParticipacao", "socioNascimento", "socioEmail", "socioTelefone", "socioSexo", "socioEstadoCivil", "socioRegimeCasamento", "socioQualificacao"];
-          if (!isBaixaWorkflow()) socioRequiredIds.push("socioValorProlabore", "socioMae", "socioTitulo");
+          const socioPessoaJuridica = value("socioTipo", "Pessoa física") === "Pessoa jurídica";
+          const socioRequiredIds = socioPessoaJuridica
+            ? ["socioNome", "socioCnpj", "socioEndereco", "socioParticipacao", "socioEmail", "socioTelefone", "socioQualificacao"]
+            : ["socioNome", "socioCpf", "socioParticipacao", "socioNascimento", "socioEmail", "socioTelefone", "socioSexo", "socioEstadoCivil", "socioRegimeCasamento", "socioQualificacao"];
+          if (!socioPessoaJuridica && !isBaixaWorkflow()) socioRequiredIds.push("socioValorProlabore", "socioMae", "socioTitulo");
           socioRequiredIds.forEach((id) => setMissing($(id), value(id, "") === ""));
         }
         stepNote("socios", socios.length && globalComplete ? "" : (isSaidaWorkflow()
