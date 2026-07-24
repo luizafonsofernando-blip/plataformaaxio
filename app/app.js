@@ -354,7 +354,15 @@
         list.innerHTML = '<div class="pending-user"><strong>Nenhuma solicitação pendente.</strong></div>';
         return;
       }
-      list.innerHTML = users.map((user) => `
+      list.innerHTML = `
+        <article class="pending-user">
+          <strong>${users.length} solicitação(ões) pendente(s)</strong>
+          <span>Use esta ação somente quando todos os cadastros pendentes devem ser recusados.</span>
+          <div class="pending-user-actions">
+            <button class="btn danger" type="button" data-user-action="reject_all">Rejeitar todas</button>
+          </div>
+        </article>
+      ` + users.map((user) => `
         <article class="pending-user">
           <strong>${escapeHtml(user.name || "Nome não informado")}</strong>
           <span>@${escapeHtml(user.username || "sem-usuario")} · ${escapeHtml(user.email || "")}</span>
@@ -494,6 +502,7 @@
         const button = event.target.closest("button[data-user-action]");
         if (!button) return;
         const action = button.dataset.userAction;
+        if (action === "reject_all" && !window.confirm("Rejeitar e excluir todas as solicitações pendentes?")) return;
         if (action === "reject" && !window.confirm("Rejeitar e excluir esta solicitação?")) return;
         if (action === "delete" && !window.confirm("Excluir este usuário ativo? Esta ação remove o acesso ao sistema.")) return;
         const session = storedSupabaseSession();

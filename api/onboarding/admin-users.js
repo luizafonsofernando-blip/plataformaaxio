@@ -99,6 +99,22 @@ export default async function handler(request, response) {
 
   const userId = String(request.body?.userId || "");
   const action = String(request.body?.action || "");
+  if (action === "reject_all") {
+    let rejected = 0;
+    for (let pass = 1; pass <= 10; pass += 1) {
+      const data = await supabaseFetch("/auth/v1/admin/users?page=1&per_page=100", {
+        key: serviceRoleKey,
+        bearer: serviceRoleKey,
+      });
+      const pendingUsers = (Array.isArray(data?.users) ? data.users : []).filter((user) => user.app_metadata?.status === "pending");
+      if (!pendingUsers.length) break;
+      for (const user of pendingUsers) {
+        await supabaseFetch(`/auth/v1/admin/users/${user.id}`, { method: "DELETE", key: serviceRoleKey, bearer: serviceRoleKey });
+        rejected += 1;
+      }
+    }
+    return json(response, 200, { message: `${rejected} solicitacao(oes) rejeitada(s).`, rejected });
+  }
   if (!/^[0-9a-f-]{36}$/i.test(userId) || !["approve", "reject", "delete"].includes(action)) {
     return json(response, 400, { error: "Solicitacao invalida." });
   }
