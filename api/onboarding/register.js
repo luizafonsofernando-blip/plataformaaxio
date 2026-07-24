@@ -205,7 +205,7 @@ export default async function handler(request, response) {
         email,
         password,
         email_confirm: true,
-        user_metadata: { display_name: name, username, profile },
+        user_metadata: { display_name: name, username, profile, registration_requested_at: new Date().toISOString() },
         app_metadata: { role: "user", status: "pending" },
       },
     });

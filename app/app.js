@@ -351,6 +351,13 @@
       element.classList.toggle("success", success);
     }
 
+    function dateTimeLabel(raw) {
+      if (!raw) return "Data e hora nao informadas";
+      const date = new Date(raw);
+      if (Number.isNaN(date.getTime())) return "Data e hora nao informadas";
+      return date.toLocaleString("pt-BR");
+    }
+
     function renderPendingUsers(users = []) {
       const list = $("pendingUsersList");
       if (!list) return;
@@ -371,6 +378,7 @@
           <strong>${escapeHtml(user.name || "Nome não informado")}</strong>
           <span>@${escapeHtml(user.username || "sem-usuario")} · ${escapeHtml(user.email || "")}</span>
           <span>Perfil: ${escapeHtml(user.profile || "orteconte")}</span>
+          <span>Solicitado em: ${escapeHtml(dateTimeLabel(user.requested_at || user.created_at))}</span>
           <div class="pending-user-actions">
             <button class="btn primary" type="button" data-user-action="approve" data-user-id="${escapeHtml(user.id)}">Aprovar</button>
             <button class="btn danger" type="button" data-user-action="reject" data-user-id="${escapeHtml(user.id)}">Rejeitar</button>
@@ -391,6 +399,7 @@
           <strong>${escapeHtml(user.name || "Nome não informado")}</strong>
           <span>@${escapeHtml(user.username || "sem-usuario")} · ${escapeHtml(user.email || "")}</span>
           <span>Perfil: ${escapeHtml(user.profile || "orteconte")} · Tipo: ${escapeHtml(user.role === "admin" ? "Administrador" : "Usuário")}</span>
+          <span>Cadastrado em: ${escapeHtml(dateTimeLabel(user.created_at))}</span>
           <div class="pending-user-actions">
             ${user.canDelete === false
               ? '<button class="btn mini" type="button" disabled>Usuário atual</button>'

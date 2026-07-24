@@ -56,6 +56,22 @@ function isAdminUser(user) {
   return ADMIN_EMAILS.has(email) && user?.app_metadata?.role === "admin" && user?.app_metadata?.status !== "pending";
 }
 
+function userStatus(user) {
+  return String(user?.app_metadata?.status || "").trim().toLowerCase();
+}
+
+function isPendingUser(user) {
+  return userStatus(user) === "pending";
+}
+
+function isLegacyActiveUser(user) {
+  return !userStatus(user);
+}
+
+function displayName(user) {
+  return user.user_metadata?.display_name || user.user_metadata?.name || String(user.email || "").split("@")[0] || "";
+}
+
 export default async function handler(request, response) {
   if (!["GET", "POST"].includes(request.method)) return json(response, 405, { error: "Metodo nao permitido." });
   const { publicKey, serviceRoleKey } = supabaseConfig();
@@ -78,18 +94,28 @@ export default async function handler(request, response) {
         bearer: serviceRoleKey,
       });
       const users = Array.isArray(data?.users) ? data.users : [];
-      users.forEach((user) => {
+      for (const user of users) {
+        if (isLegacyActiveUser(user)) {
+          await supabaseFetch(`/auth/v1/admin/users/${user.id}`, {
+            method: "PUT",
+            key: serviceRoleKey,
+            bearer: serviceRoleKey,
+            body: { app_metadata: { ...(user.app_metadata || {}), role: user.app_metadata?.role || "user", status: "approved" } },
+          }).catch((error) => console.warn("Legacy user approval failed", error));
+          user.app_metadata = { ...(user.app_metadata || {}), role: user.app_metadata?.role || "user", status: "approved" };
+        }
         const baseUser = {
           id: user.id,
           email: user.email,
-          name: user.user_metadata?.display_name,
+          name: displayName(user),
           username: user.user_metadata?.username,
           profile: user.user_metadata?.profile,
           created_at: user.created_at,
+          requested_at: user.user_metadata?.registration_requested_at || user.created_at,
         };
-        if (user.app_metadata?.status === "pending") pendingUsers.push(baseUser);
+        if (isPendingUser(user)) pendingUsers.push(baseUser);
         else activeUsers.push({ ...baseUser, role: user.app_metadata?.role || "user", canDelete: user.id !== caller.id });
-      });
+      }
       if (users.length < 100) break;
     }
     activeUsers.sort((a, b) => String(a.email || "").localeCompare(String(b.email || "")));
@@ -106,7 +132,7 @@ export default async function handler(request, response) {
         key: serviceRoleKey,
         bearer: serviceRoleKey,
       });
-      const pendingUsers = (Array.isArray(data?.users) ? data.users : []).filter((user) => user.app_metadata?.status === "pending");
+      const pendingUsers = (Array.isArray(data?.users) ? data.users : []).filter(isPendingUser);
       if (!pendingUsers.length) break;
       for (const user of pendingUsers) {
         await supabaseFetch(`/auth/v1/admin/users/${user.id}`, { method: "DELETE", key: serviceRoleKey, bearer: serviceRoleKey });
@@ -123,7 +149,7 @@ export default async function handler(request, response) {
   }
   if (action === "approve") {
     const target = await supabaseFetch(`/auth/v1/admin/users/${userId}`, { key: serviceRoleKey, bearer: serviceRoleKey });
-    if (target.user?.app_metadata?.status !== "pending") return json(response, 404, { error: "Solicitacao nao encontrada." });
+    if (!isPendingUser(target.user)) return json(response, 404, { error: "Solicitacao nao encontrada." });
     await supabaseFetch(`/auth/v1/admin/users/${userId}`, {
       method: "PUT",
       key: serviceRoleKey,
