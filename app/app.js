@@ -538,6 +538,10 @@
       return tipoBriefing() === "BRIEFING ABERTURA" || tipoBriefing() === "PORTABILIDADE ENTRADA";
     }
 
+    function hasReceitaImobiliariaQuestion() {
+      return tipoBriefing() === "BRIEFING ABERTURA" || tipoBriefing() === "PORTABILIDADE ENTRADA" || tipoBriefing() === "ALTERAÇÃO CONTRATUAL";
+    }
+
     function isPortabilidadeEntradaWorkflow() {
       return tipoBriefing() === "PORTABILIDADE ENTRADA";
     }
@@ -1600,6 +1604,36 @@
       }
     }
 
+    async function consultarSocioCnpjPublico(silent = false) {
+      const button = $("buscarSocioCnpj");
+      const cnpj = onlyDigits(value("socioCnpj", ""));
+      if (cnpj.length !== 14) {
+        if (!silent) alert("Informe um CNPJ com 14 dígitos para buscar os dados públicos do sócio PJ.");
+        return;
+      }
+      setLoading(button, true, "Buscar");
+      try {
+        const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`);
+        if (!response.ok) throw new Error("CNPJ não encontrado.");
+        const data = await response.json();
+        setFieldValue("socioNome", data.razao_social || data.nome_fantasia || "");
+        setFieldValue("socioCnpj", formatCnpjDigits(cnpj));
+        setFieldValue("socioEndereco", [
+          buildEnderecoCnpj(data),
+          [data.municipio, data.uf].filter(Boolean).join("/"),
+          data.cep ? `CEP ${data.cep}` : ""
+        ].filter(Boolean).join(" - "));
+        if (data.email) setFieldValue("socioEmail", data.email);
+        if (data.ddd_telefone_1) setFieldValue("socioTelefone", data.ddd_telefone_1);
+        syncAllFieldsFilled();
+        updateFlowState();
+      } catch (error) {
+        if (!silent) alert(`Não foi possível buscar o CNPJ do sócio PJ. ${error.message || "Tente novamente em instantes."}`);
+      } finally {
+        setLoading(button, false, "Buscar");
+      }
+    }
+
     function validarCpfPublico() {
       const documento = onlyDigits(value("cnpj", ""));
       if (documento.length > 11) {
@@ -1704,6 +1738,54 @@
       const tipoPessoaField = $("tipoPessoa");
       const draftButton = $("saveDraft");
       if (draftButton) draftButton.classList.toggle("workflow-hidden", !tipoBriefing());
+      document.querySelectorAll(".receita-imobiliaria-field").forEach((field) => {
+        const active = hasReceitaImobiliariaQuestion();
+        field.classList.toggle("hidden", !active);
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = active ? "false" : "true";
+          if (!active) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
+      const receitaAlert = $("receitaImobiliariaAlert");
+      if (receitaAlert) {
+        const showAlert = hasReceitaImobiliariaQuestion() && value("receitaImobiliaria", "") === "Sim";
+        receitaAlert.classList.toggle("hidden", !showAlert);
+        receitaAlert.classList.toggle("visible", showAlert);
+      }
+      const aberturaReceitaAlert = $("aberturaReceitaImobiliariaAlert");
+      if (aberturaReceitaAlert) {
+        const showAlert = value("aberturaReceitaImobiliaria", "") === "Sim";
+        aberturaReceitaAlert.classList.toggle("hidden", !showAlert);
+        aberturaReceitaAlert.classList.toggle("visible", showAlert);
+      }
+      const socioTipo = value("socioTipo", "Pessoa física");
+      const socioPessoaJuridica = socioTipo === "Pessoa jurídica";
+      ["socioCnpjWrap", "socioEnderecoWrap"].forEach((id) => {
+        const field = $(id);
+        if (!field) return;
+        field.classList.toggle("hidden", !socioPessoaJuridica);
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = socioPessoaJuridica ? "false" : "true";
+          if (!socioPessoaJuridica) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
+      ["socioCpf", "socioNascimento", "socioSexo", "socioEstadoCivil", "socioRegimeCasamento", "socioMae", "socioTitulo"].forEach((id) => {
+        const field = $(id);
+        if (!field) return;
+        const wrap = field.closest("label");
+        if (wrap) wrap.classList.toggle("hidden", socioPessoaJuridica);
+        field.dataset.conditionalDisabled = socioPessoaJuridica ? "true" : "false";
+        if (socioPessoaJuridica) {
+          field.value = "";
+          field.classList.remove("missing");
+        }
+      });
       if (isAlteracaoWorkflow() && tipoPessoaField) {
         tipoPessoaField.value = "Pessoa jurídica";
         tipoPessoaField.classList.remove("missing");
@@ -2414,9 +2496,9 @@
     function sociosRows() {
       if (!socios.length) return "<p>Não informado.</p>";
       if (isBaixaWorkflow()) {
-        return `<table class="doc-table"><thead><tr><th>Nome</th><th>CPF</th><th>Qualificação</th><th>Participação</th></tr></thead><tbody>${socios.map((s) => `<tr><td>${s.nome}<br>${s.email}<br>${s.telefone}</td><td>${s.cpf}</td><td>${s.qualificacao}<br>${s.estadoCivil}<br>${s.regimeCasamento}</td><td>${s.participacao}</td></tr>`).join("")}</tbody></table>`;
+        return `<table class="doc-table"><thead><tr><th>Nome</th><th>Documento</th><th>Qualificação</th><th>Participação</th></tr></thead><tbody>${socios.map((s) => `<tr><td>${s.nome}<br>${s.email}<br>${s.telefone}${s.endereco ? `<br>${s.endereco}` : ""}</td><td>${s.tipo === "Pessoa jurídica" ? s.cnpj : s.cpf}</td><td>${s.qualificacao}<br>${s.estadoCivil}<br>${s.regimeCasamento}</td><td>${s.participacao}</td></tr>`).join("")}</tbody></table>`;
       }
-      return `<table class="doc-table"><thead><tr><th>Nome</th><th>CPF</th><th>Qualificação</th><th>Participação / Pró-labore</th></tr></thead><tbody>${socios.map((s) => `<tr><td>${s.nome}<br>${s.email}<br>${s.telefone}</td><td>${s.cpf}</td><td>${s.qualificacao}<br>${s.estadoCivil}<br>${s.regimeCasamento}</td><td>Participação: ${s.participacao}<br>Pró-labore: ${s.prolabore}<br>Valor: ${s.valorProlabore}</td></tr>`).join("")}</tbody></table>`;
+      return `<table class="doc-table"><thead><tr><th>Nome</th><th>Documento</th><th>Qualificação</th><th>Participação / Pró-labore</th></tr></thead><tbody>${socios.map((s) => `<tr><td>${s.nome}<br>${s.email}<br>${s.telefone}${s.endereco ? `<br>${s.endereco}` : ""}</td><td>${s.tipo === "Pessoa jurídica" ? s.cnpj : s.cpf}</td><td>${s.qualificacao}<br>${s.estadoCivil}<br>${s.regimeCasamento}</td><td>Participação: ${s.participacao}<br>Pró-labore: ${s.prolabore || "Não aplicável"}<br>Valor: ${s.valorProlabore || "Não aplicável"}</td></tr>`).join("")}</tbody></table>`;
     }
 
     function docHero(title) {
@@ -2486,6 +2568,15 @@
         ...(isPortabilidadeEntradaWorkflow() || isBriefingAberturaWorkflow() ? [["Filial", value("filialCadastro", "Não informado")]] : []),
         ["Pertence a grupo", value("grupoCadastro")],
         ["Nome do grupo", value("nomeGrupoCadastro", grupoCadastroExigeNome() ? "Não informado" : "Não aplicável")]
+      ];
+    }
+
+    function receitaImobiliariaRows() {
+      if (!hasReceitaImobiliariaQuestion()) return [];
+      const resposta = value("receitaImobiliaria", "Não informado");
+      return [
+        ["Receita de venda de imóvel ou locação", resposta],
+        ...(resposta === "Sim" ? [["Alerta de CNAE", "Caso tenha receita de aluguel de imóveis próprios ou venda, precisa avaliar a inclusão de um CNAE para essas atividades."]] : [])
       ];
     }
 
@@ -2573,7 +2664,7 @@
             [identificacaoTitulo(), value("cnpj")],
             ...isSaidaWorkflow() ? [] : [["Última competência", monthLabel($("inicio").value)]],
             ["Endereço", `${value("endereco")} - ${value("municipio")}/${value("estado", "UF")} - CEP ${value("cep")}`]
-          ].concat(grupoCadastroRows(), baixaSaidaRows()))}</table>
+          ].concat(grupoCadastroRows(), receitaImobiliariaRows(), baixaSaidaRows()))}</table>
 
           ${sectionTitle(2, "Sócios")}
           ${sociosRows()}
@@ -2633,7 +2724,7 @@
             ["CNAEs secundários", value("cnaesSecundarios")],
             ["Forma de atuação", selectedFormaAtuacao()],
             ["Honorário acordado", `${honorarioFinanceiro()} | Cobrança a partir de ${competenciaFinanceira()}`]
-          ].concat(grupoCadastroRows()))}</table>
+          ].concat(grupoCadastroRows(), receitaImobiliariaRows()))}</table>
 
           ${alteracaoEventosSection()}
           ${sociosSection()}
@@ -2680,7 +2771,7 @@
             ["Competência", competenciaFinanceira()],
             ["Valor honorário acordado", honorarioFinanceiro()],
             ["Usuário / e-mails", emails || "Não informado"]
-          ].concat(grupoCadastroRows()))}</table>
+          ].concat(grupoCadastroRows(), receitaImobiliariaRows()))}</table>
 
           ${sectionTitle(2, "Campos empresariais desconsideráveis")}
           <table class="doc-table">${rows([
@@ -2719,6 +2810,7 @@
       setFieldValue("areaUtilizada", value("aberturaAreaUtilizada", ""));
       setFieldValue("cnaePrincipal", [value("aberturaCnaePrincipal", ""), value("aberturaAtividadePrincipal", "")].filter(Boolean).join(" - "));
       setFieldValue("cnaesSecundarios", value("aberturaCnaesSecundarios", ""));
+      setSelectValue("receitaImobiliaria", value("aberturaReceitaImobiliaria", ""));
       setFieldValue("servicos", value("aberturaObjetoSocial", ""));
       setFieldValue("usuarioExterno", value("aberturaEmailGestta", ""));
       setFieldValue("govObs", value("aberturaPossuiSenhaGov", "") === "Sim" ? value("aberturaSenhaGov", "") : value("aberturaPossuiSenhaGov", ""));
@@ -2790,6 +2882,8 @@
         ["Atividade principal", value("aberturaAtividadePrincipal", "")],
         ["CNAE principal", value("aberturaCnaePrincipal", "")],
         ["CNAEs secundários", value("aberturaCnaesSecundarios", "")],
+        ["Receita de venda de imóvel ou locação", value("aberturaReceitaImobiliaria", "")],
+        ...(value("aberturaReceitaImobiliaria", "") === "Sim" ? [["Alerta de CNAE", "Caso tenha receita de aluguel de imóveis próprios ou venda, precisa avaliar a inclusão de um CNAE para essas atividades."]] : []),
         ["Objeto social", value("aberturaObjetoSocial", "")],
         ["Capital Social", value("aberturaCapitalSocial", "")],
         ["Possui pró-labore", value("aberturaPossuiProlabore", "")],
@@ -2921,6 +3015,8 @@
             ["Atividade principal", value("aberturaAtividadePrincipal", "")],
             ["CNAE principal", value("aberturaCnaePrincipal", "")],
             ["CNAEs secundários", value("aberturaCnaesSecundarios", "")],
+            ["Receita de venda de imóvel ou locação", value("aberturaReceitaImobiliaria", "")],
+            ...(value("aberturaReceitaImobiliaria", "") === "Sim" ? [["Alerta de CNAE", "Caso tenha receita de aluguel de imóveis próprios ou venda, precisa avaliar a inclusão de um CNAE para essas atividades."]] : []),
             ["Objeto social", value("aberturaObjetoSocial", "")],
             ["Capital social", value("aberturaCapitalSocial", "")],
             ["Pró-labore", `${value("aberturaPossuiProlabore", "")} ${value("aberturaPossuiProlabore", "") === "Sim" ? "- " + value("aberturaProlabore", "") : ""}`],
@@ -2981,7 +3077,7 @@
             ["Quantidade de funcionários", value("quantidadeFuncionarios", value("funcionarios") === "Sim" ? "Não informado" : "Não aplicável")],
             ["Regime tributário", value("regime")],
             ["Honorário acordado", `${honorarioFinanceiro()} | Cobrança a partir de ${competenciaFinanceira()}`]
-          ].concat(grupoCadastroRows()))}</table>
+          ].concat(grupoCadastroRows(), receitaImobiliariaRows()))}</table>
 
           ${alteracaoRows()}
 
@@ -3091,7 +3187,7 @@
     function contrato() {
       const socio = socios[0] || {};
       const socioNome = socio.nome || "Não informado";
-      const socioCpf = socio.cpf || "Não informado";
+      const socioCpf = socio.tipo === "Pessoa jurídica" ? (socio.cnpj || "Não informado") : (socio.cpf || "Não informado");
       const endereco = `${value("endereco")} - ${value("municipio")}/${value("estado", "UF")} - CEP ${value("cep")}`;
       const dataHoje = currentEmissionDateLabel || todayDateLabel();
       const inicioServicos = monthLongLabel($("inicio").value);
@@ -3673,7 +3769,10 @@
         });
       });
       if (activeStepOrder().includes("socios") && !socios.length) {
-        ["socioNome", "socioCpf", "socioParticipacao"].forEach((id) => {
+        const socioDraftIds = value("socioTipo", "Pessoa física") === "Pessoa jurídica"
+          ? ["socioNome", "socioCnpj", "socioEndereco", "socioParticipacao"]
+          : ["socioNome", "socioCpf", "socioParticipacao"];
+        socioDraftIds.forEach((id) => {
           if ($(id) && !value(id, "")) $(id).classList.add("draft-missing");
         });
       }
@@ -3683,21 +3782,24 @@
       $("sociosList").innerHTML = socios.map((socio, index) => `
         <div class="socio-card">
           <div class="socio-header">
-            <strong>${escapeHtml(socio.nome)}</strong>
+            <strong>${escapeHtml(socio.nome)} ${socio.tipo === "Pessoa jurídica" ? "<small>PJ</small>" : ""}</strong>
             <div class="socio-actions">
               <button class="btn mini" type="button" data-edit="${index}">Editar</button>
               <button class="btn mini" type="button" data-remove="${index}">Remover</button>
             </div>
           </div>
-          <div>${escapeHtml(socio.cpf)} | ${escapeHtml(socio.participacao)} | ${escapeHtml(socio.email)}</div>
+          <div>${escapeHtml(socio.tipo === "Pessoa jurídica" ? socio.cnpj : socio.cpf)} | ${escapeHtml(socio.participacao)} | ${escapeHtml(socio.email)}</div>
         </div>
       `).join("");
       document.querySelectorAll("[data-edit]").forEach((button) => {
         button.addEventListener("click", () => {
           const socio = socios.splice(Number(button.dataset.edit), 1)[0];
           if (!socio) return;
+          $("socioTipo").value = socio.tipo || "Pessoa física";
           $("socioNome").value = socio.nome || "";
           $("socioCpf").value = socio.cpf || "";
+          if ($("socioCnpj")) $("socioCnpj").value = socio.cnpj || "";
+          if ($("socioEndereco")) $("socioEndereco").value = socio.endereco || "";
           $("socioParticipacao").value = socio.participacao || "";
           if ($("socioProlabore")) $("socioProlabore").value = socio.prolabore || "Sim";
           if ($("socioValorProlabore")) $("socioValorProlabore").value = socio.valorProlabore || "";
@@ -3793,9 +3895,12 @@
     }
 
     $("addSocio").addEventListener("click", () => {
-      const draftIds = ["socioNome", "socioCpf", "socioParticipacao", "socioNascimento", "socioEmail", "socioTelefone", "socioSexo", "socioEstadoCivil"];
-      if (!isBaixaWorkflow()) draftIds.push("socioProlabore", "socioValorProlabore", "socioMae", "socioTitulo");
-      if (value("socioEstadoCivil", "") === "Casado(a)") draftIds.push("socioRegimeCasamento");
+      const socioPessoaJuridica = value("socioTipo", "Pessoa física") === "Pessoa jurídica";
+      const draftIds = socioPessoaJuridica
+        ? ["socioTipo", "socioNome", "socioCnpj", "socioEndereco", "socioParticipacao", "socioEmail", "socioTelefone"]
+        : ["socioTipo", "socioNome", "socioCpf", "socioParticipacao", "socioNascimento", "socioEmail", "socioTelefone", "socioSexo", "socioEstadoCivil"];
+      if (!socioPessoaJuridica && !isBaixaWorkflow()) draftIds.push("socioProlabore", "socioValorProlabore", "socioMae", "socioTitulo");
+      if (!socioPessoaJuridica && value("socioEstadoCivil", "") === "Casado(a)") draftIds.push("socioRegimeCasamento");
       const missingDraft = draftIds.filter((id) => value(id, "") === "");
       draftIds.forEach((id) => setMissing($(id), missingDraft.includes(id)));
       if (missingDraft.length) {
@@ -3804,25 +3909,29 @@
       }
       const nome = value("socioNome", "");
       socios.push({
+        tipo: value("socioTipo", "Pessoa física"),
         nome,
-        cpf: formatCpfDigits(value("socioCpf")),
+        cpf: socioPessoaJuridica ? "" : formatCpfDigits(value("socioCpf")),
+        cnpj: socioPessoaJuridica ? formatCnpjDigits(value("socioCnpj")) : "",
+        endereco: socioPessoaJuridica ? value("socioEndereco") : "",
         participacao: value("socioParticipacao"),
-        prolabore: isBaixaWorkflow() ? "" : value("socioProlabore"),
-        valorProlabore: isBaixaWorkflow() ? "" : value("socioValorProlabore"),
-        nascimento: $("socioNascimento").value,
+        prolabore: isBaixaWorkflow() || socioPessoaJuridica ? "" : value("socioProlabore"),
+        valorProlabore: isBaixaWorkflow() || socioPessoaJuridica ? "" : value("socioValorProlabore"),
+        nascimento: socioPessoaJuridica ? "" : $("socioNascimento").value,
         email: value("socioEmail"),
         telefone: value("socioTelefone"),
-        sexo: value("socioSexo"),
-        estadoCivil: value("socioEstadoCivil"),
-        regimeCasamento: value("socioEstadoCivil", "") === "Casado(a)" ? value("socioRegimeCasamento") : "Não aplicável",
+        sexo: socioPessoaJuridica ? "Não aplicável" : value("socioSexo"),
+        estadoCivil: socioPessoaJuridica ? "Não aplicável" : value("socioEstadoCivil"),
+        regimeCasamento: !socioPessoaJuridica && value("socioEstadoCivil", "") === "Casado(a)" ? value("socioRegimeCasamento") : "Não aplicável",
         qualificacao: value("socioQualificacao"),
-        mae: isBaixaWorkflow() ? "" : value("socioMae"),
-        titulo: isBaixaWorkflow() ? "" : value("socioTitulo")
+        mae: isBaixaWorkflow() || socioPessoaJuridica ? "" : value("socioMae"),
+        titulo: isBaixaWorkflow() || socioPessoaJuridica ? "" : value("socioTitulo")
       });
-      ["socioNome", "socioCpf", "socioParticipacao", "socioProlabore", "socioValorProlabore", "socioNascimento", "socioEmail", "socioTelefone", "socioSexo", "socioEstadoCivil", "socioRegimeCasamento", "socioMae", "socioTitulo"].forEach((id) => {
+      ["socioNome", "socioCpf", "socioCnpj", "socioEndereco", "socioParticipacao", "socioProlabore", "socioValorProlabore", "socioNascimento", "socioEmail", "socioTelefone", "socioSexo", "socioEstadoCivil", "socioRegimeCasamento", "socioMae", "socioTitulo"].forEach((id) => {
         const field = $(id);
         if (field) field.value = "";
       });
+      $("socioTipo").value = "Pessoa física";
       $("socioQualificacao").value = "Sócio administrador";
       if ($("socioProlabore")) $("socioProlabore").value = "Sim";
       renderSocios();
@@ -3838,6 +3947,7 @@
         if (field.id === "aberturaSocioCep") normalizeCepField("aberturaSocioCep");
         if (field.id === "aberturaCnaePrincipal") field.value = formatCnaeDigits(field.value);
         if (field.id === "cnaePrincipal" && onlyDigits(field.value).length <= 7) field.value = formatCnaeDigits(field.value);
+        if (field.id === "socioCnpj") field.value = formatCnpjDigits(field.value);
         if (field.id === "socioCpf" || field.id === "aberturaAdminCpf") normalizeCpfField(field.id);
         field.classList.remove("draft-missing");
         syncFieldFilled(field);
@@ -3859,6 +3969,7 @@
         if (field.id === "aberturaSocioCep") autoConsultarAberturaSocioCepSeCompleto();
         if (field.id === "aberturaCnaePrincipal") autoPreencherCnaePrincipal("aberturaCnaePrincipal", "aberturaAtividadePrincipal");
         if (field.id === "cnaePrincipal") autoPreencherCnaePrincipal("cnaePrincipal");
+        if (field.id === "socioCnpj" && onlyDigits(field.value).length === 14) consultarSocioCnpjPublico(true);
       });
       field.addEventListener("blur", () => {
         if (currencyFieldIds.has(field.id)) formatCurrencyField(field.id);
@@ -3866,6 +3977,7 @@
     });
 
     $("buscarCnpj").addEventListener("click", consultarCnpjPublico);
+    $("buscarSocioCnpj").addEventListener("click", consultarSocioCnpjPublico);
     $("buscarCep").addEventListener("click", consultarCepPublico);
     $("buscarAberturaCep").addEventListener("click", consultarAberturaCepPublico);
     $("buscarAberturaSocioCep").addEventListener("click", consultarAberturaSocioCepPublico);
