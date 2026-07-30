@@ -1,0 +1,160 @@
+.cerne-corner-logo {
+  position: fixed;
+  top: 14px;
+  left: 18px;
+  z-index: 95;
+  width: 152px;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.brand {
+  padding-top: 72px;
+}
+
+.powered-by {
+  color: rgba(255, 255, 255, .72) !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  margin-top: auto !important;
+  padding: 0 11px 5px !important;
+  display: block !important;
+  font-size: 10px !important;
+  letter-spacing: .6px !important;
+  text-transform: lowercase !important;
+}
+
+.powered-by > * {
+  display: none !important;
+}
+
+.powered-by::before {
+  content: "powered by luce";
+}
+
+.cerne-auth-locked #root {
+  display: none;
+}
+
+.cerne-login-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 38% 42%, rgba(52, 102, 206, .28), transparent 28%),
+    linear-gradient(135deg, #10151a 0%, #252b31 48%, #11161b 100%);
+}
+
+.cerne-login-screen::after {
+  content: "powered by luce";
+  position: fixed;
+  left: 18px;
+  bottom: 14px;
+  color: rgba(255, 255, 255, .62);
+  font-size: 10px;
+  letter-spacing: .6px;
+  text-transform: lowercase;
+}
+
+.cerne-login-card {
+  width: min(410px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 28px;
+  color: #eef5ff;
+  background: rgba(8, 14, 22, .82);
+  border: 1px solid rgba(143, 190, 255, .22);
+  border-radius: 10px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .42);
+  backdrop-filter: blur(16px);
+}
+
+.cerne-login-logo {
+  width: min(260px, 86%);
+  justify-self: center;
+  margin-bottom: 4px;
+}
+
+.cerne-login-card p {
+  margin: 0 0 4px;
+  color: #8fc8ff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+}
+
+.cerne-login-card h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 26px;
+}
+
+.cerne-login-card span {
+  display: block;
+  margin-top: 4px;
+  color: #b7c7d8;
+  font-size: 13px;
+}
+
+.cerne-login-card label {
+  display: grid;
+  gap: 6px;
+  color: #d9e7f8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+
+.cerne-login-card input {
+  min-height: 44px;
+  padding: 0 12px;
+  color: #fff;
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(190, 214, 244, .24);
+  border-radius: 7px;
+  outline: none;
+}
+
+.cerne-login-card input:focus {
+  border-color: #8fc8ff;
+  box-shadow: 0 0 0 3px rgba(143, 200, 255, .14);
+}
+
+.cerne-login-card button {
+  min-height: 44px;
+  color: #fff;
+  background: #3166ce;
+  border: 1px solid #4d83ec;
+  border-radius: 7px;
+  font-weight: 800;
+}
+
+.cerne-login-card button:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.cerne-login-message {
+  min-height: 18px;
+  color: #ffb7bd;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .cerne-corner-logo {
+    width: 118px;
+    top: 12px;
+    left: 56px;
+  }
+
+  .brand {
+    padding-top: 0;
+  }
+}
