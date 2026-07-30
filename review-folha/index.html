@@ -15,14 +15,18 @@
       rel="stylesheet"
     >
     <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../assets/auth-luce.css">
     <link rel="stylesheet" href="review-folha.css">
   </head>
-  <body>
+  <body class="module-auth-locked">
     <header class="site-header">
       <a class="brand" href="../" aria-label="Luce">
         <img src="/assets/logo-luce-oficial.png" alt="Luce">
       </a>
-      <a class="header-action" href="../">Voltar</a>
+      <div class="header-links">
+        <button class="secondary-link" type="button" onclick="window.LuceModuleSession?.logout()">Sair</button>
+        <a class="header-action" href="../">Voltar</a>
+      </div>
     </header>
 
     <main class="review-app">
@@ -126,6 +130,16 @@
       </section>
     </main>
 
+    <script>
+      window.LuceModuleAuth = {
+        moduleId: "review-folha",
+        moduleName: "Review Folha",
+        title: "Acesso seguro",
+        headline: "Revisao de folha com sessao propria.",
+        description: "Use suas credenciais Luce. Este acesso nao abre outros modulos automaticamente."
+      };
+    </script>
+    <script src="../assets/module-auth.js" defer></script>
     <script src="review-folha.js"></script>
   </body>
 </html>

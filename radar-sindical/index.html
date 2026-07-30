@@ -6,9 +6,10 @@
     <meta name="robots" content="noindex, nofollow, noarchive">
     <title>Radar Sindical Inteligente | Luce</title>
     <link rel="icon" type="image/png" href="../app/logo-luce-symbol.svg">
+    <link rel="stylesheet" href="../assets/auth-luce.css">
     <link rel="stylesheet" href="radar.css">
   </head>
-  <body>
+  <body class="module-auth-locked">
     <div class="app-shell">
       <aside class="sidebar">
         <a class="brand" href="../">
@@ -20,6 +21,7 @@
           <strong>Controle humano</strong>
           <span>Nenhuma CCT extraída por IA é aplicada automaticamente.</span>
         </div>
+        <button class="button secondary" type="button" onclick="window.LuceModuleSession?.logout()">Sair</button>
       </aside>
       <main>
         <header class="topbar">
@@ -32,6 +34,16 @@
         <section id="view" class="content"></section>
       </main>
     </div>
+    <script>
+      window.LuceModuleAuth = {
+        moduleId: "radar-sindical",
+        moduleName: "Radar Sindical",
+        title: "Acesso seguro",
+        headline: "Monitoramento sindical com sessao propria.",
+        description: "Use suas credenciais Luce. Este acesso nao abre outros modulos automaticamente."
+      };
+    </script>
+    <script src="../assets/module-auth.js" defer></script>
     <script src="radar.js"></script>
   </body>
 </html>

@@ -421,6 +421,23 @@ tr.only-pdf td {
 }
 
 @media (max-width: 640px) {
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .site-header {
+    gap: 12px;
+  }
+
+  .header-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
   .review-app {
     padding: 102px 16px 48px;
   }
@@ -444,5 +461,11 @@ tr.only-pdf td {
   .difference-toolbar {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .table-wrap,
+  .difference-table {
+    max-width: 100%;
+    overflow-x: auto;
   }
 }

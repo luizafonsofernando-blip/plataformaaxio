@@ -257,3 +257,151 @@ body.cerne-authenticated .cerne-login-screen {
     grid-template-columns: 1fr;
   }
 }
+
+.module-login-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  grid-template-columns: minmax(300px, .95fr) minmax(320px, 520px);
+  gap: 24px;
+  align-items: stretch;
+  padding: 24px;
+  overflow: auto;
+  background: linear-gradient(135deg, #07133f, #0c2b63 55%, #f6fbff);
+}
+
+body.module-authenticated .module-login-screen {
+  display: none !important;
+}
+
+.module-auth-locked main,
+.module-auth-locked .app-shell,
+.module-auth-locked .app,
+.module-auth-locked .review-app {
+  visibility: hidden !important;
+}
+
+.module-login-card {
+  width: min(100%, 520px);
+  align-self: center;
+  justify-self: center;
+  display: grid;
+  gap: 16px;
+  padding: 30px;
+  border: 1px solid #dce4f2;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 24px 70px rgba(6, 19, 60, .24);
+}
+
+.module-login-logo {
+  width: 176px;
+  height: auto;
+}
+
+.module-login-card p {
+  margin: 0 0 6px;
+  color: #27c8ff;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.module-login-card h1 {
+  margin: 0;
+  color: #07133f;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  line-height: 1.05;
+}
+
+.module-login-card span {
+  display: block;
+  margin-top: 8px;
+  color: #58647a;
+}
+
+.module-login-card label {
+  display: grid;
+  gap: 8px;
+  color: #07133f;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.module-login-card input {
+  min-height: 48px;
+  width: 100%;
+  padding: 0 14px;
+  color: #151a2d !important;
+  background: #fff !important;
+  border: 1px solid #dce4f2;
+  border-radius: 10px;
+  outline: none;
+  -webkit-text-fill-color: #151a2d !important;
+}
+
+.module-login-card input:focus {
+  border-color: #27c8ff;
+  box-shadow: 0 0 0 4px rgba(39, 200, 255, .16);
+}
+
+.password-field {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  border: 1px solid #dce4f2;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.password-field input {
+  border: 0;
+  box-shadow: none !important;
+}
+
+.password-field button {
+  min-height: 40px;
+  margin-right: 6px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  color: #07133f;
+  background: #eef6ff;
+  font-weight: 800;
+}
+
+.module-login-card > button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  background: var(--auth-glow);
+  font-weight: 900;
+}
+
+.module-login-card > button:disabled {
+  opacity: .72;
+  cursor: wait;
+}
+
+.module-login-message {
+  min-height: 18px;
+  color: #be3141;
+  font-size: 12px;
+}
+
+@media (max-width: 860px) {
+  .module-login-screen {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .module-login-card {
+    align-self: start;
+    padding: 22px;
+  }
+}

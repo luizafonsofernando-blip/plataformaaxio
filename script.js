@@ -79,25 +79,39 @@ moduleCatalog.innerHTML = modules.map((module) => moduleCard(module, true)).join
 
 function openModules() {
   accessDialog.showModal();
+  document.body.classList.add("nav-locked");
 }
 
 openLoginButton.addEventListener("click", openModules);
 document.querySelectorAll("[data-open-modules]").forEach((button) => button.addEventListener("click", openModules));
 closeAccessButton.addEventListener("click", () => accessDialog.close());
+accessDialog.addEventListener("close", () => document.body.classList.remove("nav-locked"));
 accessDialog.addEventListener("click", (event) => {
   if (event.target === accessDialog) accessDialog.close();
+});
+moduleCatalog.addEventListener("click", (event) => {
+  if (event.target.closest("a")) accessDialog.close();
 });
 
 menuToggle.addEventListener("click", () => {
   const isOpen = siteHeader.classList.toggle("menu-open");
   menuToggle.setAttribute("aria-expanded", String(isOpen));
+  document.body.classList.toggle("nav-locked", isOpen);
 });
 
 mainNav.addEventListener("click", (event) => {
   if (event.target.closest("a")) {
     siteHeader.classList.remove("menu-open");
     menuToggle.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("nav-locked");
   }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  siteHeader.classList.remove("menu-open");
+  menuToggle.setAttribute("aria-expanded", "false");
+  document.body.classList.remove("nav-locked");
 });
 
 window.addEventListener("scroll", () => {

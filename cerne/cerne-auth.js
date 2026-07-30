@@ -1,12 +1,18 @@
 (function () {
-  const SESSION_KEY = "onboardContabilSupabaseSession";
+  const SESSION_KEY = "luce-auth-cerne";
   const SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
 
   function storedSession() {
     try {
-      return JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+      const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+      if (!session?.access_token || !session.expires_at_ms || session.expires_at_ms <= Date.now()) {
+        sessionStorage.removeItem(SESSION_KEY);
+        return null;
+      }
+      return session;
     } catch (_error) {
+      sessionStorage.removeItem(SESSION_KEY);
       return null;
     }
   }
@@ -133,4 +139,12 @@
 
   const session = storedSession();
   if (!session?.access_token) renderLogin();
+
+  window.CerneSession = {
+    key: SESSION_KEY,
+    logout() {
+      sessionStorage.removeItem(SESSION_KEY);
+      window.location.reload();
+    }
+  };
 })();

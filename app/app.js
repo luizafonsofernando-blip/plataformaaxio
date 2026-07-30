@@ -14,7 +14,7 @@
     const HISTORY_KEY = "onboardContabilHistoricoDocumentos";
     const SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
-    const SUPABASE_SESSION_KEY = "onboardContabilSupabaseSession";
+    const SUPABASE_SESSION_KEY = "luce-auth-onboarding-contabil";
     const allSteps = ["tipoBriefingSecao", "indicacaoClienteSecao", "briefingAbertura", "empresa", "socios", "financeiro", "informativo", "setores", "implantacao", "documentos"];
     let highestUnlockedIndex = 0;
 

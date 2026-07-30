@@ -234,6 +234,12 @@
 }
 
 @media (max-width: 760px) {
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
   .cerne-corner-logo {
     width: 118px;
     top: 12px;
@@ -250,5 +256,12 @@
 
   .cerne-insight-grid {
     grid-template-columns: 1fr;
+  }
+
+  .main,
+  .dashboard,
+  .content,
+  .topbar {
+    min-width: 0;
   }
 }
