@@ -213,19 +213,20 @@ async function restoreUsersFromHistory(serviceRoleKey) {
 }
 
 async function rejectUser(user, serviceRoleKey) {
+  await supabaseFetch(`/auth/v1/admin/users/${user.id}`, {
+    method: "PUT",
+    key: serviceRoleKey,
+    bearer: serviceRoleKey,
+    body: {
+      app_metadata: { ...(user.app_metadata || {}), role: user.app_metadata?.role || "user", status: "rejected" },
+      user_metadata: { ...(user.user_metadata || {}), rejected_at: new Date().toISOString() },
+    },
+  });
+
   try {
     await supabaseFetch(`/auth/v1/admin/users/${user.id}`, { method: "DELETE", key: serviceRoleKey, bearer: serviceRoleKey });
-    return { mode: "deleted" };
+    return { mode: "marked_rejected_and_deleted" };
   } catch (deleteError) {
-    await supabaseFetch(`/auth/v1/admin/users/${user.id}`, {
-      method: "PUT",
-      key: serviceRoleKey,
-      bearer: serviceRoleKey,
-      body: {
-        app_metadata: { ...(user.app_metadata || {}), role: user.app_metadata?.role || "user", status: "rejected" },
-        user_metadata: { ...(user.user_metadata || {}), rejected_at: new Date().toISOString() },
-      },
-    });
     return { mode: "marked_rejected", deleteError: deleteError.message };
   }
 }
@@ -306,7 +307,7 @@ export default async function handler(request, response) {
     for (const user of pendingUsers) {
       try {
         const result = await rejectUser(user, serviceRoleKey);
-        if (result.mode === "deleted") deleted += 1;
+        if (result.mode === "deleted" || result.mode === "marked_rejected_and_deleted") deleted += 1;
         if (result.mode === "marked_rejected") marked += 1;
         rejected += 1;
       } catch (error) {

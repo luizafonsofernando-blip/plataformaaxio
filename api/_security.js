@@ -25,7 +25,17 @@ export function isAllowedOrigin(origin = "", allowedHosts = DEFAULT_ALLOWED_HOST
 }
 
 export function rejectDisallowedOrigin(request, response, allowedHosts) {
-  if (isAllowedOrigin(String(request.headers.origin || ""), allowedHosts)) return false;
+  const origin = String(request.headers.origin || "");
+  const host = String(request.headers.host || "").toLowerCase();
+  if (origin && host) {
+    try {
+      const originUrl = new URL(origin);
+      if (originUrl.hostname.toLowerCase() === host.split(":")[0]) return false;
+    } catch (_error) {
+      // Fall through to the static allowlist.
+    }
+  }
+  if (isAllowedOrigin(origin, allowedHosts)) return false;
   setApiSecurityHeaders(response);
   response.status(403).json({ error: "Origem nao autorizada." });
   return true;
