@@ -46,7 +46,7 @@
     .app {
       min-height: 100vh;
       display: grid;
-      grid-template-columns: minmax(430px, 540px) minmax(0, 1fr);
+      grid-template-columns: 1fr;
       gap: 18px;
       padding: 20px;
       align-items: start;
@@ -54,8 +54,9 @@
 
     .panel {
       position: sticky;
-      top: 16px;
-      max-height: calc(100vh - 32px);
+      top: 12px;
+      z-index: 20;
+      max-height: calc(100vh - 24px);
       align-self: start;
       background: #fff;
       border: 1px solid var(--line);
@@ -65,7 +66,11 @@
     }
 
     .panel-header {
-      padding: 18px 22px;
+      display: grid;
+      grid-template-columns: auto minmax(220px, 1fr);
+      align-items: center;
+      gap: 14px 22px;
+      padding: 14px 18px;
       color: #fff;
       background:
         radial-gradient(circle at 90% 10%, rgba(255,255,255,.16), transparent 22%),
@@ -77,20 +82,20 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 14px;
+      margin-bottom: 0;
     }
 
     .brand-logo {
       display: block;
-      width: 166px;
+      width: 156px;
       height: auto;
       object-fit: contain;
     }
 
     .brand-mark {
       display: block;
-      width: 46px;
-      height: 42px;
+      width: 40px;
+      height: 36px;
       flex: 0 0 auto;
       object-fit: contain;
     }
@@ -105,13 +110,13 @@
 
     .panel-title {
       margin: 0;
-      font-size: 21px;
+      font-size: 20px;
       line-height: 1.18;
       letter-spacing: .2px;
     }
 
     .panel-note {
-      margin: 7px 0 0;
+      margin: 4px 0 0;
       color: #d9e8ff;
       font-size: 12px;
       line-height: 1.45;
@@ -119,13 +124,38 @@
 
     .form {
       display: grid;
-      gap: 14px;
-      padding: 18px 22px 22px;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 12px;
+      padding: 14px 18px 16px;
+      align-items: start;
     }
 
     .field {
       display: grid;
       gap: 7px;
+    }
+
+    .form > .field {
+      grid-column: span 3;
+    }
+
+    .form > .field:has(#segmentGrid),
+    .form > .field:has(#message),
+    .form > .summary-editor,
+    .form > .field:has(.art-style-grid) {
+      grid-column: span 12;
+    }
+
+    .form > .field:has(#documentFile),
+    .form > .field:has(#inlineGraphicType),
+    .form > .field:has(#deadlineNote) {
+      grid-column: span 6;
+    }
+
+    .form > .two-fields,
+    .form > .checks,
+    .form > .actions {
+      grid-column: span 4;
     }
 
     .field label,
@@ -152,7 +182,7 @@
     }
 
     .textarea {
-      min-height: 150px;
+      min-height: 108px;
       resize: vertical;
       line-height: 1.5;
     }
@@ -214,8 +244,8 @@
 
     .rich-editor {
       width: 100%;
-      min-height: 150px;
-      max-height: 260px;
+      min-height: 180px;
+      max-height: 340px;
       overflow: auto;
       border: 1px solid #cbd5e1;
       border-radius: 6px;
@@ -279,7 +309,7 @@
 
     .segment-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(8, minmax(120px, 1fr));
       gap: 7px;
     }
 
@@ -310,7 +340,7 @@
     }
 
     .segment-card {
-      min-height: 38px;
+      min-height: 34px;
       display: flex;
       align-items: center;
       border: 1px solid color-mix(in srgb, var(--swatch) 42%, #d5deeb);
@@ -321,7 +351,7 @@
       background:
         linear-gradient(90deg, color-mix(in srgb, var(--swatch) 13%, #fff), #fff 54%);
       color: color-mix(in srgb, var(--swatch) 70%, #172033);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       line-height: 1.15;
       transition: transform .18s, border-color .18s, background .18s;
@@ -457,7 +487,7 @@
 
     .actions {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
       padding-top: 4px;
     }
@@ -1372,23 +1402,54 @@
     }
 
     @media (max-width: 1180px) {
-      .app {
-        grid-template-columns: 1fr;
+      .panel {
+        width: 100%;
       }
 
-      .panel {
-        position: relative;
-        top: auto;
-        max-height: none;
-        max-width: 760px;
-        width: 100%;
-        justify-self: center;
+      .segment-grid {
+        grid-template-columns: repeat(4, minmax(120px, 1fr));
+      }
+
+      .form > .field,
+      .form > .two-fields,
+      .form > .checks,
+      .form > .actions,
+      .form > .field:has(#documentFile),
+      .form > .field:has(#inlineGraphicType),
+      .form > .field:has(#deadlineNote) {
+        grid-column: span 6;
       }
     }
 
     @media (max-width: 860px) {
       .app {
         padding: 14px;
+      }
+
+      .panel {
+        position: relative;
+        top: auto;
+        max-height: none;
+      }
+
+      .panel-header {
+        grid-template-columns: 1fr;
+      }
+
+      .form {
+        grid-template-columns: 1fr;
+      }
+
+      .form > .field,
+      .form > .two-fields,
+      .form > .checks,
+      .form > .actions,
+      .form > .summary-editor {
+        grid-column: 1 / -1;
+      }
+
+      .segment-grid {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
       }
 
       .stage {
