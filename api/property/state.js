@@ -51,6 +51,28 @@ function json(response, status, body) {
   return response.status(status).json(body);
 }
 
+async function verifyBearerSession(request, supabaseUrl, serviceRoleKey) {
+  const authorization = String(request.headers.authorization || "");
+  if (!authorization.startsWith("Bearer ")) return null;
+  const token = authorization.slice(7).trim();
+  if (!token) return null;
+  const result = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: {
+      apikey: serviceRoleKey,
+      authorization: `Bearer ${token}`
+    }
+  });
+  if (!result.ok) return null;
+  const user = await result.json();
+  const role = user?.app_metadata?.role === "admin" ? "admin" : "user";
+  return {
+    userId: user?.id || null,
+    allowedEntityIds: role === "admin"
+      ? ["ent-cpf-1", "ent-cnpj-1", "ent-cnpj-2"]
+      : ["ent-cnpj-1", "ent-cnpj-2"]
+  };
+}
+
 function supabaseUrlFromEnv() {
   return process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
 }
@@ -70,7 +92,7 @@ export default async function handler(request, response) {
     return json(response, 503, { message: "Supabase service role nao configurada para o Property." });
   }
 
-  const session = verifySession(request);
+  const session = verifySession(request) || await verifyBearerSession(request, supabaseUrl, serviceRoleKey);
   const entityId = String(request.query?.entityId || request.body?.entityId || "").trim();
   if (!session || !session.allowedEntityIds?.includes(entityId)) {
     return json(response, 401, { message: "Sessao invalida." });
@@ -91,7 +113,7 @@ export default async function handler(request, response) {
     const result = await fetch(`${supabaseUrl}/rest/v1/property_module_state`, {
       method: "POST",
       headers: supabaseHeaders("resolution=merge-duplicates"),
-      body: JSON.stringify({ entity_id: entityId, payload })
+      body: JSON.stringify({ entity_id: entityId, updated_by: session.userId || null, payload })
     });
     if (!result.ok) return json(response, result.status, { message: "Nao foi possivel salvar o estado." });
     return json(response, 200, { ok: true });
