@@ -4,6 +4,10 @@ const ALL_ENTITIES = ["ent-cpf-1", "ent-cnpj-1", "ent-cnpj-2"];
 const ALL_MODULES = ["dashboard", "properties", "people", "contracts", "finance", "reports", "expenses", "profits"];
 const COOKIE_NAME = "property_session";
 const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
+const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
+const LUCE_EMAIL_DOMAIN = "lucesolutions.com.br";
+const LEGACY_EMAIL_DOMAIN = ["axi", "onsolutions.com.br"].join("");
+const SUPABASE_USER_PAGE_LIMIT = 100;
 
 const accounts = [
   {
@@ -26,46 +30,164 @@ const accounts = [
   }
 ];
 
-async function supabaseSession(username, password) {
+function uniqueKeys(keys) {
+  return keys.filter(Boolean).filter((key, index, all) => all.indexOf(key) === index);
+}
+
+function legacyEmailForIdentifier(identifier) {
+  const aliases = {
+    fernanddo46: `fernanddo46@${LEGACY_EMAIL_DOMAIN}`
+  };
+  return aliases[identifier] || "";
+}
+
+function fallbackEmailCandidates(identifier) {
+  const directEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier) ? identifier : "";
+  const legacyEmail = legacyEmailForIdentifier(identifier);
+  if (directEmail) return [directEmail];
+  return uniqueKeys([
+    legacyEmail,
+    `${identifier}@${LUCE_EMAIL_DOMAIN}`,
+    `${identifier}@${LEGACY_EMAIL_DOMAIN}`,
+    `${identifier}@orteconte.com.br`
+  ]);
+}
+
+function authKeyCandidates(serviceRoleKey) {
+  return uniqueKeys([
+    process.env.SUPABASE_PUBLISHABLE_KEY,
+    process.env.SUPABASE_ANON_KEY,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    process.env.VITE_SUPABASE_ANON_KEY,
+    DEFAULT_SUPABASE_PUBLISHABLE_KEY,
+    serviceRoleKey
+  ]);
+}
+
+function isKeyConfigurationError(error) {
+  const payloadText = JSON.stringify(error?.payload || {}).toLowerCase();
+  const message = String(error?.message || "").toLowerCase();
+  return error?.status === 401 && /api key|apikey|jwt|token/.test(`${payloadText} ${message}`);
+}
+
+async function supabaseFetch(path, { method = "GET", key, body, bearer } = {}) {
   const supabaseUrl = supabaseUrlFromEnv();
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!anonKey || !serviceRoleKey) return null;
-
-  let email = username.includes("@") ? username : "";
-  if (!email) {
-    const response = await fetch(`${supabaseUrl}/auth/v1/admin/users?page=1&per_page=1000`, {
-      headers: {
-        apikey: serviceRoleKey,
-        authorization: `Bearer ${serviceRoleKey}`
-      }
-    });
-    if (!response.ok) return null;
-    const data = await response.json();
-    const users = Array.isArray(data?.users) ? data.users : [];
-    const match = users.find((user) => {
-      const metadata = user.user_metadata || {};
-      return [metadata.username, metadata.display_name, metadata.name, user.email?.split("@")[0]]
-        .map((value) => String(value || "").trim().toLowerCase())
-        .includes(username);
-    });
-    email = match?.email || "";
-  }
-  if (!email) return null;
-
-  const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
-    method: "POST",
+  const result = await fetch(`${supabaseUrl}${path}`, {
+    method,
     headers: {
-      apikey: anonKey,
-      "content-type": "application/json"
+      apikey: key,
+      "content-type": "application/json",
+      ...(bearer ? { authorization: `Bearer ${bearer}` } : {})
     },
-    body: JSON.stringify({ email, password })
+    body: body ? JSON.stringify(body) : undefined
   });
-  if (!response.ok) return null;
-  const data = await response.json();
-  const role = data.user?.app_metadata?.role === "admin" || username === "gerente" ? "admin" : "user";
+  const data = await result.json().catch(() => ({}));
+  if (!result.ok) {
+    const error = new Error(data.msg || data.message || data.error_description || "Falha de autenticacao.");
+    error.status = result.status;
+    error.payload = data;
+    throw error;
+  }
+  return data;
+}
+
+async function findEmailByIdentifier(identifier, serviceRoleKey) {
+  const directEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier) ? identifier : legacyEmailForIdentifier(identifier);
+  if (directEmail) return directEmail;
+  if (!serviceRoleKey) return "";
+
+  try {
+    for (let page = 1; page <= 10; page += 1) {
+      const data = await supabaseFetch(`/auth/v1/admin/users?page=${page}&per_page=${SUPABASE_USER_PAGE_LIMIT}`, {
+        key: serviceRoleKey,
+        bearer: serviceRoleKey
+      });
+      const users = Array.isArray(data?.users) ? data.users : [];
+      const match = users.find((user) => {
+        const metadata = user.user_metadata || {};
+        return [
+          metadata.username,
+          metadata.display_name,
+          metadata.name,
+          String(user.email || "").split("@")[0]
+        ].map((value) => String(value || "").trim().toLowerCase()).includes(identifier);
+      });
+      if (match?.email) return match.email;
+      if (users.length < SUPABASE_USER_PAGE_LIMIT) break;
+    }
+  } catch (error) {
+    console.warn("Property user lookup failed", error);
+  }
+
+  return "";
+}
+
+async function signInWithPassword(email, password, keys) {
+  let lastError;
+  for (const key of keys) {
+    try {
+      return await supabaseFetch("/auth/v1/token?grant_type=password", {
+        method: "POST",
+        key,
+        body: { email, password }
+      });
+    } catch (error) {
+      lastError = error;
+      if (!isKeyConfigurationError(error)) throw error;
+    }
+  }
+  throw lastError || new Error("Falha de autenticacao.");
+}
+
+async function signInWithEmailCandidates(emailCandidates, password, keys) {
+  let lastError;
+  for (const email of emailCandidates) {
+    try {
+      return await signInWithPassword(email, password, keys);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("Falha de autenticacao.");
+}
+
+async function approveLegacyUserIfNeeded(user, serviceRoleKey) {
+  if (!serviceRoleKey || !user?.id || user.app_metadata?.status) return user;
+  const appMetadata = {
+    ...(user.app_metadata || {}),
+    role: user.app_metadata?.role || "user",
+    status: "approved"
+  };
+  const data = await supabaseFetch(`/auth/v1/admin/users/${user.id}`, {
+    method: "PUT",
+    key: serviceRoleKey,
+    bearer: serviceRoleKey,
+    body: { app_metadata: appMetadata }
+  });
+  return data.user || { ...user, app_metadata: appMetadata };
+}
+
+async function supabaseSession(identifier, password) {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const authKeys = authKeyCandidates(serviceRoleKey);
+  if (authKeys.length === 0) return null;
+
+  const email = await findEmailByIdentifier(identifier, serviceRoleKey);
+  const emailCandidates = email ? [email] : fallbackEmailCandidates(identifier);
+  if (emailCandidates.length === 0) return null;
+
+  const data = await signInWithEmailCandidates(emailCandidates, password, authKeys);
+  if (data.user?.app_metadata?.status === "pending") {
+    const error = new Error("Conta pendente de aprovacao.");
+    error.code = "account_pending";
+    throw error;
+  }
+
+  data.user = await approveLegacyUserIfNeeded(data.user, serviceRoleKey);
+  const role = data.user?.app_metadata?.role === "admin" ? "admin" : "user";
   return {
-    name: data.user?.user_metadata?.display_name || data.user?.user_metadata?.username || (role === "admin" ? "Gerente" : "User"),
+    name: data.user?.user_metadata?.display_name || data.user?.user_metadata?.username || data.user?.email || (role === "admin" ? "Administrador" : "Usuario"),
     role,
     allowedEntityIds: ALL_ENTITIES,
     allowedModules: role === "admin" ? ALL_MODULES : ["dashboard", "properties", "people", "contracts", "finance", "reports"]

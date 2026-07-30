@@ -283,7 +283,7 @@ function buildPdfReport(result) {
     <main class="report">
       <section class="hero">
         <div>
-          <img class="brand-logo" src="/review-folha/logo-luce.svg" alt="Luce">
+          <img class="brand-logo" src="/assets/logo-luce-oficial.png" alt="Luce">
           <p>Luce</p>
           <h1>Review Folha</h1>
         </div>

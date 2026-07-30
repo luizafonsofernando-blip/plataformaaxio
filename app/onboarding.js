@@ -4131,7 +4131,7 @@
                 <div class="pdf-print-tip">Para remover data, endereço, about:blank e paginação automática, desmarque <strong>Cabeçalhos e rodapés</strong> na janela de impressão.</div>
                 <button class="btn primary" id="pdfPrintButton" type="button">Imprimir PDF</button>
               </div>
-              <div class="pdf-brand-strip"><img src="logo-luce.svg" alt="Luce"></div>
+              <div class="pdf-brand-strip"><img src="/assets/logo-luce-oficial.png" alt="Luce"></div>
               <article class="document">${contentHtml}</article>
             </div>
           </body>
@@ -4179,7 +4179,7 @@
       const safeHtml = sanitizeDocumentHtml(contentHtml);
       printRoot.innerHTML = `
         <div class="pdf-shell">
-          <div class="pdf-brand-strip"><img src="logo-luce.svg" alt="Luce"></div>
+          <div class="pdf-brand-strip"><img src="/assets/logo-luce-oficial.png" alt="Luce"></div>
           <article class="document">${safeHtml}</article>
         </div>
       `;
