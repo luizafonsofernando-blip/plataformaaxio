@@ -3689,12 +3689,13 @@
     function renderHistory(loadError = "") {
       const list = $("historyList");
       if (!list) return;
+      const errorMessage = typeof loadError === "string" ? loadError : "";
       if (!historyLoaded) {
         list.innerHTML = `<div class="history-empty">Carregando histórico seguro...</div>`;
         return;
       }
-      if (loadError) {
-        list.innerHTML = `<div class="history-empty">${escapeHtml(loadError)}</div>`;
+      if (errorMessage) {
+        list.innerHTML = `<div class="history-empty">${escapeHtml(errorMessage)}</div>`;
         return;
       }
       const typeFilter = $("historyTypeFilter").value;
@@ -4503,8 +4504,8 @@
       if (event.target === $("historyModal")) $("historyModal").hidden = true;
     });
 
-    $("historyTypeFilter").addEventListener("change", renderHistory);
-    $("historySearch").addEventListener("input", renderHistory);
+    $("historyTypeFilter").addEventListener("change", () => renderHistory());
+    $("historySearch").addEventListener("input", () => renderHistory());
 
     $("historyList").addEventListener("click", async (event) => {
       const button = event.target.closest("[data-history-action]");
