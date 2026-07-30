@@ -264,7 +264,7 @@
         ? localApiRoutes[functionName]
         : `${SUPABASE_URL}/functions/v1/${functionName}`;
       try {
-        const response = await fetch(url, {
+        const requestOptions = {
           method,
           headers: {
             ...(localApiRoutes[functionName] ? {} : { apikey: SUPABASE_PUBLISHABLE_KEY }),
@@ -273,9 +273,25 @@
           },
           body: body ? JSON.stringify(body) : undefined,
           signal: controller.signal
-        });
+        };
+        let response = await fetch(url, requestOptions);
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
+          if (localApiRoutes[functionName] && functionName === "onboarding-documents") {
+            response = await fetch(`${SUPABASE_URL}/functions/v1/${functionName}`, {
+              ...requestOptions,
+              headers: {
+                apikey: SUPABASE_PUBLISHABLE_KEY,
+                "Content-Type": "application/json",
+                ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+              }
+            });
+            const fallbackData = await response.json().catch(() => ({}));
+            if (response.ok) return fallbackData;
+            const fallbackError = new Error(fallbackData.error || data.error || "Nao foi possivel concluir a operacao.");
+            fallbackError.code = fallbackData.code || data.code || "function_error";
+            throw fallbackError;
+          }
           const functionError = new Error(data.error || "Não foi possível concluir a operação.");
           functionError.code = data.code || "function_error";
           throw functionError;
@@ -3410,6 +3426,14 @@
       }
     }
 
+    function normalizeSearchText(text) {
+      return String(text || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+    }
+
     function historyItemFromRow(row) {
       return {
         id: row.id,
@@ -3502,9 +3526,24 @@
         historyCache = (rows || []).map(historyItemFromRow);
         await migrateLegacyHistory();
         historyLoaded = true;
+        if (historyCache.length) {
+          renderHistory();
+          return;
+        }
         renderHistory();
       } catch (error) {
+        if (!historyCache.length) {
+          historyCache = legacyHistoryItems().map((item) => ({
+            ...item,
+            id: item.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            createdAt: item.createdAt || new Date().toISOString()
+          }));
+        }
         historyLoaded = true;
+        if (historyCache.length) {
+          renderHistory();
+          return;
+        }
         renderHistory(error.message || "Não foi possível carregar o histórico.");
       }
     }
@@ -3634,7 +3673,7 @@
     }
 
     function historySearchText(item) {
-      return [
+      return normalizeSearchText([
         item.serial,
         item.emitente,
         item.status,
@@ -3644,7 +3683,7 @@
         item.procedimento,
         documentKindLabel(item.kind),
         item.createdAt
-      ].join(" ").toLowerCase();
+      ].join(" "));
     }
 
     function renderHistory(loadError = "") {
@@ -3659,7 +3698,7 @@
         return;
       }
       const typeFilter = $("historyTypeFilter").value;
-      const search = $("historySearch").value.trim().toLowerCase();
+      const search = normalizeSearchText($("historySearch").value);
       const filtered = historyItems().filter((item) => {
         const typeMatch = typeFilter === "todos" || (typeFilter === "rascunho" ? item.status === "rascunho" : item.kind === typeFilter);
         const searchMatch = !search || historySearchText(item).includes(search);
@@ -4450,10 +4489,10 @@
     });
 
     $("openHistory").addEventListener("click", async () => {
-      await loadHistoryFromSupabase();
-      renderHistory();
       $("historyModal").hidden = false;
       $("historySearch").focus();
+      await loadHistoryFromSupabase();
+      renderHistory();
     });
 
     $("closeHistory").addEventListener("click", () => {
