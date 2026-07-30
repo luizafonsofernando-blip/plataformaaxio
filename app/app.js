@@ -2567,15 +2567,13 @@
     }
 
     function docHero(title) {
-      const brand = documentBrand();
       const serialMeta = currentDocumentSerial
         ? `<span class="doc-chip">Série: ${escapeHtml(currentDocumentSerial)}</span><span class="doc-chip">Emitente: ${escapeHtml(activeUsername())}</span>`
         : "";
       return `
         <div class="doc-hero">
-          <div class="doc-logo-bar ${brand.logoClass}"><img src="${brand.logo}" alt="${brand.name}"></div>
           <div class="doc-cover">
-            <div class="doc-eyebrow">${brand.name} · ${currentDisplayDate()}</div>
+            <div class="doc-eyebrow">${currentDisplayDate()}</div>
             <h2>${title}<br>${value("razao")}</h2>
             <div class="doc-meta">
               <span class="doc-chip">${identificacaoTitulo()}: ${value("cnpj")}</span>
@@ -2590,15 +2588,13 @@
     }
 
     function openingDocHero() {
-      const brand = documentBrand();
       const serialMeta = currentDocumentSerial
         ? `<span class="doc-chip">Série: ${escapeHtml(currentDocumentSerial)}</span><span class="doc-chip">Emitente: ${escapeHtml(activeUsername())}</span>`
         : "";
       return `
         <div class="doc-hero">
-          <div class="doc-logo-bar ${brand.logoClass}"><img src="${brand.logo}" alt="${brand.name}"></div>
           <div class="doc-cover">
-            <div class="doc-eyebrow">${brand.name} · ${new Date().toLocaleDateString("pt-BR")}</div>
+            <div class="doc-eyebrow">${new Date().toLocaleDateString("pt-BR")}</div>
             <h2>Briefing Abertura<br>${value("aberturaRazao")}</h2>
             <div class="doc-meta">
               <span class="doc-chip">Tipo jurídico: ${value("aberturaTipoJuridico")}</span>
