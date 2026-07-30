@@ -9,8 +9,94 @@
   pointer-events: none;
 }
 
-.brand {
-  padding-top: 72px;
+.sidebar .brand {
+  display: none !important;
+}
+
+.sidebar nav {
+  margin-top: 92px;
+}
+
+.cerne-insight-preview {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+  margin: -2px 0 14px;
+  padding: 16px 18px;
+  color: #172b40;
+  background: linear-gradient(135deg, #ffffff, #f3f7fc);
+  border: 1px solid #d7e2ee;
+  border-left: 3px solid #356bdd;
+  border-radius: 9px;
+  box-shadow: 0 10px 26px rgba(23, 43, 64, .08);
+}
+
+.cerne-insight-preview[data-accent="emerald"] {
+  border-left-color: #31a179;
+}
+
+.cerne-insight-preview[data-accent="amber"] {
+  border-left-color: #d58a36;
+}
+
+.cerne-insight-preview[data-accent="violet"] {
+  border-left-color: #735dc5;
+}
+
+.cerne-insight-preview header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.cerne-insight-preview small {
+  display: block;
+  color: #718095;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.cerne-insight-preview h3 {
+  margin: 3px 0 0;
+  font-size: 16px;
+  letter-spacing: -.2px;
+}
+
+.cerne-insight-preview button {
+  width: 28px;
+  height: 28px;
+  color: #6a788b;
+  background: #fff;
+  border: 1px solid #d7e2ee;
+  border-radius: 7px;
+}
+
+.cerne-insight-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cerne-insight-grid span {
+  min-height: 70px;
+  padding: 11px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.cerne-insight-grid b {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.cerne-insight-grid em {
+  color: #708095;
+  font-size: 11px;
+  font-style: normal;
 }
 
 .powered-by {
@@ -156,5 +242,13 @@
 
   .brand {
     padding-top: 0;
+  }
+
+  .sidebar nav {
+    margin-top: 0;
+  }
+
+  .cerne-insight-grid {
+    grid-template-columns: 1fr;
   }
 }
