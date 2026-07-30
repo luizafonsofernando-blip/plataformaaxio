@@ -41,7 +41,7 @@ export function PropertyModule() {
     return (
       <section style={{ minHeight: "70vh", display: "grid", placeItems: "center", padding: 24 }}>
         <form onSubmit={signIn} style={{ width: "min(440px, 100%)", display: "grid", gap: 12 }}>
-          <img src="/property/axion-logo.png" alt="Axion Solutions" style={{ width: "min(280px, 100%)", margin: "0 auto 8px" }} />
+          <img src="/property/luce-logo.svg" alt="Luce" style={{ width: "min(280px, 100%)", margin: "0 auto 8px" }} />
           <h1 style={{ margin: 0, color: "#17345c" }}>Acesse o Property</h1>
           <label>
             Perfil
@@ -86,8 +86,8 @@ export function PropertyModule() {
         </button>
       </div>
       <iframe
-        title="Axion Property"
-        src={`/property/axion-property-demo.html?${query.toString()}`}
+        title="Luce Property"
+        src={`/property/luce-property-demo.html?${query.toString()}`}
         style={{ width: "100%", minHeight: "82vh", border: "1px solid #dbe4ee", borderRadius: 8, background: "#fff" }}
       />
     </section>

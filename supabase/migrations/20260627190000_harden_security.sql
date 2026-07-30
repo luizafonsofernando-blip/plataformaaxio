@@ -1,4 +1,4 @@
--- Security hardening for Plataforma Axio.
+-- Security hardening for Plataforma Luce.
 -- Run in Supabase SQL editor or through `supabase db push`.
 -- The frontend must use Edge Functions; direct table access is intentionally denied.
 

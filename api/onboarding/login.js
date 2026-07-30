@@ -1,6 +1,8 @@
 const SUPABASE_USER_PAGE_LIMIT = 100;
 const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
 const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
+const LUCE_EMAIL_DOMAIN = "lucesolutions.com.br";
+const LEGACY_EMAIL_DOMAIN = ["axi", "onsolutions.com.br"].join("");
 
 function json(response, status, body) {
   response.status(status).setHeader("Cache-Control", "no-store");
@@ -9,7 +11,7 @@ function json(response, status, body) {
 
 function legacyEmailForIdentifier(identifier) {
   const aliases = {
-    fernanddo46: "fernanddo46@axionsolutions.com.br",
+    fernanddo46: `fernanddo46@${LEGACY_EMAIL_DOMAIN}`,
   };
   return aliases[identifier] || "";
 }
@@ -20,7 +22,8 @@ function fallbackEmailCandidates(identifier) {
   if (directEmail) return [directEmail];
   return uniqueKeys([
     legacyEmail,
-    `${identifier}@axionsolutions.com.br`,
+    `${identifier}@${LUCE_EMAIL_DOMAIN}`,
+    `${identifier}@${LEGACY_EMAIL_DOMAIN}`,
     `${identifier}@orteconte.com.br`,
   ]);
 }

@@ -1,6 +1,13 @@
 const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
 const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
-const ADMIN_EMAILS = new Set(["admin01@axionsolutions.com.br", "fernanddo46@axionsolutions.com.br"]);
+const LUCE_EMAIL_DOMAIN = "lucesolutions.com.br";
+const LEGACY_EMAIL_DOMAIN = ["axi", "onsolutions.com.br"].join("");
+const ADMIN_EMAILS = new Set([
+  `admin01@${LUCE_EMAIL_DOMAIN}`,
+  `fernanddo46@${LUCE_EMAIL_DOMAIN}`,
+  `admin01@${LEGACY_EMAIL_DOMAIN}`,
+  `fernanddo46@${LEGACY_EMAIL_DOMAIN}`,
+]);
 const PENDING_CLEANUP_CUTOFF = new Date("2026-07-25T03:00:00.000Z");
 
 function json(response, status, body) {
@@ -148,7 +155,7 @@ async function restoreUsersFromHistory(serviceRoleKey) {
     candidates.set(key, {
       name: cleanName || cleanUsername,
       username: cleanUsername || cleanName,
-      email: cleanEmail || `${slug}@axionsolutions.com.br`,
+      email: cleanEmail || `${slug}@${LUCE_EMAIL_DOMAIN}`,
     });
   };
   (Array.isArray(documents) ? documents : []).forEach((row) => addCandidate({ name: row.emitente, username: row.emitente }));

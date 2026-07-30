@@ -283,8 +283,8 @@ function buildPdfReport(result) {
     <main class="report">
       <section class="hero">
         <div>
-          <img class="brand-logo" src="/review-folha/logo-axion.png" alt="Axion Solutions">
-          <p>Axion Solutions</p>
+          <img class="brand-logo" src="/review-folha/logo-luce.svg" alt="Luce">
+          <p>Luce</p>
           <h1>Review Folha</h1>
         </div>
         <div class="meta">

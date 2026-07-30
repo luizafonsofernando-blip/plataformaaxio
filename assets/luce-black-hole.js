@@ -5,7 +5,7 @@ function mountBlackHole(screen) {
   mounted.add(screen);
 
   const host = document.createElement("div");
-  host.className = "axion-black-hole-bg";
+  host.className = "luce-black-hole-bg";
   host.setAttribute("aria-hidden", "true");
   const canvas = document.createElement("canvas");
   host.appendChild(canvas);
@@ -195,7 +195,7 @@ function mountBlackHole(screen) {
   resize();
   animate();
 
-  screen.addEventListener("axion:black-hole:dispose", () => {
+  screen.addEventListener("luce:black-hole:dispose", () => {
     cancelAnimationFrame(frame);
     resizeObserver.disconnect();
     window.removeEventListener("resize", resize);

@@ -67,7 +67,7 @@
   animation: propertyPortalBreath 4.8s ease-in-out infinite alternate;
 }
 
-.axion-black-hole-bg {
+.luce-black-hole-bg {
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -76,7 +76,7 @@
   pointer-events: none;
 }
 
-.axion-black-hole-bg canvas {
+.luce-black-hole-bg canvas {
   display: block;
   width: 100%;
   height: 100%;

@@ -1,4 +1,4 @@
--- Axion Property module storage boundary.
+-- Luce Property module storage boundary.
 -- API/Edge Functions should read and write this table with the service role.
 -- Direct browser table access remains blocked by RLS.
 

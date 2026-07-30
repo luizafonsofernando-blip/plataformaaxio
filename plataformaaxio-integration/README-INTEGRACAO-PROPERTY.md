@@ -1,19 +1,19 @@
-# Integração do módulo Property na Plataforma Axio
+# Integração do módulo Property na Plataforma Luce
 
-Este pacote foi preparado porque o repositório remoto `luizafonsofernando-blip/plataformaaxio.git` não pôde ser clonado a partir desta sessão.
+Este pacote foi preparado para integração do módulo Property na plataforma Luce.
 
 ## Arquivos principais
 
 - `PropertyModule.tsx`: componente React para adicionar na aba/módulo `Property`.
 - `supabaseClient.ts`: cliente Supabase apontando para `https://prznhgwiibcazuwlwvnt.supabase.co`.
 - `property-auth.ts`: regra de perfis `admin` e `user`.
-- `axion-property-demo.html`: cópia do sistema atual para publicar em `public/property/`.
-- `axion-logo.png`: logo usada pelo módulo.
+- `luce-property-demo.html`: cópia do sistema atual para publicar em `public/property/`.
+- `luce-logo.svg`: logo usada pelo módulo.
 - `supabase-security-starter.sql`: políticas iniciais de RLS.
 
 ## Como plugar na landing page
 
-1. Copie `axion-property-demo.html` e `axion-logo.png` para:
+1. Copie `luce-property-demo.html` e `luce-logo.svg` para:
 
    `public/property/`
 

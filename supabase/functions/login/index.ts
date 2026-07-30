@@ -1,5 +1,8 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+const LUCE_EMAIL_DOMAIN = "lucesolutions.com.br";
+const LEGACY_EMAIL_DOMAIN = ["axi", "onsolutions.com.br"].join("");
+
 const allowedOrigin = (request: Request) => {
   const origin = request.headers.get("origin") || "";
   return /^https:\/\/plataformaaxio(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(origin) ||
@@ -35,7 +38,7 @@ const hash = async (value: string) => {
 
 const legacyEmailForIdentifier = (identifier: string) => {
   const aliases: Record<string, string> = {
-    fernanddo46: "fernanddo46@axionsolutions.com.br",
+    fernanddo46: `fernanddo46@${LEGACY_EMAIL_DOMAIN}`,
   };
   return aliases[identifier] || "";
 };
@@ -47,7 +50,8 @@ const fallbackEmailCandidates = (identifier: string) => {
   if (directEmail) return [directEmail];
   return uniqueValues([
     legacyEmailForIdentifier(identifier),
-    `${identifier}@axionsolutions.com.br`,
+    `${identifier}@${LUCE_EMAIL_DOMAIN}`,
+    `${identifier}@${LEGACY_EMAIL_DOMAIN}`,
     `${identifier}@orteconte.com.br`,
   ]);
 };

@@ -10,7 +10,7 @@ const accounts = [
     username: "gerente",
     name: "Gerente",
     role: "admin",
-    salt: "axion-property-gerente-v1",
+    salt: "luce-property-gerente-v1",
     hash: "99087aa162a1d1a47c6d88d5606a2bee66dc7217fe19b2ce9b66b9fbef570d19",
     allowedEntityIds: ALL_ENTITIES,
     allowedModules: ALL_MODULES
@@ -19,7 +19,7 @@ const accounts = [
     username: "user",
     name: "User",
     role: "user",
-    salt: "axion-property-user-v1",
+    salt: "luce-property-user-v1",
     hash: "77e4d1425750da9ae127ebd4f10dd65cdd2b9545c8dbcfe295be6ee216a4e9b1",
     allowedEntityIds: ALL_ENTITIES,
     allowedModules: ["dashboard", "properties", "people", "contracts", "finance", "reports"]

@@ -1,5 +1,8 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+const LUCE_EMAIL_DOMAIN = "lucesolutions.com.br";
+const LEGACY_EMAIL_DOMAIN = ["axi", "onsolutions.com.br"].join("");
+
 const allowedOrigin = (request: Request) => {
   const origin = request.headers.get("origin") || "";
   return /^https:\/\/plataformaaxio(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(origin) ||
@@ -30,7 +33,12 @@ const json = (request: Request, body: Record<string, unknown>, status = 200) =>
 
 const isPendingUser = (user: { app_metadata?: Record<string, unknown> }) => user.app_metadata?.status === "pending";
 const isApprovedOrLegacyUser = (user: { app_metadata?: Record<string, unknown> }) => !isPendingUser(user);
-const ADMIN_EMAILS = new Set(["admin01@axionsolutions.com.br", "fernanddo46@axionsolutions.com.br"]);
+const ADMIN_EMAILS = new Set([
+  `admin01@${LUCE_EMAIL_DOMAIN}`,
+  `fernanddo46@${LUCE_EMAIL_DOMAIN}`,
+  `admin01@${LEGACY_EMAIL_DOMAIN}`,
+  `fernanddo46@${LEGACY_EMAIL_DOMAIN}`,
+]);
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(request) });

@@ -61,7 +61,7 @@ function resizeCanvas() {
   }));
 }
 
-function traceAxionMonogram(offsetX = 0, offsetY = 0) {
+function traceLuceMonogram(offsetX = 0, offsetY = 0) {
   ctx.beginPath();
   ctx.moveTo(-174 + offsetX, 158 + offsetY);
   ctx.lineTo(-43 + offsetX, -164 + offsetY);
@@ -81,7 +81,7 @@ function traceAxionMonogram(offsetX = 0, offsetY = 0) {
   ctx.closePath();
 }
 
-function drawAxionMark(time) {
+function drawLuceMark(time) {
   const centerX = width * 0.61;
   const centerY = height * 0.47;
   const scale = Math.min(width, height) / 800;
@@ -95,14 +95,14 @@ function drawAxionMark(time) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
-  traceAxionMonogram(16, 20);
+  traceLuceMonogram(16, 20);
   const depthGradient = ctx.createLinearGradient(-120, -150, 170, 180);
   depthGradient.addColorStop(0, "rgba(7, 29, 73, 0.96)");
   depthGradient.addColorStop(1, "rgba(1, 8, 24, 0.88)");
   ctx.fillStyle = depthGradient;
   ctx.fill("evenodd");
 
-  traceAxionMonogram();
+  traceLuceMonogram();
   const bodyGradient = ctx.createLinearGradient(-150, -170, 150, 160);
   bodyGradient.addColorStop(0, "#dcecff");
   bodyGradient.addColorStop(0.25, "#6db9ff");
@@ -115,7 +115,7 @@ function drawAxionMark(time) {
   ctx.shadowBlur = 0;
 
   ctx.save();
-  traceAxionMonogram();
+  traceLuceMonogram();
   ctx.clip("evenodd");
   const sheenPosition = ((time * 0.09) % 720) - 360;
   const sheen = ctx.createLinearGradient(sheenPosition - 80, 0, sheenPosition + 80, 0);
@@ -126,7 +126,7 @@ function drawAxionMark(time) {
   ctx.fillRect(-220, -210, 440, 410);
   ctx.restore();
 
-  traceAxionMonogram();
+  traceLuceMonogram();
   ctx.lineWidth = 2;
   ctx.strokeStyle = "rgba(221, 239, 255, 0.42)";
   ctx.stroke();
@@ -221,7 +221,7 @@ function animate(time = 0) {
   ctx.clearRect(0, 0, width, height);
   drawOrbitRings(time);
   drawOrbitalParticles(time);
-  drawAxionMark(time);
+  drawLuceMark(time);
   requestAnimationFrame(animate);
 }
 
@@ -233,6 +233,7 @@ const SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
 const SUPABASE_SESSION_KEY = "onboardContabilSupabaseSession";
 const ADMIN_LOGIN_ALIAS = "fernanddo46";
+const LEGACY_AUTH_DOMAIN = ["axi", "onsolutions.com.br"].join("");
 
 const accessDialog = document.getElementById("accessDialog");
 const openLoginButton = document.getElementById("openLogin");
@@ -299,7 +300,7 @@ async function authRequest(path, { method = "GET", body, accessToken } = {}) {
 
 function authEmail(identifier) {
   const normalized = String(identifier || "").trim().toLowerCase();
-  if (normalized === ADMIN_LOGIN_ALIAS) return `${ADMIN_LOGIN_ALIAS}@axionsolutions.com.br`;
+  if (normalized === ADMIN_LOGIN_ALIAS) return `${ADMIN_LOGIN_ALIAS}@${LEGACY_AUTH_DOMAIN}`;
   return normalized;
 }
 

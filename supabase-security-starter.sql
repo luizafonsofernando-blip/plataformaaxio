@@ -1,4 +1,4 @@
--- Axion Property - base de segurança para Supabase
+-- Luce Property - base de segurança para Supabase
 -- Ajuste os nomes das tabelas conforme a modelagem definitiva.
 
 create type public.app_role as enum ('admin', 'user');
