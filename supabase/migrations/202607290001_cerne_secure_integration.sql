@@ -32,7 +32,7 @@ create table if not exists public.cerne_clients (
   employees integer not null default 0 check (employees >= 0),
   status text not null default 'active' check (status in ('active','inactive')),
   entry_date date not null default current_date,
-  source_document_id text references public.onboarding_documents(id) on delete set null,
+  source_document_id uuid references public.onboarding_documents(id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (cnpj)
@@ -64,7 +64,7 @@ with check (owner_id = auth.uid() or public.is_luce_admin());
 
 create table if not exists public.cerne_onboarding_queue (
   id uuid primary key default gen_random_uuid(),
-  source_document_id text not null references public.onboarding_documents(id) on delete cascade,
+  source_document_id uuid not null references public.onboarding_documents(id) on delete cascade,
   owner_id uuid not null references auth.users(id) on delete restrict,
   event_type text not null check (event_type in ('entry','exit')),
   status text not null default 'pending' check (status in ('pending','accepted','rejected')),
