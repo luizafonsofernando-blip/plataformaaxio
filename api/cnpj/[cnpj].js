@@ -1,4 +1,12 @@
+import { rejectDisallowedOrigin, setApiSecurityHeaders } from "../_security.js";
+
 export default async function handler(request, response) {
+  setApiSecurityHeaders(response);
+  if (rejectDisallowedOrigin(request, response)) return;
+  if (request.method !== "GET") {
+    return response.status(405).json({ error: "Metodo nao permitido." });
+  }
+
   const cnpj = String(request.query.cnpj || "").replace(/\D/g, "");
 
   if (cnpj.length !== 14) {

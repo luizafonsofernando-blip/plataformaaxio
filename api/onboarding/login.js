@@ -1,11 +1,15 @@
+import { rejectDisallowedOrigin, rejectLargeRequest, setApiSecurityHeaders } from "../_security.js";
+
 const SUPABASE_USER_PAGE_LIMIT = 100;
 const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
 const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
 const LUCE_EMAIL_DOMAIN = "lucesolutions.com.br";
 const LEGACY_EMAIL_DOMAIN = ["axi", "onsolutions.com.br"].join("");
+const MAX_BODY_BYTES = 4_000;
 
 function json(response, status, body) {
-  response.status(status).setHeader("Cache-Control", "no-store");
+  setApiSecurityHeaders(response);
+  response.status(status);
   return response.json(body);
 }
 
@@ -148,6 +152,9 @@ async function approveLegacyUserIfNeeded(user, serviceRoleKey) {
 }
 
 export default async function handler(request, response) {
+  if (rejectDisallowedOrigin(request, response)) return;
+  if (rejectLargeRequest(request, response, MAX_BODY_BYTES)) return;
+
   if (request.method !== "POST") {
     return json(response, 405, { code: "invalid_credentials" });
   }

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import formidable from "formidable";
 import * as XLSX from "xlsx";
+import { rejectDisallowedOrigin, rejectLargeRequest, setApiSecurityHeaders } from "../_security.js";
 
 export const config = {
   api: {
@@ -10,8 +11,13 @@ export const config = {
 
 const DECIMAL_DIGITS = 4;
 const DECIMAL_SCALE = 10 ** DECIMAL_DIGITS;
+const MAX_UPLOAD_BYTES = 75 * 1024 * 1024;
 
 export default async function handler(request, response) {
+  setApiSecurityHeaders(response);
+  if (rejectDisallowedOrigin(request, response)) return;
+  if (rejectLargeRequest(request, response, MAX_UPLOAD_BYTES)) return;
+
   if (request.method !== "POST") {
     return response.status(405).json({ error: "Metodo nao permitido." });
   }

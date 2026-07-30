@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { rejectDisallowedOrigin, rejectLargeRequest, setApiSecurityHeaders } from "../_security.js";
 
 const ALL_ENTITIES = ["ent-cpf-1", "ent-cnpj-1", "ent-cnpj-2"];
 const ALL_MODULES = ["dashboard", "properties", "people", "contracts", "finance", "reports", "expenses", "profits"];
@@ -8,6 +9,7 @@ const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_
 const LUCE_EMAIL_DOMAIN = "lucesolutions.com.br";
 const LEGACY_EMAIL_DOMAIN = ["axi", "onsolutions.com.br"].join("");
 const SUPABASE_USER_PAGE_LIMIT = 100;
+const MAX_BODY_BYTES = 4_000;
 
 const accounts = [
   {
@@ -223,7 +225,9 @@ function verifyPassword(password, account) {
 }
 
 export default async function handler(request, response) {
-  response.setHeader("Cache-Control", "no-store");
+  setApiSecurityHeaders(response);
+  if (rejectDisallowedOrigin(request, response)) return;
+  if (rejectLargeRequest(request, response, MAX_BODY_BYTES)) return;
 
   if (request.method !== "POST") {
     return response.status(405).json({ message: "Metodo nao permitido." });

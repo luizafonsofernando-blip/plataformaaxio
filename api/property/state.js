@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { rejectDisallowedOrigin, rejectLargeRequest, setApiSecurityHeaders } from "../_security.js";
 
 const COOKIE_NAME = "property_session";
 const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
@@ -46,7 +47,7 @@ function supabaseHeaders(prefer) {
 }
 
 function json(response, status, body) {
-  response.setHeader("Cache-Control", "no-store");
+  setApiSecurityHeaders(response);
   return response.status(status).json(body);
 }
 
@@ -59,7 +60,10 @@ function hasValidPayloadSize(payload) {
 }
 
 export default async function handler(request, response) {
-  response.setHeader("Cache-Control", "no-store");
+  setApiSecurityHeaders(response);
+  if (rejectDisallowedOrigin(request, response)) return;
+  if (rejectLargeRequest(request, response, MAX_PAYLOAD_BYTES + 20_000)) return;
+
   const supabaseUrl = supabaseUrlFromEnv();
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceRoleKey) {

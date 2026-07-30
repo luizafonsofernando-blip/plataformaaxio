@@ -1,3 +1,5 @@
+import { rejectDisallowedOrigin, rejectLargeRequest, setApiSecurityHeaders } from "../_security.js";
+
 const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
 const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
 const LUCE_EMAIL_DOMAIN = "lucesolutions.com.br";
@@ -9,10 +11,11 @@ const ADMIN_EMAILS = new Set([
   `fernanddo46@${LEGACY_EMAIL_DOMAIN}`,
 ]);
 const PENDING_CLEANUP_CUTOFF = new Date("2026-07-25T03:00:00.000Z");
+const MAX_BODY_BYTES = 8_000;
 
 function json(response, status, body) {
-  response.status(status).setHeader("Cache-Control", "no-store");
-  response.setHeader("X-Content-Type-Options", "nosniff");
+  setApiSecurityHeaders(response);
+  response.status(status);
   return response.json(body);
 }
 
@@ -228,6 +231,9 @@ async function rejectUser(user, serviceRoleKey) {
 }
 
 export default async function handler(request, response) {
+  if (rejectDisallowedOrigin(request, response)) return;
+  if (rejectLargeRequest(request, response, MAX_BODY_BYTES)) return;
+
   if (!["GET", "POST"].includes(request.method)) return json(response, 405, { error: "Metodo nao permitido." });
   const { publicKey, serviceRoleKey } = supabaseConfig();
   if (!publicKey || !serviceRoleKey) return json(response, 503, { error: "Servico indisponivel." });

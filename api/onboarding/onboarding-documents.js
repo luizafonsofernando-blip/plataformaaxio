@@ -1,9 +1,12 @@
+import { rejectDisallowedOrigin, rejectLargeRequest, setApiSecurityHeaders } from "../_security.js";
+
 const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
 const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
+const MAX_BODY_BYTES = 1_000_000;
 
 function json(response, status, body) {
-  response.status(status).setHeader("Cache-Control", "no-store");
-  response.setHeader("X-Content-Type-Options", "nosniff");
+  setApiSecurityHeaders(response);
+  response.status(status);
   return response.json(body);
 }
 
@@ -70,6 +73,9 @@ function isAdmin(user) {
 }
 
 export default async function handler(request, response) {
+  if (rejectDisallowedOrigin(request, response)) return;
+  if (rejectLargeRequest(request, response, MAX_BODY_BYTES)) return;
+
   if (!["GET", "POST", "DELETE"].includes(request.method)) return json(response, 405, { error: "Metodo nao permitido." });
   const { publicKey, serviceRoleKey } = supabaseConfig();
   if (!publicKey || !serviceRoleKey) return json(response, 503, { error: "Servico indisponivel." });

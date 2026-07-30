@@ -1,3 +1,5 @@
+import { rejectDisallowedOrigin, setApiSecurityHeaders } from "../_security.js";
+
 const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
 const SUPABASE_USER_PAGE_LIMIT = 100;
 const MAX_BODY_BYTES = 10_000;
@@ -8,8 +10,8 @@ async function sha256(value) {
 }
 
 function json(response, status, body) {
-  response.status(status).setHeader("Cache-Control", "no-store");
-  response.setHeader("X-Content-Type-Options", "nosniff");
+  setApiSecurityHeaders(response);
+  response.status(status);
   return response.json(body);
 }
 
@@ -133,9 +135,7 @@ export default async function handler(request, response) {
   if (request.method !== "POST") {
     return json(response, 405, { error: "Metodo nao permitido." });
   }
-  if (!isAllowedOrigin(String(request.headers.origin || ""))) {
-    return json(response, 403, { error: "Origem nao autorizada." });
-  }
+  if (rejectDisallowedOrigin(request, response)) return;
 
   const contentLength = Number(request.headers["content-length"] || "0");
   if (contentLength > MAX_BODY_BYTES) {

@@ -1,19 +1,64 @@
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import JSZip from "jszip";
+import { rejectDisallowedOrigin, rejectLargeRequest, setApiSecurityHeaders } from "../_security.js";
 
 const templateByType = {
   comercial: "contrato-locacao-comercial.docx",
   residencial: "contrato-locacao-residencial.docx"
 };
+const COOKIE_NAME = "property_session";
+const MAX_BODY_BYTES = 120_000;
+
+function sessionSecret() {
+  return process.env.PROPERTY_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+}
+
+function cookieValue(request, name) {
+  const raw = request.headers.cookie || "";
+  return raw
+    .split(";")
+    .map((item) => item.trim())
+    .find((item) => item.startsWith(`${name}=`))
+    ?.slice(name.length + 1);
+}
+
+function verifySession(request) {
+  const secret = sessionSecret();
+  if (!secret) return null;
+  const token = cookieValue(request, COOKIE_NAME);
+  if (!token || !token.includes(".")) return null;
+  const [payload, signature] = token.split(".");
+  if (!payload || !signature) return null;
+  const expected = crypto.createHmac("sha256", secret).update(payload).digest("base64url");
+  if (signature.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
+  try {
+    const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    if (!session.exp || session.exp < Math.floor(Date.now() / 1000)) return null;
+    return session;
+  } catch (_error) {
+    return null;
+  }
+}
 
 export default async function handler(request, response) {
+  setApiSecurityHeaders(response);
+  if (rejectDisallowedOrigin(request, response)) return;
+  if (rejectLargeRequest(request, response, MAX_BODY_BYTES)) return;
+
   if (request.method !== "POST") {
     return response.status(405).json({ message: "Metodo nao permitido." });
   }
 
   try {
+    const session = verifySession(request);
+    if (!session) return response.status(401).json({ message: "Sessao invalida." });
     const input = request.body || {};
+    const entityId = String(input.entity?.id || input.entityId || "").trim();
+    if (entityId && !session.allowedEntityIds?.includes(entityId)) {
+      return response.status(403).json({ message: "Acesso negado para esta entidade." });
+    }
     const type = input.type === "comercial" ? "comercial" : "residencial";
     const templatePath = path.join(process.cwd(), "api", "property", "templates", templateByType[type]);
     const buffer = await fs.readFile(templatePath);
