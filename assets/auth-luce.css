@@ -24,6 +24,11 @@
   overflow: hidden !important;
 }
 
+body.authenticated .login-screen,
+body.cerne-authenticated .cerne-login-screen {
+  display: none !important;
+}
+
 .login-screen::before,
 .login-screen::after,
 .cerne-login-screen::before,
