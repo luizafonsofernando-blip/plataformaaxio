@@ -231,7 +231,7 @@ export default async function handler(request, response) {
 
   const body = request.body ?? {};
 
-  const username = String(body?.username ?? "").trim().toLowerCase();
+  const username = String(body?.username ?? body?.identifier ?? "").trim().toLowerCase();
   const supabase = await supabaseSession(username, String(body?.password ?? "")).catch((error) => {
     console.error("Property Supabase auth failed", error);
     return null;

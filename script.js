@@ -60,17 +60,17 @@ const closeAccessButton = document.getElementById("closeAccess");
 function moduleCard(module, compact = false) {
   const benefits = module.benefits.map((benefit) => `<li>${benefit}</li>`).join("");
   return `
-    <article class="${compact ? "module-item" : "module-card reveal"}">
+    <a class="${compact ? "module-item module-link" : "module-card module-link reveal"}" href="${module.href}" aria-label="Acessar ${module.name}">
       <span class="module-icon" aria-hidden="true">${module.initials}</span>
       <div class="module-name">
         <strong>${module.name}</strong>
         <small>${module.status}</small>
         ${compact ? "" : `<p>${module.description}</p><ul>${benefits}</ul>`}
       </div>
-      <a class="${compact ? "module-arrow" : ""}" href="${module.href}" aria-label="Conhecer ${module.name}">
+      <span class="${compact ? "module-arrow" : "module-cta"}">
         ${compact ? "→" : "Conhecer módulo →"}
-      </a>
-    </article>
+      </span>
+    </a>
   `;
 }
 

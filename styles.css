@@ -178,11 +178,22 @@ h3 { font-size: 1.05rem; }
   background: linear-gradient(180deg, #fff, #f8fbff);
   box-shadow: var(--shadow-card);
 }
+.module-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.module-link:hover,
+.module-link:focus-visible {
+  border-color: rgba(23,75,255,.32);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
 .module-icon { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 12px; color: #fff; background: var(--luce-glow); font-weight: 900; }
 .module-card p { color: var(--luce-muted); line-height: 1.65; margin: 0; }
 .module-card ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; color: #46506a; font-size: .9rem; }
 .module-card li::before { content: "•"; color: var(--luce-blue); margin-right: 8px; }
-.module-card a { margin-top: auto; color: var(--luce-blue); font-weight: 800; }
+.module-cta { margin-top: auto; color: var(--luce-blue); font-weight: 800; }
 
 .flow { background: linear-gradient(180deg, #fff, var(--luce-off)); }
 .flow-line { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 44px; }

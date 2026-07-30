@@ -179,7 +179,23 @@
   -webkit-text-fill-color: #151a2d !important;
 }
 
+.login-card input.filled:not(.missing):not(.draft-missing),
+.login-card input:-webkit-autofill,
+.login-card input:-webkit-autofill:hover,
+.login-card input:-webkit-autofill:focus,
+.cerne-login-card input:-webkit-autofill,
+.cerne-login-card input:-webkit-autofill:hover,
+.cerne-login-card input:-webkit-autofill:focus {
+  color: #151a2d !important;
+  background: #fff !important;
+  border-color: #dce4f2 !important;
+  -webkit-text-fill-color: #151a2d !important;
+  box-shadow: 0 0 0 1000px #fff inset !important;
+  caret-color: #151a2d !important;
+}
+
 .login-card input:focus,
+.login-card input.filled:not(.missing):not(.draft-missing):focus,
 .cerne-login-card input:focus {
   border-color: var(--auth-cyan) !important;
   box-shadow: 0 0 0 4px rgba(39, 200, 255, .16) !important;
@@ -190,6 +206,13 @@
   min-height: 46px !important;
   border-radius: 10px !important;
   font-weight: 900 !important;
+}
+
+.login-card .btn:not(.primary) {
+  color: #151a2d !important;
+  background: #fff !important;
+  border: 1px solid #dce4f2 !important;
+  box-shadow: none !important;
 }
 
 .login-card .btn.primary,
