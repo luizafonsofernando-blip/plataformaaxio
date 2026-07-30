@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sistema de Comunicados Orteconte</title>
-  <link rel="stylesheet" href="../assets/auth-luce.css">
   <style>
     :root {
       --navy: #4880c0;
@@ -1489,7 +1488,7 @@
     }
   </style>
 </head>
-<body class="module-auth-locked">
+<body>
   <main class="app">
     <aside class="panel" aria-label="Editor do comunicado">
       <header class="panel-header">
@@ -1758,17 +1757,6 @@
     </section>
   </main>
   <div class="print-root" id="printRoot" aria-hidden="true"></div>
-
-  <script>
-    window.LuceModuleAuth = {
-      moduleId: "comunicados-orteconte",
-      moduleName: "Comunicados Orteconte",
-      title: "Acesso seguro",
-      headline: "Padronizador de comunicados com sessao propria.",
-      description: "Use suas credenciais Luce. Este acesso nao abre outros modulos automaticamente."
-    };
-  </script>
-  <script src="../assets/module-auth.js" defer></script>
   <script>
     const segments = {
       pessoal: { name: "Departamento Pessoal", color: "#5b22c8", dark: "#381096", support: "#5b22c8", icon: "👥", headerStart: "#5b22c8", headerMid: "#381096", headerEnd: "#1d0b59" },

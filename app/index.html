@@ -1592,6 +1592,67 @@
     }
   </style>
   <link rel="stylesheet" href="../assets/auth-luce.css">
+  <style id="onboarding-login-layout-fix">
+    body.auth-locked .app-shell { display: none !important; }
+    body.authenticated .login-screen { display: none !important; }
+    .login-screen {
+      min-height: 100vh !important;
+      display: grid !important;
+      grid-template-columns: minmax(300px, 1fr) minmax(320px, 460px) !important;
+      gap: 24px !important;
+      align-items: stretch !important;
+      padding: 24px !important;
+      background:
+        radial-gradient(circle at 68% 34%, rgba(30, 136, 255, .22), transparent 31%),
+        radial-gradient(circle at 16% 82%, rgba(30, 136, 255, .12), transparent 27%),
+        linear-gradient(180deg, #020712 0%, #071d49 54%, #030815 100%) !important;
+      overflow: auto !important;
+    }
+    .login-screen::before,
+    .login-screen::after { display: none !important; }
+    .login-screen .luce-auth-story {
+      position: relative !important;
+      inset: auto !important;
+      min-height: calc(100vh - 48px) !important;
+      padding: clamp(28px, 5vw, 64px) !important;
+      color: #fff !important;
+      pointer-events: auto !important;
+    }
+    .login-screen .login-card {
+      position: relative !important;
+      z-index: 2 !important;
+      align-self: center !important;
+      justify-self: center !important;
+      width: min(420px, 100%) !important;
+      padding: 30px !important;
+      color: #151a2d !important;
+      background: rgba(255,255,255,.96) !important;
+      border: 1px solid rgba(230,236,243,.86) !important;
+      border-radius: 12px !important;
+      box-shadow: 0 30px 90px rgba(0,0,0,.28) !important;
+    }
+    .login-screen .login-logo { justify-items: start !important; text-align: left !important; }
+    .login-screen .login-logo img { width: min(220px, 72%) !important; }
+    .login-screen .login-logo h1 { color: #07133f !important; text-align: left !important; font-size: 24px !important; }
+    .login-screen .login-card label { color: #07133f !important; }
+    .login-screen .login-card input {
+      color: #151a2d !important;
+      background: #fff !important;
+      border: 1px solid #dce4f2 !important;
+      -webkit-text-fill-color: #151a2d !important;
+      caret-color: #151a2d !important;
+    }
+    .login-screen .login-card .btn:not(.primary) {
+      color: #151a2d !important;
+      background: #fff !important;
+      border: 1px solid #dce4f2 !important;
+      box-shadow: none !important;
+    }
+    @media (max-width: 860px) {
+      .login-screen { grid-template-columns: 1fr !important; }
+      .login-screen .luce-auth-story { min-height: auto !important; padding: 22px !important; }
+    }
+  </style>
 </head>
 <body class="auth-locked">
   <section class="login-screen" id="loginScreen">
