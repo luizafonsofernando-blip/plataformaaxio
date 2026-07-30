@@ -3,249 +3,213 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Luce | Inteligência para crescer</title>
+    <title>Luce Sistemas | Clarity. Control. Evolution.</title>
     <meta
       name="description"
-      content="Landing page da Luce para automação de rotinas, criação de sites, processos digitais e inteligência para crescimento."
+      content="A Luce Sistemas conecta processos, informações e pessoas em um ecossistema de módulos inteligentes para organizar, controlar e evoluir operações."
     />
+    <meta property="og:title" content="Luce Sistemas | Clarity. Control. Evolution." />
+    <meta property="og:description" content="Sistemas inteligentes para centralizar processos, reduzir retrabalho e ampliar controle operacional." />
+    <meta property="og:image" content="/assets/logo-luce-oficial.png" />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#07113D" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self'; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests" />
     <meta name="referrer" content="no-referrer" />
     <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()" />
+    <link rel="icon" type="image/svg+xml" href="app/logo-luce-symbol.svg" />
+    <link rel="apple-touch-icon" href="app/logo-luce-symbol.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=luce-titulo-20260620" />
+    <link rel="stylesheet" href="styles.css?v=luce-redesign-20260730" />
   </head>
   <body>
-    <div class="cursor-glow" aria-hidden="true"></div>
-
-    <header class="site-header">
-      <a class="brand" href="#inicio" aria-label="Luce">
-        <span class="brand-mark">A</span>
-        <span>
-          <strong>LUCE</strong>
-          <small>SOLUTIONS</small>
-        </span>
+    <header class="site-header" id="siteHeader">
+      <a class="brand" href="#inicio" aria-label="Luce Sistemas">
+        <img src="assets/logo-luce-oficial.png" alt="Luce Sistemas">
       </a>
-      <nav class="main-nav" aria-label="Principal">
+      <button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-expanded="false">☰</button>
+      <nav class="main-nav" id="mainNav" aria-label="Principal">
+        <a href="#inicio">Início</a>
         <a href="#solucoes">Soluções</a>
-        <a href="#processo">Processo</a>
-        <a href="#sites">Sites</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#seguranca">Segurança</a>
+        <a href="#sobre">Sobre a Luce</a>
         <a href="#contato">Contato</a>
       </nav>
-      <button class="header-action" id="openLogin" type="button">Módulos</button>
+      <div class="header-actions">
+        <a class="secondary-link" href="#contato">Solicitar apresentação</a>
+        <button class="header-action" id="openLogin" type="button">Conhecer os módulos</button>
+      </div>
     </header>
 
     <main id="inicio">
-      <section class="hero section-panel">
-        <div class="stars-wrapper" aria-hidden="true">
-          <svg class="stars stars-a" width="100%" height="100%" preserveAspectRatio="none"></svg>
-          <svg class="stars stars-b" width="100%" height="100%" preserveAspectRatio="none"></svg>
-          <svg class="stars stars-c" width="100%" height="100%" preserveAspectRatio="none"></svg>
-          <svg class="extras" width="100%" height="100%" preserveAspectRatio="none">
-            <defs>
-              <radialGradient id="comet-gradient" cx="0" cy=".5" r="0.5">
-                <stop offset="0%" stop-color="rgba(255,255,255,.82)" />
-                <stop offset="100%" stop-color="rgba(255,255,255,0)" />
-              </radialGradient>
-            </defs>
-            <g transform="rotate(-135)">
-              <ellipse class="comet comet-a" fill="url(#comet-gradient)" cx="0" cy="0" rx="150" ry="2" />
-            </g>
-            <g transform="rotate(20)">
-              <ellipse class="comet comet-b" fill="url(#comet-gradient)" cx="100%" cy="0" rx="150" ry="2" />
-            </g>
-            <g transform="rotate(300)">
-              <ellipse class="comet comet-c" fill="url(#comet-gradient)" cx="40%" cy="100%" rx="150" ry="2" />
-            </g>
-          </svg>
-          <div class="star-field star-one"></div>
-          <div class="star-field star-two"></div>
-          <div class="star-field star-three"></div>
-        </div>
-
-        <canvas id="axonCanvas" class="axon-canvas" aria-hidden="true"></canvas>
-
-        <div class="hero-content">
-          <p class="eyebrow">Automação, sites e inteligência operacional</p>
-          <h1>LUCE</h1>
-          <p class="hero-subtitle">
-            Transformamos rotinas repetitivas em sistemas digitais, fluxos automatizados e experiências web que
-            fazem sua operação crescer com mais controle.
+      <section class="hero">
+        <div class="hero-copy reveal">
+          <p class="eyebrow">Inteligência para operações modernas</p>
+          <h1>Tecnologia que organiza. Inteligência que <span>transforma.</span></h1>
+          <p>
+            A Luce conecta processos, informações e pessoas em sistemas desenvolvidos para simplificar rotinas,
+            ampliar o controle e tornar as decisões mais seguras.
           </p>
           <div class="hero-actions">
-            <a class="primary-button" href="#contato">Começar projeto</a>
-            <a class="ghost-button" href="#solucoes">Ver soluções</a>
+            <a class="primary-button" href="#solucoes">Conhecer as soluções</a>
+            <a class="ghost-button" href="#contato">Solicitar uma apresentação</a>
           </div>
         </div>
-
-        <aside class="orbit-console" aria-label="Indicadores Luce">
-          <div>
-            <span>Rotinas</span>
-            <strong>+72%</strong>
+        <div class="hero-visual reveal" aria-label="Módulos Luce conectados">
+          <div class="light-core">
+            <img src="app/logo-luce-symbol.svg" alt="">
           </div>
-          <div>
-            <span>Tempo salvo</span>
-            <strong>36 h/mês</strong>
-          </div>
-          <div>
-            <span>Sites</span>
-            <strong>Alta conversão</strong>
-          </div>
-        </aside>
-      </section>
-
-      <section id="solucoes" class="solutions section-panel">
-        <div class="section-heading reveal">
-          <p class="eyebrow">O que a Luce constrói</p>
-          <h2>Menos tarefas soltas. Mais sistemas trabalhando juntos.</h2>
-        </div>
-        <div class="solution-grid">
-          <article class="solution-card reveal">
-            <span class="card-icon">01</span>
-            <h3>Automatização de rotinas</h3>
-            <p>Fluxos para vendas, atendimento, financeiro, relatórios, planilhas, mensagens e aprovações internas.</p>
-          </article>
-          <article class="solution-card reveal">
-            <span class="card-icon">02</span>
-            <h3>Criação de sites</h3>
-            <p>Landing pages, sites institucionais e páginas comerciais com narrativa clara, performance e contato rápido.</p>
-          </article>
-          <article class="solution-card reveal">
-            <span class="card-icon">03</span>
-            <h3>Facilitadores de processos</h3>
-            <p>Interfaces simples para organizar demandas, reduzir retrabalho e dar visibilidade para cada etapa.</p>
-          </article>
-          <article class="solution-card reveal">
-            <span class="card-icon">04</span>
-            <h3>Inteligência aplicada</h3>
-            <p>Dados, dashboards e assistentes digitais para apoiar decisões com velocidade e consistência.</p>
-          </article>
+          <article class="data-card c1"><strong>Onboarding</strong><span>Etapas organizadas</span></article>
+          <article class="data-card c2"><strong>CERNE</strong><span>Indicadores comerciais</span></article>
+          <article class="data-card c3"><strong>Property</strong><span>Contratos e recebimentos</span></article>
+          <article class="data-card c4"><strong>Radar Sindical</strong><span>Documentos rastreáveis</span></article>
+          <i class="beam b1"></i><i class="beam b2"></i><i class="beam b3"></i>
         </div>
       </section>
 
-      <section id="processo" class="process section-panel">
-        <div class="process-track" aria-label="Processo Luce">
-          <div class="process-step reveal">
-            <span>Diagnóstico</span>
-            <h3>Mapeamos o gargalo</h3>
-            <p>Entendemos onde tempo, dados e pessoas estão se perdendo na rotina.</p>
-          </div>
-          <div class="process-step reveal">
-            <span>Arquitetura</span>
-            <h3>Desenhamos o fluxo</h3>
-            <p>Definimos integrações, telas, automações e pontos de controle.</p>
-          </div>
-          <div class="process-step reveal">
-            <span>Execução</span>
-            <h3>Construímos com foco</h3>
-            <p>Entregas curtas, validação visual e ajustes até o processo ficar fluido.</p>
-          </div>
-          <div class="process-step reveal">
-            <span>Evolução</span>
-            <h3>Medimos e melhoramos</h3>
-            <p>Monitoramos resultado e adicionamos novas camadas conforme a empresa cresce.</p>
-          </div>
-        </div>
+      <section class="value-strip" aria-label="Pilares Luce">
+        <span>Mais clareza</span>
+        <span>Mais controle</span>
+        <span>Mais segurança</span>
+        <span>Mais eficiência</span>
+        <span>Evolução contínua</span>
       </section>
 
-      <section id="sites" class="showcase section-panel">
-        <div class="showcase-copy reveal">
-          <p class="eyebrow">Presença digital com operação por trás</p>
-          <h2>Sites que capturam oportunidades e alimentam seus processos.</h2>
+      <section class="problem section" id="problema">
+        <div class="section-copy reveal">
+          <p class="eyebrow">O ponto de partida</p>
+          <h2>Processos fragmentados custam tempo, segurança e oportunidades.</h2>
           <p>
-            A página pode receber leads, acionar atendimento, registrar dados, enviar propostas e gerar visão de
-            performance. A Luce conecta a vitrine ao motor da empresa.
+            Informações espalhadas, conferências manuais e falta de histórico dificultam a rotina e reduzem a
+            visibilidade para decisões. A Luce transforma fluxos dispersos em operações centralizadas, rastreáveis e inteligentes.
           </p>
         </div>
-        <div class="browser-frame showcase-image-frame reveal">
-          <img
-            src="assets/site-opportunities-funnel.png"
-            alt="Ilustração de sites capturando oportunidades e distribuindo dados para processos digitais"
-            loading="lazy"
-            decoding="async"
-          >
+        <div class="problem-grid reveal">
+          <span>Planilhas isoladas</span>
+          <span>Mensagens sem histórico</span>
+          <span>Retrabalho operacional</span>
+          <span>Responsabilidades pouco claras</span>
+          <span>Falta de padronização</span>
+          <span>Riscos de informação desatualizada</span>
         </div>
       </section>
 
-      <section id="contato" class="cta section-panel">
-        <div class="cta-inner reveal">
-          <p class="eyebrow">Inteligência para crescer</p>
-          <h2>Pronto para tirar tarefas repetitivas do caminho?</h2>
-          <p>Conte para a Luce qual rotina trava sua equipe e receba um plano objetivo para automatizar.</p>
-          <a class="primary-button" href="mailto:contato@lucesolutions.com.br">Falar com a Luce</a>
+      <section class="modules section" id="solucoes">
+        <div class="section-heading reveal">
+          <p class="eyebrow">Ecossistema de módulos</p>
+          <h2>Uma plataforma. Diferentes soluções. O mesmo propósito.</h2>
+          <p>
+            Cada módulo da Luce resolve uma necessidade específica, compartilhando a mesma base: simplicidade,
+            controle, segurança e inteligência operacional.
+          </p>
+        </div>
+        <div class="module-grid" id="landingModules"></div>
+      </section>
+
+      <section class="flow section" id="como-funciona">
+        <div class="section-heading reveal">
+          <p class="eyebrow">Como funciona</p>
+          <h2>Da rotina dispersa ao processo controlado.</h2>
+        </div>
+        <div class="flow-line reveal">
+          <article><b>01</b><h3>Entendemos o processo</h3><p>Mapeamos entradas, responsáveis, documentos e pontos de decisão.</p></article>
+          <article><b>02</b><h3>Organizamos a operação</h3><p>Estruturamos telas, etapas, permissões e padrões de acompanhamento.</p></article>
+          <article><b>03</b><h3>Transformamos dados em controle</h3><p>O processo passa a gerar histórico, indicadores e evolução contínua.</p></article>
+        </div>
+      </section>
+
+      <section class="benefits section">
+        <div class="section-copy reveal">
+          <p class="eyebrow">Benefícios</p>
+          <h2>Menos esforço operacional. Mais inteligência para decidir.</h2>
+        </div>
+        <div class="benefit-grid reveal">
+          <article class="large">Centralização das informações</article>
+          <article>Padronização dos processos</article>
+          <article>Redução de retrabalho</article>
+          <article>Maior rastreabilidade</article>
+          <article>Mais segurança operacional</article>
+          <article>Decisões apoiadas por dados</article>
+          <article class="wide">Automação para apoiar a equipe, sem retirar o controle humano.</article>
+        </div>
+      </section>
+
+      <section class="security section" id="seguranca">
+        <div class="security-panel reveal">
+          <div>
+            <p class="eyebrow">Segurança e controle</p>
+            <h2>Tecnologia que simplifica sem abrir mão do controle.</h2>
+          </div>
+          <ul>
+            <li>Controle de acesso</li>
+            <li>Histórico de operações</li>
+            <li>Rastreabilidade</li>
+            <li>Organização de informações</li>
+            <li>Padronização</li>
+            <li>Processos de validação</li>
+            <li>Evolução e integração modular</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="platform section" id="sobre">
+        <div class="platform-graphic reveal" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="section-copy reveal">
+          <p class="eyebrow">Visão de plataforma</p>
+          <h2>A Luce cresce junto com a operação.</h2>
+          <p>
+            Novos módulos, integrações e automações podem ser incorporados ao ecossistema sem fragmentar os
+            processos. A estrutura evolui mantendo a clareza, o controle e a rastreabilidade.
+          </p>
+        </div>
+      </section>
+
+      <section class="final-cta section" id="contato">
+        <div class="final-cta-inner reveal">
+          <p class="eyebrow">Clarity. Control. Evolution.</p>
+          <h2>Transforme processos dispersos em uma operação mais clara, segura e inteligente.</h2>
+          <p>Conheça os sistemas da Luce e descubra como a tecnologia pode ampliar o controle da sua empresa.</p>
+          <div class="hero-actions">
+            <a class="primary-button" href="mailto:contato@lucesolutions.com.br">Solicitar apresentação</a>
+            <button class="ghost-button" type="button" data-open-modules>Conhecer os módulos</button>
+          </div>
         </div>
       </section>
     </main>
 
+    <footer class="site-footer">
+      <img src="assets/logo-luce-oficial.png" alt="Luce Sistemas">
+      <p>Clarity. Control. Evolution.</p>
+      <nav aria-label="Rodapé">
+        <a href="#solucoes">Sistemas</a>
+        <a href="#seguranca">Segurança</a>
+        <a href="#contato">Contato</a>
+        <a href="#">Política de Privacidade</a>
+        <a href="#">Termos de Uso</a>
+      </nav>
+      <small>© 2026 Luce Sistemas. Plataforma de sistemas inteligentes para operações modernas.</small>
+    </footer>
+
     <dialog class="access-dialog" id="accessDialog" aria-labelledby="accessTitle">
       <div class="access-shell">
         <div class="access-heading">
-          <div class="access-title-row">
-            <div>
-              <span class="access-kicker">LUCE</span>
-              <h2 id="accessTitle">Módulos</h2>
-            </div>
+          <div>
+            <span class="access-kicker">Ecossistema Luce</span>
+            <h2 id="accessTitle">Módulos</h2>
           </div>
           <button class="icon-button" id="closeAccess" type="button" aria-label="Fechar">&times;</button>
         </div>
-
-        <section class="module-catalog" id="moduleCatalog">
-          <a class="module-item" href="app/">
-            <span class="module-icon" aria-hidden="true">OC</span>
-            <span class="module-name">
-              <strong>Onboarding Contábil</strong>
-              <small>Disponível</small>
-            </span>
-            <span class="module-arrow" aria-hidden="true">&rarr;</span>
-          </a>
-          <a class="module-item" href="cerne/">
-            <span class="module-icon module-icon-cerne" aria-hidden="true">CE</span>
-            <span class="module-name">
-              <strong>CERNE</strong>
-              <small>Intelig&ecirc;ncia Comercial</small>
-            </span>
-            <span class="module-arrow" aria-hidden="true">&rarr;</span>
-          </a>
-          <a class="module-item" href="radar-sindical/">
-            <span class="module-icon module-icon-radar" aria-hidden="true">RS</span>
-            <span class="module-name">
-              <strong>Radar Sindical Inteligente</strong>
-              <small>Em integracao</small>
-            </span>
-            <span class="module-arrow" aria-hidden="true">&rarr;</span>
-          </a>
-          <a class="module-item" href="review-folha/">
-            <span class="module-icon module-icon-review" aria-hidden="true">RF</span>
-            <span class="module-name">
-              <strong>Review Folha</strong>
-              <small>Disponivel</small>
-            </span>
-            <span class="module-arrow" aria-hidden="true">&rarr;</span>
-          </a>
-          <a class="module-item" href="comunicados-orteconte/">
-            <span class="module-icon module-icon-comunicados" aria-hidden="true">CO</span>
-            <span class="module-name">
-              <strong>Comunicados Orteconte</strong>
-              <small>Disponivel</small>
-            </span>
-            <span class="module-arrow" aria-hidden="true">&rarr;</span>
-          </a>
-          <a class="module-item" href="property/">
-            <span class="module-icon module-icon-property" aria-hidden="true">PR</span>
-            <span class="module-name">
-              <strong>Property</strong>
-              <small>Gestão patrimonial</small>
-            </span>
-            <span class="module-arrow" aria-hidden="true">&rarr;</span>
-          </a>
-        </section>
+        <section class="module-catalog" id="moduleCatalog"></section>
       </div>
     </dialog>
 
-    <script src="script.js?v=luce-modulo-login-interno-20260620"></script>
+    <script src="script.js?v=luce-redesign-20260730"></script>
   </body>
 </html>

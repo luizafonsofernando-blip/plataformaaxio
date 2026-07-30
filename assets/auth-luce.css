@@ -1,0 +1,231 @@
+:root {
+  --auth-navy: #07113d;
+  --auth-deep: #0a1f63;
+  --auth-blue: #174bff;
+  --auth-cyan: #27c8ff;
+  --auth-violet: #735cff;
+  --auth-line: rgba(232, 236, 244, .72);
+  --auth-muted: #626b80;
+  --auth-glow: linear-gradient(120deg, var(--auth-blue), var(--auth-cyan), var(--auth-violet));
+}
+
+.login-screen,
+.cerne-login-screen {
+  min-height: 100vh !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.15fr) minmax(380px, .85fr) !important;
+  align-items: stretch !important;
+  padding: 0 !important;
+  color: #151a2d !important;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(39, 200, 255, .16), transparent 28%),
+    radial-gradient(circle at 78% 72%, rgba(115, 92, 255, .12), transparent 26%),
+    linear-gradient(135deg, #ffffff 0%, #f6f8fc 100%) !important;
+  overflow: hidden !important;
+}
+
+.login-screen::before,
+.login-screen::after,
+.cerne-login-screen::before,
+.cerne-login-screen::after {
+  display: none !important;
+}
+
+.luce-auth-story,
+.cerne-login-screen::before {
+  min-height: 100vh;
+}
+
+.luce-auth-story {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(34px, 5vw, 72px);
+  background:
+    linear-gradient(135deg, rgba(7, 17, 61, .98), rgba(10, 31, 99, .94)),
+    var(--auth-navy);
+  color: #fff;
+  isolation: isolate;
+}
+
+.luce-auth-story::before {
+  content: "";
+  position: absolute;
+  inset: 12% -12% auto auto;
+  width: min(58vw, 680px);
+  height: min(58vw, 680px);
+  background:
+    linear-gradient(120deg, transparent 38%, rgba(39, 200, 255, .32), transparent 54%),
+    linear-gradient(25deg, rgba(23, 75, 255, .18), transparent 48%);
+  clip-path: polygon(0 44%, 52% 0, 100% 13%, 52% 49%, 100% 82%, 47% 100%);
+  filter: blur(.2px);
+  opacity: .72;
+  z-index: -1;
+}
+
+.luce-auth-brand img,
+.cerne-login-logo {
+  display: block;
+  width: min(260px, 76%) !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
+
+.luce-auth-copy {
+  max-width: 620px;
+}
+
+.luce-auth-copy small,
+.cerne-login-card p {
+  color: #8edfff !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+}
+
+.luce-auth-copy h2,
+.cerne-login-card h1 {
+  margin: 12px 0 0 !important;
+  color: #fff !important;
+  font-family: "Montserrat", Arial, sans-serif !important;
+  font-size: clamp(2.2rem, 4vw, 4.5rem) !important;
+  line-height: 1.04 !important;
+}
+
+.luce-auth-copy p,
+.cerne-login-card span {
+  max-width: 540px;
+  color: rgba(255, 255, 255, .74) !important;
+  line-height: 1.7 !important;
+}
+
+.luce-auth-points {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 720px;
+  margin: 28px 0 0;
+}
+
+.luce-auth-points span {
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 12px;
+  background: rgba(255,255,255,.07);
+  color: rgba(255,255,255,.82);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.luce-auth-signature {
+  color: rgba(255,255,255,.58);
+  font-size: 12px;
+  letter-spacing: .5px;
+}
+
+.login-card,
+.cerne-login-card {
+  align-self: center !important;
+  justify-self: center !important;
+  width: min(440px, calc(100% - 36px)) !important;
+  display: grid !important;
+  gap: 16px !important;
+  padding: 32px !important;
+  color: #151a2d !important;
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid var(--auth-line) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 28px 90px rgba(7, 17, 61, .14) !important;
+  backdrop-filter: blur(18px);
+}
+
+.login-logo {
+  justify-items: start !important;
+  text-align: left !important;
+}
+
+.login-logo img {
+  width: min(220px, 72%) !important;
+}
+
+.login-logo h1 {
+  color: var(--auth-navy) !important;
+  text-align: left !important;
+  font-size: 24px !important;
+}
+
+.login-card label,
+.cerne-login-card label {
+  display: grid !important;
+  gap: 7px !important;
+  color: var(--auth-deep) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: .7px !important;
+  text-transform: uppercase !important;
+}
+
+.login-card input,
+.cerne-login-card input {
+  min-height: 46px !important;
+  padding: 0 13px !important;
+  color: #151a2d !important;
+  background: #fff !important;
+  border: 1px solid #dce4f2 !important;
+  border-radius: 10px !important;
+  outline: none !important;
+  -webkit-text-fill-color: #151a2d !important;
+}
+
+.login-card input:focus,
+.cerne-login-card input:focus {
+  border-color: var(--auth-cyan) !important;
+  box-shadow: 0 0 0 4px rgba(39, 200, 255, .16) !important;
+}
+
+.login-card .btn,
+.cerne-login-card button {
+  min-height: 46px !important;
+  border-radius: 10px !important;
+  font-weight: 900 !important;
+}
+
+.login-card .btn.primary,
+.cerne-login-card button[type="submit"] {
+  color: #fff !important;
+  background: var(--auth-glow) !important;
+  border: 0 !important;
+  box-shadow: 0 16px 34px rgba(23, 75, 255, .22) !important;
+}
+
+.login-error,
+.cerne-login-message {
+  min-height: 18px;
+  color: #be3141 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+@media (max-width: 860px) {
+  .login-screen,
+  .cerne-login-screen {
+    grid-template-columns: 1fr !important;
+    padding: 18px !important;
+  }
+
+  .luce-auth-story {
+    min-height: auto;
+    padding: 22px;
+    border-radius: 18px;
+  }
+
+  .luce-auth-copy h2 {
+    font-size: 1.75rem !important;
+  }
+
+  .luce-auth-points {
+    grid-template-columns: 1fr;
+  }
+}

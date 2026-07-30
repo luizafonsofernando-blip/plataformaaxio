@@ -77,6 +77,22 @@
     const screen = document.createElement("section");
     screen.className = "cerne-login-screen";
     screen.innerHTML = `
+      <aside class="luce-auth-story" aria-label="Identidade do módulo">
+        <div class="luce-auth-brand">
+          <img src="/assets/logo-luce-oficial.png" alt="Luce Sistemas">
+        </div>
+        <div class="luce-auth-copy">
+          <small>CERNE</small>
+          <h2>Inteligência comercial para decisões mais claras.</h2>
+          <p>Uma solução Luce para centralizar carteira, receita, crescimento, churn e indicadores estratégicos.</p>
+          <div class="luce-auth-points">
+            <span>Dados convergentes</span>
+            <span>Indicadores estratégicos</span>
+            <span>Decisões rastreáveis</span>
+          </div>
+        </div>
+        <span class="luce-auth-signature">Uma solução Luce · Clarity. Control. Evolution.</span>
+      </aside>
       <form class="cerne-login-card" autocomplete="off">
         <img src="/cerne/cerne-logo.png" alt="CERNE" class="cerne-login-logo">
         <div>
