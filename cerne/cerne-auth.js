@@ -91,7 +91,7 @@
             <span>Decisões rastreáveis</span>
           </div>
         </div>
-        <span class="luce-auth-signature">Uma solução Luce · Clarity. Control. Evolution.</span>
+        <span class="luce-auth-signature">Uma solução Luce</span>
       </aside>
       <form class="cerne-login-card" autocomplete="off">
         <img src="/cerne/cerne-logo.png" alt="CERNE" class="cerne-login-logo">
