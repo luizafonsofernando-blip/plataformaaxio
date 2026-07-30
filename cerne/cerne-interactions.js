@@ -62,6 +62,19 @@
     panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
+  function removeOverviewIntro() {
+    document.querySelectorAll(".page-head").forEach((head) => {
+      const title = head.querySelector("h1");
+      if (!title || !/Bom dia/i.test(title.textContent || "")) return;
+      const copy = head.firstElementChild;
+      if (copy) copy.remove();
+    });
+  }
+
+  const observer = new MutationObserver(removeOverviewIntro);
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+  removeOverviewIntro();
+
   document.addEventListener("click", (event) => {
     const button = event.target.closest?.("button.metric.interactive");
     if (!button) return;
