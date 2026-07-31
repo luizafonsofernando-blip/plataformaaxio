@@ -1596,6 +1596,7 @@
     body.auth-locked .app-shell { display: none !important; }
     body.authenticated .login-screen { display: none !important; }
     .login-screen {
+      height: 100vh !important;
       min-height: 100vh !important;
       display: grid !important;
       grid-template-columns: minmax(300px, 1fr) minmax(320px, 460px) !important;
@@ -1606,7 +1607,7 @@
         radial-gradient(circle at 68% 34%, rgba(30, 136, 255, .22), transparent 31%),
         radial-gradient(circle at 16% 82%, rgba(30, 136, 255, .12), transparent 27%),
         linear-gradient(180deg, #020712 0%, #071d49 54%, #030815 100%) !important;
-      overflow: auto !important;
+      overflow: hidden !important;
     }
     .login-screen::before,
     .login-screen::after { display: none !important; }
@@ -1614,8 +1615,10 @@
       position: relative !important;
       inset: auto !important;
       min-height: calc(100vh - 48px) !important;
+      max-height: calc(100vh - 48px) !important;
       padding: clamp(28px, 5vw, 64px) !important;
       color: #fff !important;
+      overflow: hidden !important;
       pointer-events: auto !important;
     }
     .login-screen .login-card {
@@ -1630,6 +1633,8 @@
       border: 1px solid rgba(230,236,243,.86) !important;
       border-radius: 12px !important;
       box-shadow: 0 30px 90px rgba(0,0,0,.28) !important;
+      max-height: calc(100vh - 48px) !important;
+      overflow: visible !important;
     }
     .login-screen .login-logo { justify-items: start !important; text-align: left !important; }
     .login-screen .login-logo img { width: min(220px, 72%) !important; }
@@ -1649,8 +1654,20 @@
       box-shadow: none !important;
     }
     @media (max-width: 860px) {
-      .login-screen { grid-template-columns: 1fr !important; }
-      .login-screen .luce-auth-story { min-height: auto !important; padding: 22px !important; }
+      .login-screen {
+        height: auto !important;
+        min-height: 100vh !important;
+        grid-template-columns: 1fr !important;
+        overflow: auto !important;
+      }
+      .login-screen .luce-auth-story {
+        min-height: auto !important;
+        max-height: none !important;
+        padding: 22px !important;
+      }
+      .login-screen .login-card {
+        max-height: none !important;
+      }
     }
   </style>
 </head>

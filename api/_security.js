@@ -1,7 +1,19 @@
 const DEFAULT_ALLOWED_HOSTS = [
   "plataformaaxio.vercel.app",
   "lucesistemas.vercel.app",
+  "lucesistemas.com.br",
+  "www.lucesistemas.com.br",
+  "lucesistemas.com",
+  "www.lucesistemas.com",
 ];
+
+function configuredAllowedHosts() {
+  const extraHosts = String(process.env.ALLOWED_ORIGIN_HOSTS || process.env.ALLOWED_HOSTS || "")
+    .split(",")
+    .map((host) => host.trim().toLowerCase())
+    .filter(Boolean);
+  return [...new Set([...DEFAULT_ALLOWED_HOSTS, ...extraHosts])];
+}
 
 export function setApiSecurityHeaders(response) {
   response.setHeader("Cache-Control", "no-store, max-age=0");
@@ -10,7 +22,7 @@ export function setApiSecurityHeaders(response) {
   response.setHeader("X-Robots-Tag", "noindex, nofollow, nosnippet");
 }
 
-export function isAllowedOrigin(origin = "", allowedHosts = DEFAULT_ALLOWED_HOSTS) {
+export function isAllowedOrigin(origin = "", allowedHosts = configuredAllowedHosts()) {
   if (!origin) return true;
   let url;
   try {
@@ -20,8 +32,10 @@ export function isAllowedOrigin(origin = "", allowedHosts = DEFAULT_ALLOWED_HOST
   }
   if (url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname)) return true;
   if (url.protocol !== "https:") return false;
-  if (allowedHosts.includes(url.hostname)) return true;
-  return /^(plataformaaxio|lucesistemas)(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(url.hostname);
+  const hostname = url.hostname.toLowerCase();
+  if (allowedHosts.includes(hostname)) return true;
+  if (/^(plataformaaxio|lucesistemas)(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(hostname)) return true;
+  return /\.lucesistemas\.com\.br$/i.test(hostname) || /\.lucesistemas\.com$/i.test(hostname);
 }
 
 export function rejectDisallowedOrigin(request, response, allowedHosts) {
@@ -35,6 +49,7 @@ export function rejectDisallowedOrigin(request, response, allowedHosts) {
       // Fall through to the static allowlist.
     }
   }
+  if (!origin && host && isAllowedOrigin(`https://${host.split(":")[0]}`, allowedHosts)) return false;
   if (isAllowedOrigin(origin, allowedHosts)) return false;
   setApiSecurityHeaders(response);
   response.status(403).json({ error: "Origem nao autorizada." });
