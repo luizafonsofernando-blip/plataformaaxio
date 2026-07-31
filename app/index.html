@@ -1870,6 +1870,8 @@
                 <option>Depósito em conta</option>
               </select></label>
               <label>Valor de honorário<input id="aberturaValorHonorario" placeholder="R$ 0,00"></label>
+              <label class="conditional-field abertura-honorario-base-field hidden check"><input id="aberturaHonorarioBaseSemMovimentacao" type="checkbox"> Honorário base durante período de movimentação</label>
+              <label class="conditional-field abertura-honorario-provisorio-field hidden">Honorário provisório<input id="aberturaHonorarioProvisorio" placeholder="R$ 0,00"></label>
               <label>Data de pagamento<select id="aberturaDataPagamento">
                 <option value="">Selecione o dia</option>
                 <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
@@ -2166,6 +2168,8 @@
                 <option>Depósito em conta</option>
               </select></label>
               <label>Honorário mensal<input id="financeiroHonorario" placeholder="R$ 0,00"></label>
+              <label class="conditional-field financeiro-honorario-base-field hidden check"><input id="honorarioBaseSemMovimentacao" type="checkbox"> Honorário base durante período de movimentação</label>
+              <label class="conditional-field honorario-provisorio-field hidden">Honorário provisório<input id="honorarioProvisorio" placeholder="R$ 0,00"></label>
               <label>Data do contrato-distrato<input id="dataContratoDistrato" type="date"></label>
               <label class="conditional-field entrada-field hidden">Data de pagamento<select id="financeiroDataPagamento">
                 <option value="">Selecione o dia</option>
@@ -2295,7 +2299,7 @@
       <div class="history-list" id="historyList"></div>
     </div>
   </div>
-  <script src="app.js" defer></script>
+  <script src="app.js?v=20260731-honorario-provisorio" defer></script>
 </body>
 </html>
 

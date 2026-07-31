@@ -570,6 +570,7 @@
     const currencyFieldIds = new Set([
       "aberturaValorServico",
       "aberturaValorHonorario",
+      "aberturaHonorarioProvisorio",
       "aberturaCapitalSocial",
       "aberturaProlabore",
       "honorarioAnterior",
@@ -578,6 +579,7 @@
       "socioValorProlabore",
       "financeiroValor",
       "financeiroHonorario",
+      "honorarioProvisorio",
       "valorHonorariosAberto"
     ]);
 
@@ -623,6 +625,48 @@
         .replace(",", ".");
       const number = Number(normalized);
       return Number.isFinite(number) ? number : null;
+    }
+
+    function inteiroPorExtenso(numero) {
+      const unidades = ["", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove"];
+      const especiais = ["dez", "onze", "doze", "treze", "quatorze", "quinze", "dezesseis", "dezessete", "dezoito", "dezenove"];
+      const dezenas = ["", "", "vinte", "trinta", "quarenta", "cinquenta", "sessenta", "setenta", "oitenta", "noventa"];
+      const centenas = ["", "cento", "duzentos", "trezentos", "quatrocentos", "quinhentos", "seiscentos", "setecentos", "oitocentos", "novecentos"];
+      const ate999 = (n) => {
+        if (n === 0) return "";
+        if (n === 100) return "cem";
+        const c = Math.floor(n / 100);
+        const d = Math.floor((n % 100) / 10);
+        const u = n % 10;
+        const parts = [];
+        if (c) parts.push(centenas[c]);
+        if (d === 1) parts.push(especiais[u]);
+        else {
+          if (d) parts.push(dezenas[d]);
+          if (u) parts.push(unidades[u]);
+        }
+        return parts.join(" e ");
+      };
+      const n = Math.round(Number(numero) || 0);
+      if (n === 0) return "zero";
+      const milhoes = Math.floor(n / 1000000);
+      const milhares = Math.floor((n % 1000000) / 1000);
+      const resto = n % 1000;
+      const parts = [];
+      if (milhoes) parts.push(`${milhoes === 1 ? "um milhão" : `${ate999(milhoes)} milhões`}`);
+      if (milhares) parts.push(milhares === 1 ? "mil" : `${ate999(milhares)} mil`);
+      if (resto) parts.push(ate999(resto));
+      return parts.join(" e ");
+    }
+
+    function valorMonetarioPorExtenso(texto) {
+      const numero = numberFromLocaleText(texto);
+      if (!Number.isFinite(numero)) return "valor não informado";
+      const reais = Math.floor(numero);
+      const centavos = Math.round((numero - reais) * 100);
+      const partes = [`${inteiroPorExtenso(reais)} ${reais === 1 ? "real" : "reais"}`];
+      if (centavos) partes.push(`${inteiroPorExtenso(centavos)} ${centavos === 1 ? "centavo" : "centavos"}`);
+      return partes.join(" e ");
     }
 
     function formatDecimalUnitInputValue(raw, unit, decimals = 2) {
@@ -2010,6 +2054,53 @@
           }
         });
       });
+      const honorarioBaseAtivo = isPortabilidadeEntradaWorkflow() || isBriefingAberturaWorkflow();
+      document.querySelectorAll(".financeiro-honorario-base-field").forEach((field) => {
+        const active = isPortabilidadeEntradaWorkflow();
+        field.classList.toggle("hidden", !active);
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = active ? "false" : "true";
+          if (!active) {
+            if (control.type === "checkbox") control.checked = false;
+            else control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
+      document.querySelectorAll(".abertura-honorario-base-field").forEach((field) => {
+        const active = isBriefingAberturaWorkflow();
+        field.classList.toggle("hidden", !active);
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = active ? "false" : "true";
+          if (!active) {
+            if (control.type === "checkbox") control.checked = false;
+            else control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
+      const honorarioProvisorioAtivo = honorarioBaseAtivo && $("honorarioBaseSemMovimentacao") && $("honorarioBaseSemMovimentacao").checked;
+      document.querySelectorAll(".honorario-provisorio-field").forEach((field) => {
+        field.classList.toggle("hidden", !honorarioProvisorioAtivo);
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = honorarioProvisorioAtivo ? "false" : "true";
+          if (!honorarioProvisorioAtivo) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
+      const aberturaHonorarioProvisorioAtivo = isBriefingAberturaWorkflow() && $("aberturaHonorarioBaseSemMovimentacao") && $("aberturaHonorarioBaseSemMovimentacao").checked;
+      document.querySelectorAll(".abertura-honorario-provisorio-field").forEach((field) => {
+        field.classList.toggle("hidden", !aberturaHonorarioProvisorioAtivo);
+        field.querySelectorAll("input, select, textarea").forEach((control) => {
+          control.dataset.conditionalDisabled = aberturaHonorarioProvisorioAtivo ? "false" : "true";
+          if (!aberturaHonorarioProvisorioAtivo) {
+            control.value = "";
+            control.classList.remove("missing");
+          }
+        });
+      });
     }
 
     function checkboxGroupComplete(selector) {
@@ -2314,6 +2405,30 @@
       return monthLabel($("financeiroCompetencia").value || $("competencia").value);
     }
 
+    function formaPagamentoContrato() {
+      const forma = value("formaPagamento", "Não informado");
+      const normalized = forma.toLowerCase();
+      if (normalized === "boleto") return "boleto bancário";
+      if (normalized === "pix") return "Pix";
+      if (normalized === "depósito em conta" || normalized === "deposito em conta") return "depósito em conta";
+      return forma;
+    }
+
+    function paragrafoValorServicosContrato() {
+      const honorario = honorarioFinanceiro();
+      const valorServicos = value("financeiroValor", honorario);
+      const observacao = value("financeiroObservacao", "Dependendo do processo, esse valor pode ser reajustado.");
+      const honorarioBase = (isPortabilidadeEntradaWorkflow() || isBriefingAberturaWorkflow()) && (
+        ($("honorarioBaseSemMovimentacao") && $("honorarioBaseSemMovimentacao").checked) ||
+        ($("aberturaHonorarioBaseSemMovimentacao") && $("aberturaHonorarioBaseSemMovimentacao").checked)
+      );
+      const provisório = value("honorarioProvisorio", value("aberturaHonorarioProvisorio", ""));
+      if (!honorarioBase || !provisório) {
+        return `<strong>VALOR DOS SERVIÇOS E CONDIÇÕES DE PAGAMENTO:</strong> A CONTRATANTE pagará à CONTRATADA o valor de ${valorServicos} e os honorários mensais de ${honorario}, com forma de pagamento por ${value("formaPagamento")}, competência inicial ${competenciaFinanceira()}. ${observacao}`;
+      }
+      return `<strong>VALOR DOS SERVIÇOS E CONDIÇÕES DE PAGAMENTO:</strong> A CONTRATANTE pagará à CONTRATADA o valor inicial de ${valorServicos} (${valorMonetarioPorExtenso(valorServicos)}), bem como honorários mensais no valor de ${honorario} (${valorMonetarioPorExtenso(honorario)}), mediante ${formaPagamentoContrato()}, com competência inicial a ser oportunamente definida. Os valores poderão ser reajustados em razão da complexidade, do volume ou das particularidades dos serviços efetivamente executados, mediante prévia comunicação à CONTRATANTE. Durante os períodos em que não houver movimentação, operação ou demanda relacionada aos serviços contratados, será devido o valor mensal mínimo de ${provisório} (${valorMonetarioPorExtenso(provisório)}), a título de manutenção, disponibilidade técnica e acompanhamento da CONTRATADA, permanecendo a cobrança até que haja o restabelecimento da movimentação ou a rescisão formal do contrato.`;
+    }
+
     function identificacaoTitulo() {
       return isPessoaFisica() ? "CPF - CEI" : "CNPJ";
     }
@@ -2466,6 +2581,10 @@
         ...(isSaidaWorkflow() || isPortabilidadeEntradaWorkflow() ? [] : [["Valor dos serviços", value("financeiroValor")]]),
         ["Forma de pagamento", value("formaPagamento")],
         ...(isAlteracaoWorkflow() ? [] : [["Honorário mensal", honorarioFinanceiro()]]),
+        ...((isPortabilidadeEntradaWorkflow() || isBriefingAberturaWorkflow()) && ($("honorarioBaseSemMovimentacao")?.checked || $("aberturaHonorarioBaseSemMovimentacao")?.checked) ? [
+          ["Honorário base durante período de movimentação", "Sim"],
+          ["Honorário provisório", value("honorarioProvisorio", value("aberturaHonorarioProvisorio", "Não informado"))]
+        ] : []),
         ...(isPortabilidadeEntradaWorkflow() ? [["Data de pagamento", value("financeiroDataPagamento", "") ? `Dia ${value("financeiroDataPagamento", "")}` : "Não informado"]] : []),
         ["Competência", competenciaFinanceira()],
         ["Observação financeira", value("financeiroObservacao", "Dependendo do processo, esse valor pode ser reajustado.")]
@@ -2665,6 +2784,8 @@
       setFieldValue("honorario", value("aberturaValorHonorario", ""));
       setFieldValue("financeiroValor", value("aberturaValorServico", ""));
       setFieldValue("financeiroHonorario", value("aberturaValorHonorario", ""));
+      if ($("honorarioBaseSemMovimentacao") && $("aberturaHonorarioBaseSemMovimentacao")) $("honorarioBaseSemMovimentacao").checked = $("aberturaHonorarioBaseSemMovimentacao").checked;
+      setFieldValue("honorarioProvisorio", value("aberturaHonorarioProvisorio", ""));
       setSelectValue("formaPagamento", value("aberturaFormaPagamento", ""));
       setSelectValue("regime", value("aberturaRegime", ""));
       document.querySelectorAll(".formaAtuacao").forEach((item) => {
@@ -2765,6 +2886,10 @@
         ["Valor do serviço", value("aberturaValorServico", "")],
         ["Forma de pagamento", value("aberturaFormaPagamento", "")],
         ["Valor de honorário", value("aberturaValorHonorario", "")],
+        ...($("aberturaHonorarioBaseSemMovimentacao")?.checked ? [
+          ["Honorário base durante período de movimentação", "Sim"],
+          ["Honorário provisório", value("aberturaHonorarioProvisorio", "")]
+        ] : []),
         ["Data de pagamento", value("aberturaDataPagamento", "") ? `Dia ${value("aberturaDataPagamento", "")}` : ""],
         ["Razão Social", value("aberturaRazao", "")],
         ["Nome fantasia", value("aberturaFantasia", "")],
@@ -2904,6 +3029,10 @@
             ["Valor dos serviços", value("financeiroValor")],
             ["Forma de pagamento", value("formaPagamento")],
             ["Honorário mensal", honorarioFinanceiro()],
+            ...(($("honorarioBaseSemMovimentacao")?.checked || $("aberturaHonorarioBaseSemMovimentacao")?.checked) ? [
+              ["Honorário base durante período de movimentação", "Sim"],
+              ["Honorário provisório", value("honorarioProvisorio", value("aberturaHonorarioProvisorio", ""))]
+            ] : []),
             ["Data de pagamento", value("aberturaDataPagamento", "") ? `Dia ${value("aberturaDataPagamento", "")}` : ""],
             ["Competência", competenciaFinanceira()],
             ["Observação financeira", value("financeiroObservacao", "")]
@@ -3058,7 +3187,6 @@
       const endereco = `${value("endereco")} - ${value("municipio")}/${value("estado", "UF")} - CEP ${value("cep")}`;
       const dataHoje = new Date().toLocaleDateString("pt-BR");
       const inicioServicos = monthLongLabel($("inicio").value);
-      const vencimento = value("financeiroObservacao", "Dependendo do processo, esse valor pode ser reajustado.");
 
       return `
         ${docHero("Contrato de prestação de serviços contábeis")}
@@ -3071,7 +3199,7 @@
 
           <div class="contract-party"><p class="contract-lead"><strong>FIADOR:</strong> Fica o(a) Sr.(a) ${socioNome}, inscrito(a) no CPF ${socioCpf}, responsável na qualidade de FIADOR, por todas as obrigações assumidas pela CONTRATANTE no presente contrato.</p></div>
 
-          <div class="contract-party"><p class="contract-lead"><strong>VALOR DOS SERVIÇOS E CONDIÇÕES DE PAGAMENTO:</strong> A CONTRATANTE pagará à CONTRATADA o valor de ${value("financeiroValor")} e os honorários mensais de ${honorarioFinanceiro()}, com forma de pagamento por ${value("formaPagamento")}, competência inicial ${competenciaFinanceira()}. ${vencimento}</p></div>
+          <div class="contract-party"><p class="contract-lead">${paragrafoValorServicosContrato()}</p></div>
 
           <div class="contract-party"><p class="contract-lead"><strong>VIGÊNCIA DO CONTRATO DE SERVIÇO:</strong> O contrato tem validade a partir de sua assinatura, em ${dataHoje}, por tempo indeterminado, com início dos serviços em ${inicioServicos}, observadas as condições de rescisão previstas neste instrumento.</p></div>
 
@@ -3568,6 +3696,9 @@
       setFieldValue("financeiroValor", findHistoryRow(rowsData, ["valor"]));
       setFieldValue("formaPagamento", findHistoryRow(rowsData, ["forma de pagamento"]));
       setFieldValue("financeiroHonorario", findHistoryRow(rowsData, ["honorário mensal", "honorário acordado"]));
+      const honorarioBaseHistorico = findHistoryRow(rowsData, ["honorário base durante período de movimentação"]);
+      if ($("honorarioBaseSemMovimentacao")) $("honorarioBaseSemMovimentacao").checked = /^sim$/i.test(honorarioBaseHistorico);
+      setFieldValue("honorarioProvisorio", findHistoryRow(rowsData, ["honorário provisório"]));
       setFieldValue("financeiroObservacao", findHistoryRow(rowsData, ["observação financeira"]));
       setFieldValue("observacaoInicial", findHistoryRow(rowsData, ["observação inicial"]) || "Documento restaurado a partir do histórico para conferência e edição.");
       setFieldValue("docs", `Registro recuperado do histórico.\n${plainText.slice(0, 1200)}`);
