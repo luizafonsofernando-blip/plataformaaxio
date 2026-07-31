@@ -100,12 +100,7 @@
         <span class="luce-auth-signature">Uma solução Luce</span>
       </aside>
       <form class="cerne-login-card" autocomplete="off">
-        <img src="/cerne/cerne-logo.png" alt="CERNE" class="cerne-login-logo">
-        <div>
-          <p>CERNE</p>
-          <h1>Acesso seguro</h1>
-          <span>Use o mesmo usuário ativo do Onboarding Contábil.</span>
-        </div>
+        <img src="/assets/logo-luce-oficial.png" alt="Luce" class="cerne-login-logo">
         <label>E-mail ou usuário<input name="identifier" type="text" autocomplete="username" required></label>
         <label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
         <button type="submit">Entrar</button>

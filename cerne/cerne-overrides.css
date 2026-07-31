@@ -586,9 +586,22 @@ td strong {
     linear-gradient(180deg, #020817 0%, #08275a 55%, #030918 100%) !important;
 }
 
-.cerne-login-screen .luce-auth-brand,
-.cerne-login-logo {
+.cerne-login-screen .luce-auth-brand {
   display: none !important;
+}
+
+.cerne-login-logo {
+  display: block !important;
+  width: min(245px, 78%) !important;
+  height: auto !important;
+  justify-self: center !important;
+  margin: 0 auto 10px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  object-fit: contain !important;
 }
 
 .cerne-login-screen .luce-auth-story {
@@ -634,7 +647,7 @@ td strong {
 .cerne-login-card {
   justify-self: center !important;
   width: min(430px, 100%) !important;
-  padding: 32px !important;
+  padding: 34px 32px 32px !important;
   color: var(--cerne-text) !important;
   background: rgba(255, 255, 255, .97) !important;
   border: 1px solid rgba(224, 234, 246, .9) !important;
