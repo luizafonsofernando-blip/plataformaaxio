@@ -71,9 +71,60 @@
     });
   }
 
-  const observer = new MutationObserver(removeOverviewIntro);
+  function decodeJwtPayload(token) {
+    try {
+      const payload = String(token || "").split(".")[1];
+      if (!payload) return null;
+      const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+      const padded = normalized.padEnd(normalized.length + (4 - normalized.length % 4) % 4, "=");
+      return JSON.parse(decodeURIComponent(escape(atob(padded))));
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function currentUserName() {
+    try {
+      const session = JSON.parse(sessionStorage.getItem("luce-auth-cerne") || "null");
+      const payload = decodeJwtPayload(session?.access_token);
+      return payload?.user_metadata?.display_name || payload?.user_metadata?.name || payload?.email || "Usuário";
+    } catch (_error) {
+      return "Usuário";
+    }
+  }
+
+  function enhanceShellChrome() {
+    const crumb = document.querySelector(".topbar .crumb");
+    if (crumb && crumb.dataset.cerneUser !== "1") {
+      crumb.dataset.cerneUser = "1";
+      crumb.textContent = currentUserName();
+      crumb.setAttribute("aria-label", "Usuário logado");
+    }
+
+    const topActions = document.querySelector(".topbar .top-actions");
+    if (topActions && !topActions.querySelector(".cerne-logout-button")) {
+      const logout = document.createElement("button");
+      logout.type = "button";
+      logout.className = "cerne-logout-button";
+      logout.textContent = "Sair";
+      logout.addEventListener("click", () => {
+        if (window.CerneSession?.logout) window.CerneSession.logout();
+        else {
+          sessionStorage.removeItem("luce-auth-cerne");
+          window.location.reload();
+        }
+      });
+      topActions.appendChild(logout);
+    }
+  }
+
+  const observer = new MutationObserver(() => {
+    removeOverviewIntro();
+    enhanceShellChrome();
+  });
   observer.observe(document.documentElement, { childList: true, subtree: true });
   removeOverviewIntro();
+  enhanceShellChrome();
 
   document.addEventListener("click", (event) => {
     const button = event.target.closest?.("button.metric.interactive");
