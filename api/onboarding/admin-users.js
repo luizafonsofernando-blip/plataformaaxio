@@ -79,6 +79,10 @@ function isRejectedUser(user) {
   return userStatus(user) === "rejected";
 }
 
+function extractSupabaseUser(data) {
+  return data?.user || data;
+}
+
 function isCleanupPendingUser(user) {
   if (!isPendingUser(user)) return false;
   const requestedAt = user.user_metadata?.registration_requested_at || user.created_at;
@@ -173,7 +177,7 @@ async function restoreUsersFromHistory(serviceRoleKey) {
   for (const candidate of candidates.values()) {
     const existing = users.find((user) => userMatchesCandidate(user, candidate));
     if (existing) {
-      await supabaseFetch(`/auth/v1/admin/users/${existing.id}`, {
+      const updated = await supabaseFetch(`/auth/v1/admin/users/${existing.id}`, {
         method: "PUT",
         key: serviceRoleKey,
         bearer: serviceRoleKey,
@@ -187,6 +191,8 @@ async function restoreUsersFromHistory(serviceRoleKey) {
           },
         },
       });
+      const updatedUser = extractSupabaseUser(updated);
+      if (updatedUser) users.splice(users.indexOf(existing), 1, updatedUser);
       reactivated += 1;
       continue;
     }
@@ -203,7 +209,8 @@ async function restoreUsersFromHistory(serviceRoleKey) {
           app_metadata: { role: "user", status: "approved" },
         },
       });
-      if (createdUser?.user) users.push(createdUser.user);
+      const newUser = extractSupabaseUser(createdUser);
+      if (newUser) users.push(newUser);
       created += 1;
     } catch (error) {
       skipped.push({ name: candidate.name, email: candidate.email, reason: error.message });
@@ -330,12 +337,17 @@ export default async function handler(request, response) {
   }
   if (action === "approve") {
     const target = await supabaseFetch(`/auth/v1/admin/users/${userId}`, { key: serviceRoleKey, bearer: serviceRoleKey });
-    if (!isPendingUser(target.user)) return json(response, 200, { message: "Solicitacao ja nao esta pendente." });
+    const targetUser = extractSupabaseUser(target);
+    if (!targetUser) return json(response, 404, { error: "Solicitacao nao encontrada." });
+    if (!isPendingUser(targetUser)) return json(response, 200, { message: "Solicitacao ja nao esta pendente." });
     await supabaseFetch(`/auth/v1/admin/users/${userId}`, {
       method: "PUT",
       key: serviceRoleKey,
       bearer: serviceRoleKey,
-      body: { app_metadata: { ...(target.user.app_metadata || {}), role: "user", status: "approved" } },
+      body: {
+        app_metadata: { ...(targetUser.app_metadata || {}), role: "user", status: "approved" },
+        email_confirm: true,
+      },
     });
     return json(response, 200, { message: "Cadastro aprovado." });
   }
@@ -346,8 +358,9 @@ export default async function handler(request, response) {
     } catch (_error) {
       return json(response, 200, { message: "Solicitacao ja nao esta pendente." });
     }
-    if (!target.user || !isPendingUser(target.user)) return json(response, 200, { message: "Solicitacao ja nao esta pendente." });
-    await rejectUser(target.user, serviceRoleKey);
+    const targetUser = extractSupabaseUser(target);
+    if (!targetUser || !isPendingUser(targetUser)) return json(response, 200, { message: "Solicitacao ja nao esta pendente." });
+    await rejectUser(targetUser, serviceRoleKey);
     return json(response, 200, { message: "Cadastro removido da lista de pendentes." });
   }
   await supabaseFetch(`/auth/v1/admin/users/${userId}`, { method: "DELETE", key: serviceRoleKey, bearer: serviceRoleKey });
