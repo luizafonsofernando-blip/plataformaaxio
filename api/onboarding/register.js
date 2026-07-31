@@ -15,12 +15,6 @@ function json(response, status, body) {
   return response.json(body);
 }
 
-function isAllowedOrigin(origin = "") {
-  if (!origin) return true;
-  return /^https:\/\/plataformaaxio(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(origin) ||
-    /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
-}
-
 function normalizeUsername(value) {
   return String(value || "").trim().replace(/\s+/g, " ");
 }
@@ -97,19 +91,24 @@ async function auditRegistration({ username, profile, serviceRoleKey, supabaseUr
 }
 
 async function checkRateLimit({ key, action, limit, windowSeconds, serviceRoleKey, supabaseUrl }) {
-  const data = await supabaseFetch("/rest/v1/rpc/check_auth_rate_limit", {
-    method: "POST",
-    serviceRoleKey,
-    supabaseUrl,
-    preferMinimal: false,
-    body: {
-      p_key_hash: key,
-      p_action: action,
-      p_limit: limit,
-      p_window_seconds: windowSeconds,
-    },
-  });
-  return data === true;
+  try {
+    const data = await supabaseFetch("/rest/v1/rpc/check_auth_rate_limit", {
+      method: "POST",
+      serviceRoleKey,
+      supabaseUrl,
+      preferMinimal: false,
+      body: {
+        p_key_hash: key,
+        p_action: action,
+        p_limit: limit,
+        p_window_seconds: windowSeconds,
+      },
+    });
+    return data === true;
+  } catch (error) {
+    console.warn("Onboarding registration rate-limit check failed", safeError(error));
+    return true;
+  }
 }
 
 async function auditRateLimited({ action, metadata, serviceRoleKey, supabaseUrl, request }) {
@@ -170,7 +169,7 @@ export default async function handler(request, response) {
     const ipAllowed = await checkRateLimit({
       key: ipHash,
       action: "registration_ip",
-      limit: 3,
+      limit: 30,
       windowSeconds: 3600,
       serviceRoleKey,
       supabaseUrl,
@@ -178,7 +177,7 @@ export default async function handler(request, response) {
     const emailAllowed = await checkRateLimit({
       key: emailHash,
       action: "registration_email",
-      limit: 2,
+      limit: 5,
       windowSeconds: 86400,
       serviceRoleKey,
       supabaseUrl,
