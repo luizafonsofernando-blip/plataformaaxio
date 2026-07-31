@@ -349,3 +349,351 @@
     min-width: 0;
   }
 }
+
+/* Professional Cerne visual system */
+:root {
+  --cerne-navy: #07162d;
+  --cerne-blue: #1f5fbf;
+  --cerne-blue-strong: #174f9f;
+  --cerne-surface: #ffffff;
+  --cerne-soft: #f5f8fc;
+  --cerne-line: #dce5ef;
+  --cerne-text: #17263a;
+  --cerne-muted: #68778b;
+  --cerne-shadow: 0 16px 42px rgba(16, 34, 58, .08);
+}
+
+body {
+  background: linear-gradient(180deg, #f3f6fa 0%, #eef3f8 100%) !important;
+}
+
+.sidebar {
+  width: 248px !important;
+  padding: 26px 14px 16px !important;
+  background: linear-gradient(180deg, #07162d 0%, #0d2f5d 58%, #0a2447 100%) !important;
+  border-right: 1px solid rgba(255, 255, 255, .08) !important;
+  box-shadow: 18px 0 46px rgba(5, 18, 38, .12);
+}
+
+.workspace {
+  width: calc(100% - 248px) !important;
+  margin-left: 248px !important;
+}
+
+.sidebar::before {
+  margin: 2px 12px 30px !important;
+  font-family: "Segoe UI", Arial, sans-serif !important;
+  font-size: 24px !important;
+  letter-spacing: 6px !important;
+  text-transform: uppercase;
+}
+
+.nav-label {
+  color: rgba(255, 255, 255, .62) !important;
+  margin: 0 13px 12px !important;
+  font-size: 9px !important;
+}
+
+nav button {
+  min-height: 42px !important;
+  margin: 2px 0 !important;
+  padding: 0 12px !important;
+  color: rgba(255, 255, 255, .78) !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+}
+
+nav button:hover,
+nav button.active,
+nav button[aria-current="page"] {
+  color: #fff !important;
+  background: rgba(255, 255, 255, .12) !important;
+  border-color: rgba(255, 255, 255, .14) !important;
+}
+
+.nav-icon {
+  width: 20px !important;
+  color: rgba(255, 255, 255, .8) !important;
+}
+
+nav button em {
+  color: #fff !important;
+  background: rgba(255, 255, 255, .16) !important;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 999px !important;
+  padding: 2px 7px !important;
+}
+
+.topbar {
+  height: 66px !important;
+  padding: 0 30px !important;
+  background: rgba(255, 255, 255, .94) !important;
+  border-bottom: 1px solid rgba(220, 229, 239, .9) !important;
+  box-shadow: 0 12px 28px rgba(16, 34, 58, .06) !important;
+}
+
+.topbar .crumb {
+  font-size: 13px !important;
+  letter-spacing: .1px;
+}
+
+.search {
+  height: 38px !important;
+  background: #f8fbff !important;
+  border: 1px solid #dce5ef !important;
+  border-radius: 8px !important;
+}
+
+.search input {
+  font-size: 12px !important;
+}
+
+.bell,
+.secondary,
+.cerne-logout-button,
+.primary,
+.danger-button {
+  border-radius: 8px !important;
+  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.bell:hover,
+.secondary:hover,
+.cerne-logout-button:hover {
+  background: #f4f8fd !important;
+  border-color: #cbd9e8 !important;
+}
+
+.primary:hover {
+  background: var(--cerne-blue-strong) !important;
+  box-shadow: 0 10px 24px rgba(31, 95, 191, .18) !important;
+}
+
+.content {
+  max-width: 1440px !important;
+  padding: 34px 36px 28px !important;
+}
+
+.page-head {
+  margin-bottom: 20px !important;
+}
+
+.page-head h1 {
+  color: var(--cerne-text) !important;
+  font-size: 28px !important;
+  font-weight: 800 !important;
+}
+
+.page-head p,
+.muted {
+  color: var(--cerne-muted) !important;
+}
+
+.metric,
+.card,
+.table-card,
+.tax-card,
+.segment-card,
+.mini-metrics article {
+  background: var(--cerne-surface) !important;
+  border: 1px solid var(--cerne-line) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--cerne-shadow) !important;
+}
+
+.metric {
+  padding: 17px 18px 16px !important;
+}
+
+.metric.interactive {
+  cursor: pointer;
+}
+
+.metric.interactive:hover {
+  transform: translateY(-1px);
+  border-color: #c9d8eb !important;
+}
+
+.metric > strong {
+  color: var(--cerne-text) !important;
+  font-size: 23px !important;
+}
+
+.metric-top,
+.eyebrow,
+.card-kicker {
+  color: #718198 !important;
+}
+
+.card {
+  padding: 18px !important;
+}
+
+.card h2 {
+  color: var(--cerne-text) !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+}
+
+table {
+  border-spacing: 0 !important;
+}
+
+th {
+  color: #526176 !important;
+  background: #f7fafd !important;
+  border-top: 1px solid var(--cerne-line) !important;
+  border-bottom: 1px solid var(--cerne-line) !important;
+  font-size: 8px !important;
+  font-weight: 800 !important;
+}
+
+td {
+  color: #526176 !important;
+  font-size: 10px !important;
+}
+
+td strong {
+  color: var(--cerne-text) !important;
+}
+
+.status,
+.tag,
+.badge {
+  border-radius: 999px !important;
+  font-weight: 800 !important;
+}
+
+.modal,
+.dialog,
+.drawer,
+[role="dialog"] {
+  border-radius: 10px !important;
+}
+
+.cerne-login-screen {
+  display: grid !important;
+  grid-template-columns: minmax(320px, 1fr) minmax(340px, 440px) !important;
+  gap: 28px !important;
+  place-items: stretch !important;
+  align-items: center !important;
+  padding: 28px !important;
+  background:
+    radial-gradient(circle at 72% 32%, rgba(38, 126, 255, .2), transparent 30%),
+    radial-gradient(circle at 18% 78%, rgba(68, 199, 255, .12), transparent 28%),
+    linear-gradient(180deg, #020817 0%, #08275a 55%, #030918 100%) !important;
+}
+
+.cerne-login-screen .luce-auth-brand,
+.cerne-login-logo {
+  display: none !important;
+}
+
+.cerne-login-screen .luce-auth-story {
+  position: relative !important;
+  inset: auto !important;
+  min-height: calc(100vh - 56px) !important;
+  max-height: calc(100vh - 56px) !important;
+  padding: clamp(30px, 5vw, 66px) !important;
+  color: #fff !important;
+  overflow: hidden !important;
+}
+
+.cerne-login-screen .luce-auth-copy {
+  max-width: 720px !important;
+  opacity: 1 !important;
+}
+
+.cerne-login-screen .luce-auth-copy small {
+  color: #9fe8ff !important;
+  opacity: 1 !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  letter-spacing: 2.8px !important;
+}
+
+.cerne-login-screen .luce-auth-copy h2 {
+  color: #fff !important;
+  opacity: 1 !important;
+  text-shadow: 0 18px 44px rgba(0, 0, 0, .34) !important;
+}
+
+.cerne-login-screen .luce-auth-copy p {
+  color: rgba(255, 255, 255, .9) !important;
+  opacity: 1 !important;
+}
+
+.cerne-login-screen .luce-auth-points span {
+  color: #fff !important;
+  background: rgba(255, 255, 255, .13) !important;
+  border-color: rgba(255, 255, 255, .34) !important;
+}
+
+.cerne-login-card {
+  justify-self: center !important;
+  width: min(430px, 100%) !important;
+  padding: 32px !important;
+  color: var(--cerne-text) !important;
+  background: rgba(255, 255, 255, .97) !important;
+  border: 1px solid rgba(224, 234, 246, .9) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 34px 90px rgba(0, 0, 0, .28) !important;
+  backdrop-filter: blur(16px);
+}
+
+.cerne-login-card p {
+  color: #1f5fbf !important;
+}
+
+.cerne-login-card h1 {
+  color: #07162d !important;
+}
+
+.cerne-login-card span {
+  color: #64748b !important;
+}
+
+.cerne-login-card label {
+  color: #07162d !important;
+}
+
+.cerne-login-card input {
+  min-height: 46px !important;
+  color: #17263a !important;
+  background: #fff !important;
+  border: 1px solid #d8e4f1 !important;
+  border-radius: 8px !important;
+  -webkit-text-fill-color: #17263a !important;
+}
+
+.cerne-login-card input:focus {
+  border-color: #1f5fbf !important;
+  box-shadow: 0 0 0 3px rgba(31, 95, 191, .12) !important;
+}
+
+.cerne-login-card button {
+  min-height: 46px !important;
+  background: linear-gradient(135deg, #1f62d1, #35bceb) !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+}
+
+@media (max-width: 860px) {
+  .workspace {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  .cerne-login-screen {
+    grid-template-columns: 1fr !important;
+    overflow: auto !important;
+  }
+
+  .cerne-login-screen .luce-auth-story {
+    min-height: auto !important;
+    max-height: none !important;
+    padding: 24px !important;
+  }
+}
