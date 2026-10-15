@@ -74,7 +74,7 @@ Não há modal de exportação aberto nesta captura. Não é possível concluir 
 
 Para o espelho Gestta -> Luce, recomendamos TODOS os quatro status para acompanhar mudanças de situação e evitar conclusões invisíveis. Uma tarefa concluída é um estado do Gestta, não comprova transmissão E-BEF. Uma tarefa desconsiderada não implica automaticamente dispensa legal.
 
-Alteração feita no RPA: `GESTTA_ADVANCED_OPEN_SELECTOR`, `GESTTA_ADVANCED_APPLY_SELECTOR`, `GESTTA_ADVANCED_STATUS_SELECTORS` (4 chaves), `GESTTA_ADVANCED_TASK_TYPE_SELECTORS` (3 chaves), `GESTTA_ADVANCED_DEPARTMENT_SELECTOR`, `GESTTA_ADVANCED_DEPARTMENT_SELECT_ALL_SELECTOR`, `GESTTA_ADVANCED_DEPARTMENT_OPTION_CHECKBOXES_SELECTOR` e `GESTTA_ADVANCED_DEPARTMENT_TOTAL_COUNT`. Todos são obrigatórios no --auto; o robô falha quando não consegue validar os controles, sem substituir seletores por suposições.
+Alteração feita no RPA: `GESTTA_ADVANCED_OPEN_SELECTOR`, `GESTTA_ADVANCED_APPLY_SELECTOR`, `GESTTA_ADVANCED_STATUS_SELECTORS` (4 chaves), `GESTTA_ADVANCED_TASK_TYPE_SELECTORS` (3 chaves), `GESTTA_ADVANCED_DEPARTMENT_SELECTOR`, `GESTTA_ADVANCED_DEPARTMENT_SELECT_ALL_SELECTOR`, `GESTTA_ADVANCED_DEPARTMENT_ROW_SELECTOR` e `GESTTA_ADVANCED_DEPARTMENT_ROW_CHECKBOX_SELECTOR`. Todos são obrigatórios no --auto; o robô falha quando não consegue validar os controles, sem substituir seletores por suposições.
 
 A comparação textual `Contábil +16` não certifica o conjunto de departamentos. Na homologação, deve-se abrir o seletor e conferir todos os departamentos efetivos; se necessário evoluir para checagem individual de cada opção, antes de autorizar agendamento.
 
@@ -88,6 +88,14 @@ No dropdown aparecem as opções:
 - **Auditoria** marcada.
 - Outras opções são acessadas por rolagem; não é possível contar o total pela captura.
 
-O resumo `Contábil +16` não significa que TODOS os departamentos foram selecionados. A nova rotina do RPA deverá **abrir Departamento → clicar Selecionar todos → validar os checkboxes e a quantidade TOTAL esperada** antes de acionar `Filtrar`. Um menu com renderização virtualizada ou seletores desconhecidos deve abortar para nova calibração, nunca considerar cobertura integral apenas pelo resumo textual.
+O resumo `Contábil +16` não significa que TODOS os departamentos foram selecionados. A nova rotina do RPA deverá **abrir Departamento → clicar Selecionar todos → validar o checkbox e o nome de cada um dos 21 departamentos esperados** antes de acionar `Filtrar`. Um menu com renderização virtualizada ou seletores desconhecidos deve abortar para nova calibração, nunca considerar cobertura integral apenas pelo resumo textual.
 
 **Pendente:** contar todos os departamentos após clicar Selecionar todos em sessão autorizada, calibrar a ação de seleção geral e o conjunto de checkboxes reais, e testar que os filtros se mantêm aplicados depois do botão Filtrar. O código foi atualizado em branch de rascunho e NÃO executado no Gestta.
+
+## Lista integral dos 21 departamentos, confirmada pela ORTECONTE
+
+Administrativo; Arquivo; Atendimento; Auditoria; BPO | Financeiro; Certificadora Digital; Comercial; Compliance; Contábil; Financeiro; Fiscal; Gestta; Jurídico; Marketing; Pessoal; Processos; Processos / Regularização; Relacionamento; Societário; Tecnologia; Técnico.
+
+O código agora possui `REQUIRED_DEPARTMENTS` com os nomes exatos. Após acionar `Selecionar todos`, compara 21 linhas de departamento e cada checkbox; nomes desconhecidos, duplicados, omitidos ou desmarcados interrompem a exportação. O resumo `Contábil +16` nunca será considerado prova de seleção completa. Um componente de lista virtualizada exige nova calibração porque nem todas as linhas poderão estar visíveis no DOM.
+
+**Ainda pendente:** calibrar seletores CSS e executar teste end-to-end no Windows autenticado, além de verificar a persistência após clicar em `Filtrar`. Esta alteração não altera dados ou tarefas no Gestta.
