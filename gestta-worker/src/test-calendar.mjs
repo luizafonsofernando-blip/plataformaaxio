@@ -21,6 +21,11 @@ const url = new URL(rawUrl);
 if (url.protocol !== 'https:' || url.hostname !== 'app.gestta.com.br') {
   throw new Error('GESTTA_REPORT_URL precisa pertencer a https://app.gestta.com.br/.');
 }
+if (!url.hash.startsWith('#/sidebar/task/')) {
+  throw new Error('A URL configurada não contém a rota de tarefas do Gestta. ' +
+    'Como o endereço usa #, coloque a URL inteira ENTRE ASPAS DUPLAS no arquivo .env, ' +
+    'por exemplo: GESTTA_REPORT_URL="https://app.gestta.com.br/#/sidebar/task/overview/dashboard/..."');
+}
 
 const profile = resolve(process.cwd(), '.gestta-profile');
 await mkdir(profile, { recursive: true, mode: 0o700 });
