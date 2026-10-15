@@ -72,3 +72,27 @@ A rotina não contorna login, MFA ou CAPTCHA e **não** adivinha seletores. Se o
 ## Execução no Windows durante o expediente
 
 Para instalar o robô localmente e preparar um agendamento opcional no Agendador de Tarefas do Windows, consulte [`windows/README.md`](windows/README.md). Os scripts criam uma **prévia por padrão** e só registram horários com `-Apply`, depois da homologação da exportação e da autenticação. Não use em produção antes de confirmar filtros, contagens e autorização do Gestta.
+ 
+## Fluxo mensal 2026 (novo formato com Id e Vencimento)
+
+O relatorio de outubro apresenta 15 colunas: Id, Nome, Tipo, Status, Cliente, CNPJ/CPF, Departamento, Responsavel, Vencimento, Data Legal, Competencia, Data de Conclusao, Feito atrasado, Feito com multa e Baixado.
+
+O ID proprio do Gestta evita duplicidades entre exportacoes (e mudancas de status, titulo e responsavel). O campo Vencimento valida se o filtro por Data Meta foi aplicado. Competencia e armazenada separadamente.
+
+Primeira carga, com acoes manuais no navegador e SEM enviar dados:
+
+    npm run sync -- --backfill --from=2026-01 --dry-run
+
+Rotina para os dois meses mais recentes, tambem sem enviar dados:
+
+    npm run sync -- --backfill --recent=2 --dry-run
+
+Nos meses com 31 dias, exportar 01-30 e 02-31, dois intervalos de ate 30 dias. A sobreposicao e removida pelo ID da tarefa. O mes atual e consultado por inteiro (inclusive vencimentos futuros). Todos os XLSX sao validados antes de enviar qualquer registro.
+
+Automacao completa, apenas depois de calibrar seletores CSS reais no Windows e confirmar os 3 filtros de tarefa, todos os clientes, todos os usuarios, Data Meta e botao Exportar:
+
+    npm run sync -- --backfill --recent=2 --auto --dry-run
+
+Parametros exigidos: GESTTA_REPORT_URL, GESTTA_DATE_RANGE_SELECTOR, GESTTA_FILTER_APPLY_SELECTOR, GESTTA_CLIENTS_ALL_SELECTOR, GESTTA_USERS_ALL_SELECTOR, GESTTA_TASK_CHECKBOX_SELECTORS (JSON com 3 seletores) e GESTTA_EXPORT_SELECTOR.
+
+A captura de tela nao revela seletores HTML. Se o date-picker for somente leitura ou os checkboxes forem componentes customizados, sera necessaria calibracao presencial no Windows. NAO agendar antes desse teste.
