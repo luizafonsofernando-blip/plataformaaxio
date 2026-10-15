@@ -62,6 +62,9 @@ export async function parseGesttaXlsx(filePath, { expectedWindow, allowEmpty = f
   if (expectedWindow && !positions.vencimento) {
     throw new Error('Relatório mensal sem Vencimento; impossível verificar o filtro de Data Meta.');
   }
+  if (expectedWindow && !positions.gesttaId) {
+    throw new Error('Relatório mensal sem Id do Gestta: não é seguro conciliar períodos sobrepostos.');
+  }
 
   const tasks = [];
   for (let row = 2; row <= sheet.rowCount; row++) {
@@ -76,6 +79,9 @@ export async function parseGesttaXlsx(filePath, { expectedWindow, allowEmpty = f
     let task;
     try { task = normalizeRow(data); }
     catch (error) { throw new Error('Linha ' + row + ': ' + error.message, { cause: error }); }
+    if (expectedWindow && !task.gestta_id) {
+      throw new Error('Linha ' + row + ': Id da tarefa ausente. Exportação mensal cancelada.');
+    }
     if (expectedWindow &&
         (!task.vencimento || task.vencimento < expectedWindow.start || task.vencimento > expectedWindow.end)) {
       throw new Error('Linha ' + row + ': Data Meta (' + String(task.vencimento) +
