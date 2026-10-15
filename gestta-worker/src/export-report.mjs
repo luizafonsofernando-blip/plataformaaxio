@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { brazilRange } from './month-windows.mjs';
-import { ADVANCED_STATUSES, ADVANCED_TASK_TYPES, parseRequiredSelectorMap } from './advanced-filter-config.mjs';
+import { ADVANCED_STATUSES, ADVANCED_TASK_TYPES, parseRequiredSelectorMap, assertCompleteDepartmentSelection } from './advanced-filter-config.mjs';
 
 const ROOT = resolve(process.cwd(), '.gestta-profile');
 const DEFAULT_DASHBOARD = 'https://app.gestta.com.br/';
@@ -59,7 +59,9 @@ async function applyAndVerifyAdvancedFilters(page) {
   const openSelector = requiredSelector('GESTTA_ADVANCED_OPEN_SELECTOR');
   const applySelector = requiredSelector('GESTTA_ADVANCED_APPLY_SELECTOR');
   const departmentSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_SELECTOR');
-  const departmentExpected = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_EXPECTED_TEXT');
+  const selectAllDepartmentsSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_SELECT_ALL_SELECTOR');
+  const departmentCheckboxSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_OPTION_CHECKBOXES_SELECTOR');
+  const expectedDepartmentCount = Number(requiredSelector('GESTTA_ADVANCED_DEPARTMENT_TOTAL_COUNT'));
   const statuses = parseRequiredSelectorMap(
     requiredSelector('GESTTA_ADVANCED_STATUS_SELECTORS'), ADVANCED_STATUSES,
     'GESTTA_ADVANCED_STATUS_SELECTORS'
@@ -83,12 +85,20 @@ async function applyAndVerifyAdvancedFilters(page) {
   if (await department.count() !== 1) {
     throw new Error('Campo Departamento não localizado de forma única.');
   }
-  const actualDepartment = normalizedText(await department.innerText()).trim().replace(/\s+/g, ' ');
-  const expectedDepartment = normalizedText(departmentExpected).trim().replace(/\s+/g, ' ');
-  if (actualDepartment !== expectedDepartment) {
-    throw new Error('Escopo do Departamento mudou: esperado "' + expectedDepartment +
-      '", encontrado "' + actualDepartment + '". Validar a seleção no Gestta.');
+  await department.click({ timeout: 10000 });
+  const selectAll = page.locator(selectAllDepartmentsSelector);
+  if (await selectAll.count() !== 1) {
+    throw new Error('Ação Selecionar todos do departamento não localizada de forma única.');
   }
+  await selectAll.click({ timeout: 10000 });
+  const checkboxes = page.locator(departmentCheckboxSelector);
+  const count = await checkboxes.count();
+  const states = [];
+  for (let i = 0; i < count; i++) {
+    states.push(await checkboxes.nth(i).isChecked());
+  }
+  // Falha se lista parcial/virtualizada, quantidade diferente da calibrada ou opcao desmarcada.
+  assertCompleteDepartmentSelection(states, expectedDepartmentCount);
   await page.locator(applySelector).click({ timeout: 10000 });
   await page.waitForTimeout(1200);
 }
