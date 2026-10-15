@@ -239,3 +239,21 @@ Para atualizar e validar SOMENTE a navegação e o calendário:
     npm run test:calendar -- --start=2026-10-01 --end=2026-10-30
 
 Após login na Dashboard, o robô tentará abrir Tarefas automaticamente pelo contador antes de preencher as datas. Se pedir navegação manual, coletar o localizador do número pelo Inspector para calibrar.
+
+
+## Link numerico da Dashboard identificado pelo Playwright Inspector
+
+O Inspector mostrou o numero clicavel como link com nome acessivel numerico ("21069" no exemplo). Esse numero e dinamico e NUNCA deve ser fixado no codigo.
+
+O worker foi ajustado para procurar um unico link com nome composto por digitos: getByRole('link', { name: /^[0-9]+$/ }). Caso exista apenas um, ele tenta o clique e confirma que #date-range ficou visivel. Se houver varios, tenta a localizacao contextual pelo rotulo "No Prazo", e interrompe caso a escolha continue ambigua.
+
+Teste somente navegação e calendário, após encerrar Chromium/Inspector anteriores:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:calendar -- --start=2026-10-01 --end=2026-10-30
+
+Se continuar sem clicar, inspecionar href/atributos do link e obter seletor CSS estavel, configurando GESTTA_DASHBOARD_TASKS_SHORTCUT_SELECTOR. Nao enviar informacoes de sessao, cookies ou credenciais.
+
+Ainda falta homologar se o atalho do grafico pre-aplica filtro de status (por exemplo No Prazo) e se os filtros avancados sao zerados/atualizados corretamente. Nao habilitar exportacao completa ate isso estar confirmado.
