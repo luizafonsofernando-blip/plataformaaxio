@@ -27,7 +27,8 @@ try {
     & $npm.Source test
     if ($LASTEXITCODE -ne 0) { throw 'Testes do worker falharam.' }
     Write-Host 'Instalacao concluida; nenhuma tarefa foi agendada.' -ForegroundColor Green
-    Write-Host 'Configure .env, depois rode npm run login e npm run sync -- --auto --dry-run.'
+    Write-Host 'Proximo passo: npm run login; depois npm run inspect.'
+    Write-Host 'Validacao inicial sem envio: npm run sync -- --file "C:\\caminho\\relatorio.xlsx" --dry-run.'
 } catch {
     Write-Error $_
     exit 1
