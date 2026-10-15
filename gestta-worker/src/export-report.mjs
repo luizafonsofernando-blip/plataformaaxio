@@ -6,6 +6,7 @@ import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { brazilRange } from './month-windows.mjs';
 import { ADVANCED_STATUSES, ADVANCED_TASK_TYPES, parseRequiredSelectorMap, assertSelectedDepartmentNames } from './advanced-filter-config.mjs';
+import { applyDateWindow, readControlText } from './date-picker.mjs';
 
 const ROOT = resolve(process.cwd(), '.gestta-profile');
 const DEFAULT_DASHBOARD = 'https://app.gestta.com.br/';
@@ -112,20 +113,7 @@ async function applyAndVerifyAdvancedFilters(page) {
   await page.waitForTimeout(1200);
 }
 
-// Suporta tanto <input> quanto o elemento de texto que abre o date-picker.
-async function readControlText(locator) {
-  const tag = await locator.evaluate(el => el.tagName.toLowerCase());
-  return /^(input|textarea|select)$/.test(tag) ? locator.inputValue() : locator.innerText();
-}
-
 async function applyAndVerifyWindow(page, window) {
-  // Seletores devem ser obtidos no Gestta autenticado e conferidos localmente.
-  const dateSelector = requiredSelector('GESTTA_DATE_RANGE_SELECTOR');
-  // O Inspector identificou getByText('Outro', { exact: true }); CSS é opcional.
-  const customSelector = process.env.GESTTA_DATE_CUSTOM_SELECTOR?.trim();
-  const startSelector = requiredSelector('GESTTA_DATE_START_SELECTOR');
-  const endSelector = requiredSelector('GESTTA_DATE_END_SELECTOR');
-  const applySelector = process.env.GESTTA_DATE_APPLY_SELECTOR?.trim();
   const clientSelector = requiredSelector('GESTTA_CLIENTS_ALL_SELECTOR');
   const userSelector = requiredSelector('GESTTA_USERS_ALL_SELECTOR');
   const dateModeSelector = requiredSelector('GESTTA_DATE_MODE_SELECTOR');
@@ -137,43 +125,7 @@ async function applyAndVerifyWindow(page, window) {
       taskSelectors.some(value => typeof value !== 'string' || !value.trim())) {
     throw new Error('Configure exatamente tres seletores de tarefas E-BEF.');
   }
-  const desired = brazilRange(window);
-  const dateField = page.locator(dateSelector);
-  if (await dateField.count() !== 1) {
-    throw new Error('Campo geral do periodo (#date-range) nao foi localizado de forma unica.');
-  }
-  await dateField.click({ timeout: 10000 });
-  const custom = customSelector
-    ? page.locator(customSelector)
-    : page.getByText('Outro', { exact: true });
-  if (await custom.count() !== 1) throw new Error('Opcao Outro do calendario nao identificada de forma unica.');
-  await custom.click({ timeout: 10000 });
-  const startField = page.locator(startSelector);
-  const endField = page.locator(endSelector);
-  if (await startField.count() !== 1 || await endField.count() !== 1) {
-    throw new Error('Calendario sem campos unicos de inicio/fim; recalibre os seletores.');
-  }
-  const fmt = (iso) => iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4);
-  const normalized = (text) => String(text).replace(/\s/g, '');
-  // Input textual somente: se a interface exigir calendario customizado, parar sem adivinhar clicks.
-  await startField.fill(fmt(window.start), { timeout: 10000 });
-  await endField.fill(fmt(window.end), { timeout: 10000 });
-  if (normalized(await startField.inputValue()) !== normalized(fmt(window.start)) ||
-      normalized(await endField.inputValue()) !== normalized(fmt(window.end))) {
-    throw new Error('Datas iniciais/finais nao permaneceram no calendario.');
-  }
-  // Seletor semantico confirmado pelo Inspector: getByRole('button', { name: 'Aplicar' }).
-  // CSS opcional continua disponível caso existam vários botões 'Aplicar'.
-  const applyButton = applySelector
-    ? page.locator(applySelector)
-    : page.getByRole('button', { name: 'Aplicar', exact: true });
-  if (await applyButton.count() !== 1) throw new Error('Botao Aplicar nao localizado de forma unica.');
-  await applyButton.click({ timeout: 10000 });
-  await page.waitForTimeout(1200);
-  const applied = normalized(await readControlText(dateField));
-  if (applied !== normalized(desired)) {
-    throw new Error('Intervalo exibido nao coincide com o solicitado (' + desired + ').');
-  }
+  await applyDateWindow(page, window);
   if (!/TODOS.*CLIENTES/.test(normalizedText(await page.locator(clientSelector).first().innerText()))) {
     throw new Error('Filtro de clientes não está em Todos os clientes.');
   }
