@@ -6,7 +6,7 @@ import {
 } from '../src/task-navigation.mjs';
 
 function mockGestta({ alreadyInTasks = false, duplicateIndicator = false,
-  noNumericIndicator = false, customSelector = null } = {}) {
+  noNumericIndicator = false, customSelector = null, roleLinkCount = 0 } = {}) {
   let visible = alreadyInTasks;
   let clickCount = 0;
   const date = {
@@ -27,6 +27,11 @@ function mockGestta({ alreadyInTasks = false, duplicateIndicator = false,
       return value;
     },
   };
+  const numericLink = {
+    count: async () => roleLinkCount,
+    isVisible: async () => true,
+    click: async () => { clickCount++; visible = true; },
+  };
   const label = {
     waitFor: async () => {},
     count: async () => duplicateIndicator ? 2 : 1,
@@ -42,6 +47,12 @@ function mockGestta({ alreadyInTasks = false, duplicateIndicator = false,
       if (css === TASKS_VIEW_SELECTOR) return date;
       if (css === customSelector) return value;
       throw new Error('seletor inesperado: ' + css);
+    },
+    getByRole: (role, opts) => {
+      assert.equal(role, 'link');
+      assert(opts.name instanceof RegExp);
+      assert(opts.name.test('21069'));
+      return numericLink;
     },
     getByText: (text, opts) => {
       assert.equal(text, 'No Prazo');
@@ -72,7 +83,7 @@ test('aborta se No Prazo ambiguo', async () => {
 });
 test('aborta se nenhum numero proximo estiver acessivel', async () => {
   const { context, getClickCount } = mockGestta({noNumericIndicator:true});
-  await assert.rejects(() => ensureTasksView(context), /nao localizado com seguranca/);
+  await assert.rejects(() => ensureTasksView(context), /nao localizado unicamente/);
   assert.equal(getClickCount(), 0);
 });
 test('admite seletor calibrado no numero do grafico', async () => {
@@ -80,4 +91,19 @@ test('admite seletor calibrado no numero do grafico', async () => {
   const {page} = mockGestta({customSelector:selector});
   assert.equal(dashboardIndicatorLocator(page, {selector}), page.locator(selector));
   assert.equal(await findDashboardIndicator(page,{selector}),page.locator(selector));
+});
+
+test('usa link numerico da Dashboard sem fixar o valor observado', async () => {
+  const { context, page, getClickCount } = mockGestta({
+    roleLinkCount: 1, noNumericIndicator: true,
+  });
+  assert.equal(await ensureTasksView(context), page);
+  assert.equal(getClickCount(), 1);
+});
+test('se varios links numericos aparecerem nao escolhe arbitrariamente', async () => {
+  const {context, getClickCount} = mockGestta({
+    roleLinkCount: 2, noNumericIndicator: true,
+  });
+  await assert.rejects(() => ensureTasksView(context), /nao localizado unicamente/);
+  assert.equal(getClickCount(), 0);
 });
