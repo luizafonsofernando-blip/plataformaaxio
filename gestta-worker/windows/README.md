@@ -139,3 +139,39 @@ Para atualizar a branch já clonada depois das alterações no GitHub:
     cd gestta-worker
 
 Não compartilhe cookies, MFA ou segredos ao relatar eventuais problemas.
+
+
+## Teste isolado do calendário (seletores inspecionados em 15/10/2026)
+
+Referências confirmadas no Playwright Inspector:
+- Campo principal: #date-range
+- Início: input[name="daterangepicker_start"]
+- Fim: input[name="daterangepicker_end"]
+- Outro: getByText('Outro', {exact:true})
+- Aplicar: getByRole('button', {name:'Aplicar',exact:true})
+
+O módulo src/date-picker.mjs usa estes seletores como padrão, sem exigir a edição de suas variáveis no .env.
+
+Encerre npm run inspect e feche o navegador Playwright para liberar o perfil.
+Atualize a branch clonada:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+
+Configure o endereço da página de tarefas no arquivo local .env
+(sem compartilhar o arquivo, cookies ou senhas):
+
+    notepad .env
+
+Preencha GESTTA_REPORT_URL com a URL de tarefas do Gestta que contém o calendário.
+Teste local sem download, envio de dados ou alteração de tarefas:
+
+    npm run test:calendar -- --start=2026-10-01 --end=2026-10-30
+
+O teste abre Chromium com a sessão local, seleciona Outro, preenche as
+duas datas, clica Aplicar e confere o intervalo mostrado na tela.
+
+Se os inputs forem somente leitura, a rotina falhará sem modificar dados
+no Gestta e deverá ser adaptada após nova inspeção.
+Não ative a exportação e o agendamento antes de homologar todos os outros filtros.
