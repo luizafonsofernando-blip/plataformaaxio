@@ -40,7 +40,7 @@ Entre no Gestta na janela exibida, incluindo eventual MFA, e retorne ao terminal
 Em seguida:
 
 \`\`\`powershell
-npm run sync -- --dry-run
+npm run sync -- --backfill --dry-run
 \`\`\`
 
 No navegador, ajuste os filtros de **tarefas E-BEF e competências desejadas** e exporte o XLSX. Confirme contagens. Quando aprovado, executar sem \`--dry-run\`.
@@ -49,11 +49,11 @@ Também é possível sincronizar um relatório já baixado com \`npm run sync --
 
 ## Automação total (somente após calibrar a interface)
 
-Configure a URL exata da página de relatório (\`GESTTA_REPORT_URL\`) e o seletor CSS do botão de exportação (\`GESTTA_EXPORT_SELECTOR\`) no \`.env\`. Valide que os filtros foram aplicados ao abrir a página em uma nova sessão. Depois:
+Configure a URL e os seletores da tela e dos filtros, conforme descrito no final deste documento. Valide que os filtros foram aplicados ao abrir a página em uma nova sessão. Depois:
 
 \`\`\`powershell
-npm run sync -- --auto --dry-run
-npm run sync -- --auto
+npm run sync -- --backfill --recent=2 --auto --dry-run
+npm run sync -- --backfill --recent=2 --auto
 \`\`\`
 
 A rotina não contorna login, MFA ou CAPTCHA e **não** adivinha seletores. Se o layout ou a sessão mudar, falhará e exigirá revisão. Não programe execução automática antes de verificar uma exportação completa e correta.
