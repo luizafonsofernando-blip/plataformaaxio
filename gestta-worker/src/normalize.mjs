@@ -7,7 +7,7 @@ export function ascii(value) {
 export function normalizeDocument(value) {
   const digits = String(value ?? '').replace(/\D/g, '');
   if (!/^\d{14}$/.test(digits)) {
-    throw new Error('CNPJ ausente ou inválido (são exigidos 14 dígitos, inclusive zeros à esquerda).');
+    throw new Error('CNPJ ausente ou inválido (exigidos 14 dígitos, inclusive zeros à esquerda).');
   }
   return digits;
 }
@@ -35,6 +35,47 @@ export function normalizeCompetence(value) {
   return String(year) + '-' + String(month).padStart(2, '0');
 }
 
+export function normalizeDate(value) {
+  if (value === undefined || value === null || String(value).trim() === '') return null;
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) throw new Error('Data inválida no relatório.');
+    return value.toISOString().slice(0, 10);
+  }
+  if (typeof value === 'number') {
+    if (value < 1 || value > 100000) throw new Error('Número de data Excel fora do intervalo.');
+    return new Date(Date.UTC(1899, 11, 30) + Math.floor(value) * 86400000).toISOString().slice(0, 10);
+  }
+  const text = String(value).trim();
+  let y, m, d;
+  let match = text.match(/^(\d{4})-(\d{2})-(\d{2})(?:T.*)?$/);
+  if (match) [, y, m, d] = match;
+  else {
+    match = text.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!match) throw new Error('Data não reconhecida no relatório.');
+    [, d, m, y] = match;
+  }
+  const expected = y + '-' + m + '-' + d;
+  if (new Date(expected + 'T00:00:00Z').toISOString().slice(0, 10) !== expected) {
+    throw new Error('Data inválida no relatório.');
+  }
+  return expected;
+}
+
+function normalizedFlag(value) {
+  if (value === undefined || value === null || String(value).trim() === '') return null;
+  const v = ascii(value);
+  if (['SIM', 'S', 'TRUE', 'VERDADEIRO', '1'].includes(v)) return true;
+  if (['NAO', 'N', 'FALSE', 'FALSO', '0'].includes(v)) return false;
+  throw new Error('Indicador booleano desconhecido no relatório.');
+}
+
+function normalizeGesttaId(value) {
+  if (value === undefined || value === null || String(value).trim() === '') return null;
+  const id = String(value).trim().replace(/^"|"$/g, '').toLowerCase();
+  if (!/^[0-9a-f]{24}$/.test(id)) throw new Error('ID da tarefa Gestta em formato inesperado.');
+  return id;
+}
+
 export function normalizeRow(row) {
   const tarefa = String(row.tarefa ?? '').trim().replace(/\s+/g, ' ');
   const statusGestta = ascii(row.status);
@@ -42,7 +83,6 @@ export function normalizeRow(row) {
   const departamento = String(row.departamento ?? '').trim();
   const responsavel = String(row.responsavel ?? '').trim();
   const titulo = ascii(tarefa);
-  // Duas fases distintas do fluxo E-BEF. Não inferir obrigação ou transmissão.
   const tipoTarefa = /^DECLARACAO DE EBEF(?:\s*\||$)/.test(titulo) ? 'declaracao'
     : /^VERIFICAR NECESSIDADE DE EBEF(?:\s*\||$)/.test(titulo) ? 'verificacao'
     : null;
@@ -53,11 +93,22 @@ export function normalizeRow(row) {
   }
   const cnpj = normalizeDocument(row.cnpjCpf);
   const competencia = normalizeCompetence(row.competencia);
-  // Sem ID da tarefa no relatório: a chave lógica muda se o título mudar.
-  const sourceKey = createHash('sha256').update(cnpj + '|' + competencia + '|' + ascii(tarefa)).digest('hex');
+  const gesttaId = normalizeGesttaId(row.gesttaId);
+  // Um mesmo ID reaparece em exportacoes posteriores. Não derivar identidade de título, status ou responsável.
+  const sourceKey = createHash('sha256')
+    .update(gesttaId ? 'gestta-id:' + gesttaId : cnpj + '|' + competencia + '|' + titulo).digest('hex');
+  const tipoRegistro = String(row.tipoRegistro ?? '').trim();
+  if (tipoRegistro.length > 100) throw new Error('Tipo de registro excedeu o limite.');
   return {
-    source_key: sourceKey, cnpj, competencia, tarefa, tipo_tarefa: tipoTarefa, cliente, departamento,
-    responsavel, status_gestta: statusGestta,
+    source_key: sourceKey, gestta_id: gesttaId, cnpj, competencia,
+    tarefa, tipo_tarefa: tipoTarefa, tipo_registro: tipoRegistro,
+    cliente, departamento, responsavel, status_gestta: statusGestta,
+    vencimento: normalizeDate(row.vencimento),
+    data_legal: normalizeDate(row.dataLegal),
+    concluido_em: normalizeDate(row.dataConclusao),
+    feito_atrasado: normalizedFlag(row.feitoAtrasado),
+    feito_com_multa: normalizedFlag(row.feitoComMulta),
+    baixado: normalizedFlag(row.baixado),
   };
 }
 
@@ -65,7 +116,7 @@ export function validateUniqueRows(tasks) {
   const used = new Set();
   for (const task of tasks) {
     if (used.has(task.source_key)) {
-      throw new Error('Tarefas duplicadas por CNPJ + competência + título. Verifique o Gestta.');
+      throw new Error('Identificador de tarefa duplicado no mesmo arquivo. Verifique o Gestta.');
     }
     used.add(task.source_key);
   }
