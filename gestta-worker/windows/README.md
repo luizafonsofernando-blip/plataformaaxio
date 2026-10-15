@@ -68,3 +68,55 @@ Para desativar:
 O periodo padrao inicial vai de janeiro de 2026 ao MES ATUAL COMPLETO, nao apenas ate o dia da execucao. Em meses de 31 dias, usa 01-30 e 02-31 para obedecer o limite de 30 dias; repeticoes sao conciliadas pelo ID. O Excel atual possui 15 colunas e a Data Meta deve estar presente para validar o intervalo. A automacao so funciona depois de calibrar os seletores reais do HTML e confirmar todos os filtros.
 
 A calibracao automatica tambem exige GESTTA_DATE_MODE_SELECTOR para confirmar que o campo Exibir por esta em Data Meta. Somente inspecao do HTML autenticado pode estabelecer seletores confiaveis.
+
+
+## Instalação guiada (primeiro dia, sem envio de dados)
+
+No computador autorizado, instalar Git para Windows e Node.js 20+ (de preferência a versão LTS suportada).
+Abra um PowerShell normal, sem permissões administrativas adicionais, e verifique:
+
+    git --version
+    node --version
+    npm --version
+
+Clonar SOMENTE a branch de homologação. O comando abaixo usa uma pasta dentro do
+perfil de usuário, não interfere no Git/Vercel de produção:
+
+    New-Item -ItemType Directory -Path "$HOME\Luce" -Force | Out-Null
+    git clone --branch feature/ebef-gestta-readonly-sync --single-branch https://github.com/luizafonsofernando-blip/plataformaaxio.git "$HOME\Luce\plataformaaxio"
+    Set-Location "$HOME\Luce\plataformaaxio\gestta-worker"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\windows\setup.ps1
+
+O instalador: baixa dependências do Node e navegador Chromium do Playwright,
+executa testes e cria um arquivo local .env de exemplo. Não pede senha,
+não autentica no Gestta, não importa Excel e não envia dados à Luce.
+
+### Sessão autorizada
+
+Depois da instalação, ainda dentro de gestta-worker, rode:
+
+    npm run login
+
+No Chromium aberto automaticamente, faça login manual no Gestta e complete MFA
+se solicitado. Volte ao terminal e pressione Enter. O arquivo de sessão
+fica apenas na pasta .gestta-profile (ignorando-se sincronização em nuvem).
+
+Depois execute:
+
+    npm run inspect
+
+O Playwright Inspector permite o comando Pick Locator para obter seletores
+dos filtros no **navegador local**. O script não exporta relatórios nem envia
+informações ao Supabase. Não copie cookies, credenciais, tokens, perfis
+ou conteúdo de clientes para conversas/repositórios.
+
+### Verificação de parser, sem ligação com a Luce
+
+    npm run sync -- --file "C:\CAMINHO\gestta.busca.xlsx" --dry-run
+
+O teste acima somente lê um arquivo de Excel previamente exportado e exibe
+contagens. O token da API da Luce ainda não é necessário.
+
+Apenas após validar DOM, datas, checkboxes, filtros dos 21 departamentos e
+a exportação real, configurar .env, Vercel e Supabase para integração.
+Nunca registrar agendamento com -Apply nesta primeira fase.
