@@ -59,7 +59,7 @@ export async function findDashboardIndicator(page, { selector = process.env.GEST
           )
         );
         if (statuses.every(n => n === 1)) {
-          const chartLinks = chart.getByRole('link', { name: /^\\d+$/ });
+          const chartLinks = chart.getByRole('link', { name: /^\d+$/ });
           const total = await chartLinks.count();
           // Apenas links numericos dentro do grafico conhecido: sao os
           // indicadores cuja navegacao foi confirmada pelo operador.
