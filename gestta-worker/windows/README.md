@@ -329,3 +329,27 @@ Depois ele espera voce olhar o Chromium, navegar manualmente ate tarefas e press
 Envie as linhas `Aba 1: tipo=...` antes e depois, mas nao compartilhe credenciais ou paginas com dados sensiveis.
 
 Se o Chromium estiver em login, autentique-se manualmente; se o calendario estiver em uma segunda aba, o log distinguira. Somente depois desse diagnostico calibrar o passo Dashboard -> Tarefas, sem alterar as funcoes ja validadas do calendario.
+
+## Diagnostico ampliado de frames (15/10/2026)
+
+No teste real, o Gestta abriu na rota dashboard e foram detectados 3 frames, mas
+nenhum rótulo "No Prazo" ou gráfico na pagina principal. Depois da navegação
+manual, #date-range apareceu normalmente. Isto sugere, sem comprovar, que a
+Dashboard possa estar incorporada em um iframe.
+
+O comando existente npm run diagnose:navigation agora enumera cada frame em
+ambas as fases. Para cada frame interno do Gestta, imprime apenas as contagens
+de calendário, rótulos No Prazo, títulos Tarefas Abertas e links numéricos.
+Não mostra URLs de frames, HTML, nomes de clientes, cookies nem credenciais.
+Frames de terceiros não são inspecionados.
+
+Execute novamente (com Chromium/Inspector antigos fechados):
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:navigation
+
+Envie somente o texto das linhas "Frame 1", "Frame 2" e "Frame 3" que
+aparecerem após a espera inicial de 8 segundos. O script continua totalmente
+somente-leitura. A navegação automática não foi modificada nesta etapa.
