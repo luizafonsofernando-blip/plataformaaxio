@@ -41,11 +41,44 @@ export async function findDashboardIndicator(page, { selector = process.env.GEST
   if (countNumeric === 1 && await numericLinks.isVisible()) {
     return numericLinks;
   }
+  // A Dashboard possui dois rótulos "No Prazo". NÃO chamar waitFor()
+  // antes de conferir count(), pois strict mode falha quando existem dois.
   const label = page.getByText(STARTER_LABEL, { exact: true });
-  await label.waitFor({ state: 'visible', timeout: 15000 });
-  if (await label.count() !== 1) {
-    throw new Error('Etiqueta "No Prazo" ambigua. Configure GESTTA_DASHBOARD_TASKS_SHORTCUT_SELECTOR.');
+  const labelCount = await label.count();
+  if (labelCount !== 1) {
+    // Prioriza o grafico "Tarefas Abertas" e seus tres status conhecidos.
+    // Os valores numericos mudam; o usuario confirmou que os indicadores
+    // No Prazo, Em Atraso e Com Multas levam ao quadro de tarefas.
+    const chartHeading = page.getByText('Tarefas Abertas', { exact: true });
+    if (await chartHeading.count() === 1) {
+      for (let depth = 1; depth <= 6; depth++) {
+        const chart = chartHeading.locator('xpath=' + '../'.repeat(depth).slice(0, -1));
+        const statuses = await Promise.all(
+          ['No Prazo', 'Em Atraso', 'Com Multas'].map(
+            title => chart.getByText(title, { exact: true }).count()
+          )
+        );
+        if (statuses.every(n => n === 1)) {
+          const chartLinks = chart.getByRole('link', { name: /^\\d+$/ });
+          const total = await chartLinks.count();
+          // Apenas links numericos dentro do grafico conhecido: sao os
+          // indicadores cuja navegacao foi confirmada pelo operador.
+          if (total >= 1 && total <= 3) {
+            const visible = [];
+            for (let i = 0; i < total; i++) {
+              if (await chartLinks.nth(i).isVisible()) visible.push(chartLinks.nth(i));
+            }
+            if (visible.length === total) return visible[0];
+          }
+        }
+      }
+    }
+    throw new Error('Dashboard possui ' + labelCount +
+      ' rótulos "No Prazo" e nao foi possivel identificar um link exclusivo ' +
+      'do grafico Tarefas Abertas. Configure o seletor calibrado ' +
+      'GESTTA_DASHBOARD_TASKS_SHORTCUT_SELECTOR.');
   }
+  await label.waitFor({ state: 'visible', timeout: 15000 });
   // Nunca usa valores absolutos. Procura somente UM numero em um ancestral proximo.
   // Sao permitidos ate dois niveis acima para evitar clicar em outros graficos.
   for (let level = 1; level <= 2; level++) {
