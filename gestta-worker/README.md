@@ -67,3 +67,8 @@ A rotina não contorna login, MFA ou CAPTCHA e **não** adivinha seletores. Se o
 - O banco só permite acesso via função protegida de servidor; não foram criadas policies de leitura para usuários comuns.
 - Os seletores da interface real do Gestta e o agendamento ainda precisam de validação em homologação.
 - Fazer backup e revisar o fluxo antes de usar em produção.
+
+
+## Execução no Windows durante o expediente
+
+Para instalar o robô localmente e preparar um agendamento opcional no Agendador de Tarefas do Windows, consulte [`windows/README.md`](windows/README.md). Os scripts criam uma **prévia por padrão** e só registram horários com `-Apply`, depois da homologação da exportação e da autenticação. Não use em produção antes de confirmar filtros, contagens e autorização do Gestta.
