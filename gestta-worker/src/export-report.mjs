@@ -57,6 +57,7 @@ async function applyAndVerifyWindow(page, window) {
   const applySelector = requiredSelector('GESTTA_FILTER_APPLY_SELECTOR');
   const clientSelector = requiredSelector('GESTTA_CLIENTS_ALL_SELECTOR');
   const userSelector = requiredSelector('GESTTA_USERS_ALL_SELECTOR');
+  const dateModeSelector = requiredSelector('GESTTA_DATE_MODE_SELECTOR');
   const taskSelectorsRaw = requiredSelector('GESTTA_TASK_CHECKBOX_SELECTORS');
   let taskSelectors;
   try { taskSelectors = JSON.parse(taskSelectorsRaw); }
@@ -80,6 +81,9 @@ async function applyAndVerifyWindow(page, window) {
   }
   if (!/TODOS.*USUARIOS/.test(normalizedText(await page.locator(userSelector).first().innerText()))) {
     throw new Error('Filtro de usuários não está em Todos os usuários.');
+  }
+  if (!/DATA META/.test(normalizedText(await page.locator(dateModeSelector).first().innerText()))) {
+    throw new Error('Modo de exibição não está em Data Meta.');
   }
   for (const css of taskSelectors) {
     const locator = page.locator(css);
