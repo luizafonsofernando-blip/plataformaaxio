@@ -175,3 +175,21 @@ duas datas, clica Aplicar e confere o intervalo mostrado na tela.
 Se os inputs forem somente leitura, a rotina falhará sem modificar dados
 no Gestta e deverá ser adaptada após nova inspeção.
 Não ative a exportação e o agendamento antes de homologar todos os outros filtros.
+
+
+## Solução para erro locator('#date-range') após 20 segundos (15/10/2026)
+
+O primeiro teste no computador Windows da ORTECONTE abriu o Chromium, mas expirou enquanto aguardava o filtro #date-range. O seletor já tinha sido confirmado no Inspector; o erro não comprova seletor incorreto. Pode haver redirecionamento do aplicativo Gestta, sessão não autenticada, carregamento lento ou página diferente.
+
+Foi adicionada a navegação manual assistida em src/test-calendar.mjs: quando não encontra o campo, mantém o navegador aberto e pede ao usuário para navegar até a tela de tarefas, sem registrar log de URL, título da página ou informações de clientes. Após confirmar no PowerShell com Enter, localiza o controle entre abas abertas e tenta configurar as datas.
+
+Para testar:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:calendar -- --start=2026-10-01 --end=2026-10-30
+
+Se surgir a instrução de navegação, no Chromium do Playwright entre manualmente na visão de tarefas (com o filtro Data Meta visível), volte ao PowerShell e pressione Enter. Se houver login/MFA, realize apenas manualmente. O teste só manipula filtro visual, não baixa relatório nem envia dados à Luce.
+
+Caso não apareça o calendário mesmo após navegação manual, enviar somente texto do erro sem dados privados. Ainda não ativar automação da exportação.
