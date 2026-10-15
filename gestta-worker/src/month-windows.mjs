@@ -1,5 +1,6 @@
 // Janela inclusiva; maximo 30 dias corridos para respeitar o limite do exportador Gestta.
-// Em meses de 31 dias, o dia 31 vai para uma exportacao adicional.
+// Em meses de 31 dias, divide em 01-30 e 02-31. Ha sobreposicao intencional,
+// reconciliada pelo ID de cada tarefa, para evitar uma exportacao de dia unico.
 function pad(n) { return String(n).padStart(2, '0'); }
 function iso(y, m, d) { return y + '-' + pad(m) + '-' + pad(d); }
 function isValidDate(value) {
@@ -36,8 +37,10 @@ export function buildMonthWindows({ from = '2026-01', through = brazilToday(), r
     // Mes vigente inteiro: inclui vencimentos futuros ja cadastrados no Gestta.
     const available = last;
     for (let day = 1; day <= available; day += 30) {
-      const start = iso(year, month, day);
-      const end = iso(year, month, Math.min(available, day + 29));
+      const endDay = Math.min(available, day + 29);
+      const startDay = available === 31 && day === 31 ? 2 : day;
+      const start = iso(year, month, startDay);
+      const end = iso(year, month, endDay);
       windows.push({ start, end, month: iso(year, month, 1).slice(0, 7) });
     }
   }
