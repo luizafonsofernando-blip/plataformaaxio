@@ -32,3 +32,16 @@ test('gera chave estável e distinta por competência', () => {
   assert.notEqual(first.source_key, second.source_key);
   assert.throws(() => validateUniqueRows([first, first]));
 });
+
+test('classifica duas fases do E-BEF sem equiparar verificacao a entrega', () => {
+  const declaracao = normalizeRow(SAMPLE);
+  const verificarTipo1 = normalizeRow({ ...SAMPLE, tarefa: 'VERIFICAR NECESSIDADE DE EBEF | TÉCNICO' });
+  const verificarTipo2 = normalizeRow({ ...SAMPLE, tarefa: 'VERIFICAR NECESSIDADE DE EBEF | TIPO EXEMPLO' });
+  assert.equal(declaracao.tipo_tarefa, 'declaracao');
+  assert.equal(verificarTipo1.tipo_tarefa, 'verificacao');
+  assert.equal(verificarTipo2.tipo_tarefa, 'verificacao');
+  assert.notEqual(declaracao.source_key, verificarTipo1.source_key);
+  assert.notEqual(verificarTipo1.source_key, verificarTipo2.source_key);
+  assert.equal(validateUniqueRows([declaracao, verificarTipo1, verificarTipo2]).length, 3);
+  assert.throws(() => normalizeRow({ ...SAMPLE, tarefa: 'OUTRA ATIVIDADE DE EBEF' }));
+});
