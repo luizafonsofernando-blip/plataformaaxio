@@ -1,130 +1,79 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  TASKS_VIEW_SELECTOR, dashboardIndicatorLocator,
-  findDashboardIndicator, ensureTasksView,
-} from '../src/task-navigation.mjs';
+import {findTaskView, sidebarTasksLocator, ensureTasksView} from '../src/task-navigation.mjs';
 
-function mockGestta({ alreadyInTasks = false, duplicateIndicator = false,
-  noNumericIndicator = false, customSelector = null, roleLinkCount = 0,
-  chartLinkCount = 0 } = {}) {
-  let visible = alreadyInTasks;
+function mockGestta({
+  alreadyInTasks = false, menuCount = 1, menuVisible = true, opensTarget = true,
+} = {}) {
+  let dateVisible = alreadyInTasks;
   let clicks = 0;
   const waits = [];
-  const date = {
-    isVisible: async () => visible,
-    waitFor: async () => { if (!visible) throw new Error('data ausente'); },
+  const calendar = {
+    isVisible: async () => dateVisible,
+    waitFor: async () => { if (!dateVisible) throw new Error('Campo de data ausente'); },
   };
-  const click = async () => { visible = true; clicks++; };
-  const link = {
-    count: async () => roleLinkCount,
-    first: () => link,
-    isVisible: async () => true,
-    click,
-  };
-  const number = {
-    count: async () => noNumericIndicator ? 0 : 1,
-    first: () => number,
-    isVisible: async () => true,
-    click,
-  };
-  const chartLinks = {
-    count: async () => chartLinkCount,
-    nth: () => ({ isVisible: async () => true, click }),
-  };
-  const chart = {
-    getByText: (text) => ({ count: async () =>
-      ['No Prazo', 'Em Atraso', 'Com Multas'].includes(text) ? 1 : 0
-    }),
-    getByRole: (role, options) => {
-      assert.equal(role,'link');
-      assert(options.name instanceof RegExp);
-      return chartLinks;
-    },
-  };
-  const heading = {
-    count: async () => 1,
-    first: () => heading,
-    nth: () => heading,
-    waitFor: async () => {},
-    locator: () => chart,
-  };
-  const parent = {getByText: () => number};
-  const label = {
-    waitFor: async () => {},
-    count: async () => duplicateIndicator ? 2 : 1,
-    locator: xpath => {
-      assert(xpath === 'xpath=..' || xpath === 'xpath=../..');
-      return parent;
-    },
+  const sidebar = {
+    first: () => sidebar,
+    waitFor: async () => { if (!menuVisible) throw new Error('Menu ausente'); },
+    count: async () => menuCount,
+    isVisible: async () => menuVisible,
+    click: async () => { clicks++; if (opensTarget) dateVisible = true; },
   };
   const page = {
-    url: () => 'https://app.gestta.com.br/#/dashboard',
     isClosed: () => false,
-    waitForTimeout: async (ms) => { waits.push(ms); },
+    url: () => 'https://app.gestta.com.br/dashboard-v2/#/dashboard-v2',
     locator: css => {
-      if (css === TASKS_VIEW_SELECTOR) return date;
-      if (css === customSelector) return link;
-      throw new Error('seletor inesperado: ' + css);
-    },
-    getByRole: (role, options) => {
-      assert.equal(role, 'link');
-      assert(options.name instanceof RegExp);
-      assert(options.name.test('21069'));
-      return link;
+      assert.equal(css, '#date-range');
+      return calendar;
     },
     getByText: (text, options) => {
-      if (text instanceof RegExp) {
-        assert(text.test('24 Tarefas Abertas'));
-        return heading;
-      }
-      assert.equal(options.exact, true);
-      if (text === 'No Prazo') return label;
-      if (text === 'Tarefas Abertas') return heading;
-      throw new Error('label inesperado: ' + text);
+      assert.equal(text, 'Tarefas');
+      assert.equal(options.exact,true);
+      return sidebar;
     },
+    waitForTimeout: async value => waits.push(value),
   };
-  return {context: {pages: () => [page]},page, clicks:()=>clicks, waits:()=>waits};
+  return {context: {pages:()=>[page]},page,waits:()=>waits,clicks:()=>clicks};
 }
 
-test('acessa tarefas com um unico indicador numerico',async () => {
-  const {context,page,clicks}=mockGestta({roleLinkCount:1});
+test('clica no menu lateral Tarefas e confirma calendario',async () => {
+  const {context,page,clicks,waits}=mockGestta();
   assert.equal(await ensureTasksView(context),page);
   assert.equal(clicks(),1);
+  assert.deepEqual(waits(),[5000]);
 });
-test('aguarda 5 segundos apos a Dashboard ficar visivel antes de clicar',async () => {
-  const {context, clicks, waits}=mockGestta({roleLinkCount:1});
-  await ensureTasksView(context);
-  assert.deepEqual(waits(), [5000]);
-  assert.equal(clicks(),1);
-});
-test('ignora Dashboard quando o calendario ja esta visivel',async () => {
-  const {context,page,clicks}=mockGestta({alreadyInTasks:true});
+
+test('nao clica se ja abriu a tela de tarefas',async () => {
+  const {context,page,clicks,waits}=mockGestta({alreadyInTasks:true});
   assert.equal(await ensureTasksView(context),page);
   assert.equal(clicks(),0);
+  assert.deepEqual(waits(),[]);
 });
-test('localiza link no grafico mesmo com dois rotulos No Prazo na Dashboard',async () => {
-  const {context,page,clicks}=mockGestta({
-    duplicateIndicator:true,roleLinkCount:3,chartLinkCount:3,
-  });
-  assert.equal(await ensureTasksView(context),page);
+
+test('rejeita menus ambiguos sem clicar',async () => {
+  const {context,clicks}=mockGestta({menuCount:2});
+  await assert.rejects(()=>ensureTasksView(context),/Existem 2 elementos Tarefas/);
+  assert.equal(clicks(),0);
+});
+
+test('rejeita menu ainda invisivel sem clicar',async () => {
+  const {context,clicks}=mockGestta({menuVisible:false});
+  await assert.rejects(()=>ensureTasksView(context),/Menu ausente/);
+  assert.equal(clicks(),0);
+});
+
+test('confere calendario em vez de supor que clicar em Tarefas basta',async () => {
+  const {context,clicks}=mockGestta({opensTarget:false});
+  await assert.rejects(()=>ensureTasksView(context),/nova tela pode ser diferente/);
   assert.equal(clicks(),1);
 });
-test('duas etiquetas sem grafico delimitado causam falha segura',async () => {
-  const {context,clicks}=mockGestta({
-    duplicateIndicator:true,roleLinkCount:3,chartLinkCount:0,
-  });
-  await assert.rejects(()=>ensureTasksView(context),/Dashboard possui 2/);
-  assert.equal(clicks(),0);
+
+test('aceita seletor calibrado opcional para menu lateral',async () => {
+  const css='[data-testid="gestta-sidebar-tarefas"]';
+  assert.equal(sidebarTasksLocator({locator:x=>x},css),css);
 });
-test('falha se nao existe link nem indicador numerico',async () => {
-  const {context,clicks}=mockGestta({noNumericIndicator:true});
-  await assert.rejects(()=>ensureTasksView(context),/nao localizado unicamente/);
-  assert.equal(clicks(),0);
-});
-test('admite seletor CSS calibrado no grafico',async () => {
-  const selector='[data-testid="tarefas-dashboard"]';
-  const {page}=mockGestta({customSelector:selector});
-  assert.equal(dashboardIndicatorLocator(page,{selector}),page.locator(selector));
-  assert.equal(await findDashboardIndicator(page,{selector}),page.locator(selector));
+
+test('reconhece a tela de tarefas previamente aberta',async () => {
+  const {context,page}=mockGestta({alreadyInTasks:true});
+  assert.equal(await findTaskView(context),page);
 });
