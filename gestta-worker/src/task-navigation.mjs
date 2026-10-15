@@ -49,10 +49,14 @@ export async function findDashboardIndicator(page, { selector = process.env.GEST
     // Prioriza o grafico "Tarefas Abertas" e seus tres status conhecidos.
     // Os valores numericos mudam; o usuario confirmou que os indicadores
     // No Prazo, Em Atraso e Com Multas levam ao quadro de tarefas.
-    const chartHeading = page.getByText('Tarefas Abertas', { exact: true });
-    if (await chartHeading.count() === 1) {
-      for (let depth = 1; depth <= 6; depth++) {
-        const chart = chartHeading.locator('xpath=' + '../'.repeat(depth).slice(0, -1));
+    // O titulo do grafico pode conter um contador (ex.: 24 Tarefas Abertas).
+    const chartHeadings = page.getByText(/Tarefas\\s+Abertas/i);
+    const headingsCount = await chartHeadings.count();
+    if (headingsCount >= 1 && headingsCount <= 3) {
+      for (let headingIndex = 0; headingIndex < headingsCount; headingIndex++) {
+        const heading = chartHeadings.nth(headingIndex);
+        for (let depth = 1; depth <= 7; depth++) {
+          const chart = heading.locator('xpath=' + '../'.repeat(depth).slice(0, -1));
         const statuses = await Promise.all(
           ['No Prazo', 'Em Atraso', 'Com Multas'].map(
             title => chart.getByText(title, { exact: true }).count()
@@ -70,6 +74,7 @@ export async function findDashboardIndicator(page, { selector = process.env.GEST
             }
             if (visible.length === total) return visible[0];
           }
+        }
         }
       }
     }
@@ -105,14 +110,15 @@ export async function ensureTasksView(context, { timeout = 20000, selector = TAS
   // A Dashboard do Gestta pode exibir primeiro o layout e só depois os
   // contadores. Aguarde o gráfico e mais 5 segundos antes do primeiro clique.
   // Tempo fixo solicitado para homologação; nunca clicar sem confirmar o alvo.
-  const chartTitle = page.getByText('Tarefas Abertas', { exact: true }).first();
-  try {
-    await chartTitle.waitFor({ state: 'visible', timeout: 30000 });
-  } catch {
-    throw new Error('Grafico Tarefas Abertas nao carregou em 30s. Verifique a sessao ou a Dashboard.');
-  }
-  console.log('Dashboard carregada. Aguardando 5 segundos para os indicadores estabilizarem...');
+  // O titulo visivel pode ser "24 Tarefas Abertas", portanto nao exigir
+  // correspondencia EXATA nem aguardar o titulo antes da espera inicial.
+  console.log('Dashboard aberta. Aguardando 5 segundos para os indicadores estabilizarem...');
   await page.waitForTimeout(5000);
+  const chartHeadings = page.getByText(/Tarefas\\s+Abertas/i);
+  const chartCount = await chartHeadings.count();
+  const labelCount = await page.getByText('No Prazo', { exact: true }).count();
+  console.log('Diagnostico de navegacao (sem dados de clientes): graficos=' +
+    chartCount + ', rotulos No Prazo=' + labelCount + '.');
   // Caso o usuário tenha navegado à lista durante a espera, não clicar no gráfico.
   const nowInTasks = await findTaskView(context, selector);
   if (nowInTasks) return nowInTasks;
