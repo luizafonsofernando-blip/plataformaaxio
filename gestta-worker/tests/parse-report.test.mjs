@@ -66,3 +66,13 @@ test('mesma tarefa muda titulo/responsavel sem alterar a chave com ID', () => {
   assert.notEqual(original.tipo_tarefa,alterada.tipo_tarefa);
   assert.equal(normalizeDate(46310.125), '2026-10-15');
 });
+
+test('interrompe consolidacao mensal quando Id Gestta nao estiver presente', async () => {
+  const missingId = [...BASE];
+  missingId[0] = null;
+  await withWorkbook([missingId], async path => {
+    await assert.rejects(() => parseGesttaXlsx(path, {
+      expectedWindow: { start:'2026-10-01', end:'2026-10-30' },
+    }), /Id da tarefa ausente/);
+  });
+});
