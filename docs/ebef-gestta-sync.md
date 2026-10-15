@@ -16,7 +16,7 @@ Sincronização de leitura por exportação XLSX com os campos: tarefa, status, 
 ### Limites conhecidos
 
 - Não há integração direta com a tabela de declarações nem dashboard E-BEF nesta entrega.
-- O XLSX não possui ID interno da tarefa, prazo legal, anexo ou histórico; portanto não se promete capturar esses campos nesta etapa.
+- O relatório Gestta mais recente possui Id, Vencimento e Data Legal, mas não fornece anexos ou histórico completo. Os novos campos já são importados; não se promete capturar anexos nem histórico nesta etapa.
 - A automação completa depende de confirmar o botão de exportação e os filtros no ambiente autenticado real; seleção incorreta aborta caso existam tarefas que não são E-BEF.
 - Requer implantação manual em ambiente de testes, configuração de três variáveis na Vercel, migração SQL e worker em computador Windows autorizado.
 - Só ativar agendamento e produção após conferir integridade dos dados, autorização contratual, logs e backup.
@@ -37,7 +37,7 @@ Instruções detalhadas: \`gestta-worker/README.md\`.
 
 O worker reconhece as categorias `declaracao` e `verificacao` pelos prefixos completos de cada tipo de titulo. Os sufixos especificos permanecem no campo original `tarefa` e participam da chave logica, permitindo tipos distintos para o mesmo CNPJ/competencia.
 
-**Validacao pendente antes de --auto:** exportar novo XLSX com esses filtros, comparar quantidade e titulos, inspecionar os controles DOM localmente, registrar os seletores corretos e confirmar que os filtros persistem em sessao nova. O atalho --auto disponivel no MVP **nao aplica nem valida os filtros automaticamente**, apenas aciona o seletor configurado em uma URL. Nao agendar ate implementar e homologar a verificacao do estado dos filtros.
+**Validacao pendente antes de --auto:** exportar novo XLSX com esses filtros, comparar quantidade e titulos, inspecionar os controles DOM localmente, registrar os seletores corretos e confirmar que os filtros persistem em sessao nova. O atalho --auto agora tenta aplicar/verificar os filtros de Data Meta, tarefas, clientes, usuarios e filtros avancados (4 status + 3 tipos) usando seletores configurados manualmente. Esses seletores ainda nao foram calibrados no Gestta autenticado; NAO agendar ate validar cada controle e o escopo completo de departamentos.
 
 A calibracao automatica tambem exige GESTTA_DATE_MODE_SELECTOR para confirmar que o campo Exibir por esta em Data Meta. Somente inspecao do HTML autenticado pode estabelecer seletores confiaveis.
 
@@ -63,3 +63,17 @@ O print mais recente mostra o painel com:
 Não há modal de exportação aberto nesta captura. Não é possível concluir se clicar em Download abre outro seletor de período ou inicia um arquivo direto.
 
 **Guardrail de homologação:** enquanto não for confirmado que o Gestta aceita exportar um período abrangendo o dia 31 (p.ex. 02/10 a 31/10), não liberar o robô automático mensal. Testar o calendário com término em 31/10, conferir intervalo exibido e exportação realmente gerada. Se filtros avançados afetarem a carteira, documentar e verificar seu estado efetivo no RPA, sem pressupor que o campo de três tarefas é o único filtro ativo.
+
+## Filtros avancados observados na captura (15/10/2026)
+
+- **Tipo da tarefa:** Fluxo de tarefas, Solicitação de serviço, Recorrente — as 3 opções estavam selecionadas.
+- **Status da tarefa:** Aberta e Impedimento selecionados; Concluída e Desconsiderada NÃO estavam selecionados.
+- **Departamento:** resumo visível `Contábil +16`. Esse texto **não prova** que todos os departamentos estejam selecionados. É necessário abrir o dropdown e validar as escolhas efetivas.
+- **Agrupador de cliente:** resumo `Todos agrupadores de ...`; confirmar ausência de restrição relevante.
+- **Aplicar:** botão laranja `Filtrar` dentro da lateral direita.
+
+Para o espelho Gestta -> Luce, recomendamos TODOS os quatro status para acompanhar mudanças de situação e evitar conclusões invisíveis. Uma tarefa concluída é um estado do Gestta, não comprova transmissão E-BEF. Uma tarefa desconsiderada não implica automaticamente dispensa legal.
+
+Alteração feita no RPA: `GESTTA_ADVANCED_OPEN_SELECTOR`, `GESTTA_ADVANCED_APPLY_SELECTOR`, `GESTTA_ADVANCED_STATUS_SELECTORS` (objeto JSON com 4 chaves), `GESTTA_ADVANCED_TASK_TYPE_SELECTORS` (objeto JSON com 3 chaves), `GESTTA_ADVANCED_DEPARTMENT_SELECTOR` e `GESTTA_ADVANCED_DEPARTMENT_EXPECTED_TEXT`. Todos obrigatórios no --auto; o robô falha quando não consegue validar os controles, sem substituir os seletores por suposições.
+
+A comparação textual `Contábil +16` não certifica o conjunto de departamentos. Na homologação, deve-se abrir o seletor e conferir todos os departamentos efetivos; se necessário evoluir para checagem individual de cada opção, antes de autorizar agendamento.
