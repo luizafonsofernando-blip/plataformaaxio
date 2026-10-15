@@ -8,7 +8,12 @@ export async function syncFile(filePath, { dryRun = false } = {}) {
     map[row.status_gestta] = (map[row.status_gestta] || 0) + 1;
     return map;
   }, {});
-  console.log('Relatório validado: ' + tasks.length + ' tarefas | Situações: ' + JSON.stringify(counts));
+  const categories = tasks.reduce((map, row) => {
+    map[row.tipo_tarefa] = (map[row.tipo_tarefa] || 0) + 1;
+    return map;
+  }, {});
+  console.log('Relatório validado: ' + tasks.length + ' tarefas | Categorias: ' +
+    JSON.stringify(categories) + ' | Situações: ' + JSON.stringify(counts));
   if (dryRun) {
     console.log('SIMULAÇÃO: nenhum dado enviado ao banco da Luce.');
     return { tasks: tasks.length, counts, dryRun: true };
