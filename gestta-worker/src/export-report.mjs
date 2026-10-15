@@ -112,10 +112,19 @@ async function applyAndVerifyAdvancedFilters(page) {
   await page.waitForTimeout(1200);
 }
 
+// Suporta tanto <input> quanto o elemento de texto que abre o date-picker.
+async function readControlText(locator) {
+  const tag = await locator.evaluate(el => el.tagName.toLowerCase());
+  return /^(input|textarea|select)$/.test(tag) ? locator.inputValue() : locator.innerText();
+}
+
 async function applyAndVerifyWindow(page, window) {
   // Seletores devem ser obtidos no Gestta autenticado e conferidos localmente.
   const dateSelector = requiredSelector('GESTTA_DATE_RANGE_SELECTOR');
-  const applySelector = requiredSelector('GESTTA_FILTER_APPLY_SELECTOR');
+  const customSelector = requiredSelector('GESTTA_DATE_CUSTOM_SELECTOR');
+  const startSelector = requiredSelector('GESTTA_DATE_START_SELECTOR');
+  const endSelector = requiredSelector('GESTTA_DATE_END_SELECTOR');
+  const applySelector = requiredSelector('GESTTA_DATE_APPLY_SELECTOR');
   const clientSelector = requiredSelector('GESTTA_CLIENTS_ALL_SELECTOR');
   const userSelector = requiredSelector('GESTTA_USERS_ALL_SELECTOR');
   const dateModeSelector = requiredSelector('GESTTA_DATE_MODE_SELECTOR');
@@ -128,14 +137,35 @@ async function applyAndVerifyWindow(page, window) {
     throw new Error('Configure exatamente tres seletores de tarefas E-BEF.');
   }
   const desired = brazilRange(window);
-  const dateInput = page.locator(dateSelector).first();
-  await dateInput.fill(desired, { timeout: 10000 });
-  // Se for date-picker custom ou readonly, a rotina falha; nao forcar clicks cegos.
-  await page.locator(applySelector).click({ timeout: 10000 });
+  const dateField = page.locator(dateSelector);
+  if (await dateField.count() !== 1) {
+    throw new Error('Campo geral do periodo (#date-range) nao foi localizado de forma unica.');
+  }
+  await dateField.click({ timeout: 10000 });
+  const custom = page.locator(customSelector);
+  if (await custom.count() !== 1) throw new Error('Opcao Outro do calendario nao identificada.');
+  await custom.click({ timeout: 10000 });
+  const startField = page.locator(startSelector);
+  const endField = page.locator(endSelector);
+  if (await startField.count() !== 1 || await endField.count() !== 1) {
+    throw new Error('Calendario sem campos unicos de inicio/fim; recalibre os seletores.');
+  }
+  const fmt = (iso) => iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4);
+  const normalized = (text) => String(text).replace(/\\s/g, '');
+  // Input textual somente: se a interface exigir calendario customizado, parar sem adivinhar clicks.
+  await startField.fill(fmt(window.start), { timeout: 10000 });
+  await endField.fill(fmt(window.end), { timeout: 10000 });
+  if (normalized(await startField.inputValue()) !== normalized(fmt(window.start)) ||
+      normalized(await endField.inputValue()) !== normalized(fmt(window.end))) {
+    throw new Error('Datas iniciais/finais nao permaneceram no calendario.');
+  }
+  const applyButton = page.locator(applySelector);
+  if (await applyButton.count() !== 1) throw new Error('Botao Aplicar nao localizado de forma unica.');
+  await applyButton.click({ timeout: 10000 });
   await page.waitForTimeout(1200);
-  const applied = (await dateInput.inputValue()).replace(/\s/g, '');
-  if (applied !== desired.replace(/\s/g, '')) {
-    throw new Error('Intervalo exibido não coincide com o solicitado (' + desired + ').');
+  const applied = normalized(await readControlText(dateField));
+  if (applied !== normalized(desired)) {
+    throw new Error('Intervalo exibido nao coincide com o solicitado (' + desired + ').');
   }
   if (!/TODOS.*CLIENTES/.test(normalizedText(await page.locator(clientSelector).first().innerText()))) {
     throw new Error('Filtro de clientes não está em Todos os clientes.');
@@ -175,7 +205,7 @@ export async function exportReport({ auto = false, window } = {}) {
       await applyAndVerifyAdvancedFilters(page);
       // O comando Filtrar pode atualizar o dashboard. Confirme que o periodo nao mudou.
       const selectedRange = page.locator(requiredSelector('GESTTA_DATE_RANGE_SELECTOR')).first();
-      if ((await selectedRange.inputValue()).replace(/\s/g, '') !== brazilRange(window).replace(/\s/g, '')) {
+      if ((await readControlText(selectedRange)).replace(/\s/g, '') !== brazilRange(window).replace(/\s/g, '')) {
         throw new Error('Filtro avançado alterou o período da Data Meta; cancelar exportação.');
       }
     }
