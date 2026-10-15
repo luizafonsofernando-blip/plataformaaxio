@@ -151,7 +151,7 @@ async function applyAndVerifyWindow(page, window) {
     throw new Error('Calendario sem campos unicos de inicio/fim; recalibre os seletores.');
   }
   const fmt = (iso) => iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4);
-  const normalized = (text) => String(text).replace(/\\s/g, '');
+  const normalized = (text) => String(text).replace(/\s/g, '');
   // Input textual somente: se a interface exigir calendario customizado, parar sem adivinhar clicks.
   await startField.fill(fmt(window.start), { timeout: 10000 });
   await endField.fill(fmt(window.end), { timeout: 10000 });
