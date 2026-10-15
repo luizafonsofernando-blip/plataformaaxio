@@ -27,3 +27,15 @@ export function parseRequiredSelectorMap(raw, expected, variableName) {
   }
   return parsed;
 }
+
+export function assertCompleteDepartmentSelection(states, expectedTotal) {
+  if (!Number.isInteger(expectedTotal) || expectedTotal < 1) {
+    throw new Error('GESTTA_ADVANCED_DEPARTMENT_TOTAL_COUNT deve ser inteiro positivo.');
+  }
+  if (!Array.isArray(states) || states.length !== expectedTotal || !states.every(v => v === true)) {
+    throw new Error('Nem todos os departamentos foram confirmados como selecionados. ' +
+      'Encontrados ' + (Array.isArray(states) ? states.length : 0) +
+      ' de ' + expectedTotal + ' checkboxes.');
+  }
+  return true;
+}
