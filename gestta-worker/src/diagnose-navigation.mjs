@@ -57,11 +57,57 @@ async function readPage(page, number) {
     '; frames=' + page.frames().length);
 }
 
+// O Gestta pode desenhar a Dashboard em um iframe; page.locator() nao
+// pesquisa dentro de iframes. Verificar cada frame da pagina sem revelar sua URL.
+function frameScope(frame) {
+  const url = frame.url();
+  if (url === 'about:blank') return 'interno_em_branco';
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === 'app.gestta.com.br' ||
+        parsed.hostname.endsWith('.gestta.com.br')) return 'gestta';
+    return 'externo_nao_inspecionado';
+  } catch {
+    return 'endereco_nao_inspecionado';
+  }
+}
+
+async function readFrames(page) {
+  const frames = page.frames();
+  for (let i = 0; i < frames.length; i++) {
+    const frame = frames[i];
+    const scope = frameScope(frame);
+    const label = '  Frame ' + (i + 1) + ' (' +
+      (frame === page.mainFrame() ? 'principal' : 'incorporado') + '): ';
+    if (scope !== 'gestta' && scope !== 'interno_em_branco') {
+      console.log(label + 'origem=' + scope);
+      continue;
+    }
+    const count = async locator => {
+      try { return await locator.count(); }
+      catch { return 'indisponivel'; }
+    };
+    const [dates, labels, titles, links] = await Promise.all([
+      count(frame.locator('#date-range')),
+      count(frame.getByText('No Prazo', { exact: true })),
+      count(frame.getByText(/Tarefas\s+Abertas/i)),
+      count(frame.getByRole('link', { name: /^\d+$/ })),
+    ]);
+    console.log(label + 'origem=' + scope + '; calendario=' + dates +
+      '; rotulos_No_Prazo=' + labels +
+      '; titulos_grafico=' + titles +
+      '; links_numericos=' + links);
+  }
+}
+
 export async function diagnose(context, label) {
   console.log('\n' + label + ': ' + context.pages().filter(p => !p.isClosed()).length + ' aba(s).');
   let index = 0;
   for (const page of context.pages()) {
-    if (!page.isClosed()) await readPage(page, ++index);
+    if (!page.isClosed()) {
+      await readPage(page, ++index);
+      await readFrames(page);
+    }
   }
 }
 
