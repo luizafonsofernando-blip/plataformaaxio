@@ -120,3 +120,22 @@ contagens. O token da API da Luce ainda não é necessário.
 Apenas após validar DOM, datas, checkboxes, filtros dos 21 departamentos e
 a exportação real, configurar .env, Vercel e Supabase para integração.
 Nunca registrar agendamento com -Apply nesta primeira fase.
+
+
+## Calendário confirmado visualmente (15/10/2026)
+
+A interface do Gestta abre um date-picker em `#date-range`, com atalhos "Mês atual", "Mês passado", "Hoje", "Últimos 12 meses", "Próximos 12 meses" e "Outro", dois campos DD/MM/AAAA e botão "Aplicar". O período 01/10/2026–31/10/2026 é exibido no calendário, mas a tela **não confirma** se uma exportação de 31 dias seria aceita.
+
+O worker foi ajustado para usar "Outro": abrir o calendário, localizar data inicial, data final, clicar Aplicar, verificar o intervalo exibido e só então exportar. Não usa atalhos de meses porque são insuficientes para a carga histórica.
+
+Configurar seletores de `GESTTA_DATE_CUSTOM_SELECTOR`, `GESTTA_DATE_START_SELECTOR`, `GESTTA_DATE_END_SELECTOR`, `GESTTA_DATE_APPLY_SELECTOR` após obter cada um pelo Pick Locator no computador autorizado. O seletor geral `GESTTA_DATE_RANGE_SELECTOR=#date-range` já foi identificado visualmente pelo Inspector.
+
+A rotina de preenchimento usa `fill()` em campos de texto. Se forem read-only ou um calendário personalizado, a automação falhará sem clique alternativo, exigindo ajuste local. Não colocar em produção até validar.
+
+Para atualizar a branch já clonada depois das alterações no GitHub:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+
+Não compartilhe cookies, MFA ou segredos ao relatar eventuais problemas.
