@@ -22,3 +22,19 @@ Sincronização de leitura por exportação XLSX com os campos: tarefa, status, 
 - Só ativar agendamento e produção após conferir integridade dos dados, autorização contratual, logs e backup.
 
 Instruções detalhadas: \`gestta-worker/README.md\`.
+
+## Filtros observados na interface Gestta (capturas de 15/10/2026)
+
+- **Tarefas:** tres opcoes marcadas: "DECLARAÇÃO DE EBEF | TÉCNICO" e **duas entradas diferentes** iniciadas por "VERIFICAR NECESSIDADE DE EBEF | ..." (sufixos cortados nas capturas; nao inventar nomes).
+- **Clientes:** Todos os clientes.
+- **Usuarios:** Todos os usuarios.
+- **Intervalo de datas:** 01/01/2026 a 31/12/2026.
+- **Exibir por:** Data Meta.
+- **Total exibido na tela:** 128 tarefas (nao necessariamente 128 CNPJs unicos).
+- **Exportacao:** icone de download no canto superior direito. Nao e possivel determinar o seletor CSS ou se ele abre menu de exportacao somente pela imagem.
+
+**Atencao:** data-meta filtrada na tela nao e necessariamente igual a competencia do XLSX. Nao imponha competencia 2026 ao importar ate confirmar a regra no Gestta.
+
+O worker reconhece as categorias `declaracao` e `verificacao` pelos prefixos completos de cada tipo de titulo. Os sufixos especificos permanecem no campo original `tarefa` e participam da chave logica, permitindo tipos distintos para o mesmo CNPJ/competencia.
+
+**Validacao pendente antes de --auto:** exportar novo XLSX com esses filtros, comparar quantidade e titulos, inspecionar os controles DOM localmente, registrar os seletores corretos e confirmar que os filtros persistem em sessao nova. O atalho --auto disponivel no MVP **nao aplica nem valida os filtros automaticamente**, apenas aciona o seletor configurado em uma URL. Nao agendar ate implementar e homologar a verificacao do estado dos filtros.
