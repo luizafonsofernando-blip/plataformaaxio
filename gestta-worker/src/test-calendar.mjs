@@ -22,7 +22,7 @@ const url = new URL(rawUrl);
 if (url.protocol !== 'https:' || url.hostname !== 'app.gestta.com.br') {
   throw new Error('GESTTA_REPORT_URL precisa pertencer a https://app.gestta.com.br/.');
 }
-// A Dashboard e o ponto de entrada normal do Gestta: o robo seleciona Tarefas pelo menu.
+// A Dashboard v2 e o ponto de entrada: navegar pelo menu lateral Tarefas.
 
 const profile = resolve(process.cwd(), '.gestta-profile');
 await mkdir(profile, { recursive: true, mode: 0o700 });
@@ -49,9 +49,9 @@ try {
   await first.goto(url.href, { waitUntil: 'domcontentloaded', timeout: 45000 });
   let page;
   try {
-    console.log('Tentando abrir tarefas clicando no numero No Prazo do grafico na Dashboard...');
+    console.log('Tentando acessar o quadro pelo menu lateral Tarefas da Dashboard...');
     page = await ensureTasksView(context, { selector: dateCss });
-    console.log('Quadro de tarefas aberto automaticamente pelo grafico.');
+    console.log('Quadro de tarefas aberto automaticamente pelo menu lateral.');
   } catch (navigationError) {
     console.log('Navegacao automatica ainda nao homologada: ' + navigationError.message);
     await askUserToNavigate();
