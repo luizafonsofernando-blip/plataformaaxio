@@ -8,6 +8,7 @@ import { resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { applyDateWindow, validateDateWindow, DATE_SELECTORS } from './date-picker.mjs';
+import { ensureTasksView } from './task-navigation.mjs';
 
 const params = Object.fromEntries(
   process.argv.slice(2).filter(s => s.startsWith('--') && s.includes('='))
@@ -30,14 +31,6 @@ if (!url.hash.startsWith('#/sidebar/task/')) {
 const profile = resolve(process.cwd(), '.gestta-profile');
 await mkdir(profile, { recursive: true, mode: 0o700 });
 const dateCss = process.env.GESTTA_DATE_RANGE_SELECTOR?.trim() || DATE_SELECTORS.range;
-async function findTaskPage(context) {
-  for (const candidate of context.pages()) {
-    try {
-      if (!candidate.isClosed() && await candidate.locator(dateCss).isVisible({ timeout: 1500 })) return candidate;
-    } catch (_) { /* continua buscando outras abas */ }
-  }
-  return null;
-}
 async function askUserToNavigate() {
   const rl = createInterface({ input, output });
   try {
@@ -58,15 +51,15 @@ try {
   const first = context.pages()[0] || await context.newPage();
   console.log('Teste somente do calendário; nenhuma tarefa será alterada, nenhum dado enviado.');
   await first.goto(url.href, { waitUntil: 'domcontentloaded', timeout: 45000 });
-  let page = await findTaskPage(context);
-  if (!page) {
-    console.log('Campo de datas ainda não visível. Isso pode ocorrer se o Gestta redirecionar para o painel inicial.');
+  let page;
+  try {
+    console.log('Tentando abrir a pagina de tarefas pelo menu Tarefas da Dashboard...');
+    page = await ensureTasksView(context, { selector: dateCss });
+    console.log('Menu Tarefas aberto automaticamente.');
+  } catch (navigationError) {
+    console.log('Navegacao automatica ainda nao homologada: ' + navigationError.message);
     await askUserToNavigate();
-    page = await findTaskPage(context);
-  }
-  if (!page) {
-    throw new Error('O campo #date-range continua ausente após a navegação manual. ' +
-      'Confirme que você abriu a visão de tarefas, e não o painel inicial.');
+    page = await ensureTasksView(context, { selector: dateCss });
   }
   console.log('Campo de período localizado na página de tarefas.');
   const result = await applyDateWindow(page, window);
