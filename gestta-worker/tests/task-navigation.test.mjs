@@ -10,6 +10,7 @@ function mockGestta({ alreadyInTasks = false, duplicateIndicator = false,
   chartLinkCount = 0 } = {}) {
   let visible = alreadyInTasks;
   let clicks = 0;
+  const waits = [];
   const date = {
     isVisible: async () => visible,
     waitFor: async () => { if (!visible) throw new Error('data ausente'); },
@@ -43,6 +44,8 @@ function mockGestta({ alreadyInTasks = false, duplicateIndicator = false,
   };
   const heading = {
     count: async () => 1,
+    first: () => heading,
+    waitFor: async () => {},
     locator: () => chart,
   };
   const parent = {getByText: () => number};
@@ -57,6 +60,7 @@ function mockGestta({ alreadyInTasks = false, duplicateIndicator = false,
   const page = {
     url: () => 'https://app.gestta.com.br/#/dashboard',
     isClosed: () => false,
+    waitForTimeout: async (ms) => { waits.push(ms); },
     locator: css => {
       if (css === TASKS_VIEW_SELECTOR) return date;
       if (css === customSelector) return link;
@@ -75,12 +79,18 @@ function mockGestta({ alreadyInTasks = false, duplicateIndicator = false,
       throw new Error('label inesperado: ' + text);
     },
   };
-  return {context: {pages: () => [page]},page, clicks:()=>clicks};
+  return {context: {pages: () => [page]},page, clicks:()=>clicks, waits:()=>waits};
 }
 
 test('acessa tarefas com um unico indicador numerico',async () => {
   const {context,page,clicks}=mockGestta({roleLinkCount:1});
   assert.equal(await ensureTasksView(context),page);
+  assert.equal(clicks(),1);
+});
+test('aguarda 5 segundos apos a Dashboard ficar visivel antes de clicar',async () => {
+  const {context, clicks, waits}=mockGestta({roleLinkCount:1});
+  await ensureTasksView(context);
+  assert.deepEqual(waits(), [5000]);
   assert.equal(clicks(),1);
 });
 test('ignora Dashboard quando o calendario ja esta visivel',async () => {
