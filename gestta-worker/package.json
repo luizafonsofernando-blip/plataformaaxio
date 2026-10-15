@@ -11,7 +11,8 @@
     "sync": "node src/cli.mjs sync",
     "test": "node --test",
     "inspect": "node src/inspect.mjs",
-    "test:calendar": "node src/test-calendar.mjs"
+    "test:calendar": "node src/test-calendar.mjs",
+    "diagnose:navigation": "node src/diagnose-navigation.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
