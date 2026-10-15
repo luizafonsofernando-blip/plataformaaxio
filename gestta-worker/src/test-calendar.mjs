@@ -49,12 +49,13 @@ try {
   await first.goto(url.href, { waitUntil: 'domcontentloaded', timeout: 45000 });
   let page;
   try {
-    console.log('Tentando abrir a pagina de tarefas pelo menu Tarefas da Dashboard...');
+    console.log('Tentando abrir tarefas clicando no numero No Prazo do grafico na Dashboard...');
     page = await ensureTasksView(context, { selector: dateCss });
-    console.log('Menu Tarefas aberto automaticamente.');
+    console.log('Quadro de tarefas aberto automaticamente pelo grafico.');
   } catch (navigationError) {
     console.log('Navegacao automatica ainda nao homologada: ' + navigationError.message);
     await askUserToNavigate();
+    // Na retomada, a rotina confirma o quadro sem clicar novamente quando já está visível.
     page = await ensureTasksView(context, { selector: dateCss });
   }
   console.log('Campo de período localizado na página de tarefas.');
