@@ -41,7 +41,12 @@ export function normalizeRow(row) {
   const cliente = String(row.cliente ?? '').trim().replace(/\s+/g, ' ');
   const departamento = String(row.departamento ?? '').trim();
   const responsavel = String(row.responsavel ?? '').trim();
-  if (!tarefa || !ascii(tarefa).includes('EBEF')) throw new Error('Linha sem tarefa E-BEF.');
+  const titulo = ascii(tarefa);
+  // Duas fases distintas do fluxo E-BEF. Não inferir obrigação ou transmissão.
+  const tipoTarefa = /^DECLARACAO DE EBEF(?:\s*\||$)/.test(titulo) ? 'declaracao'
+    : /^VERIFICAR NECESSIDADE DE EBEF(?:\s*\||$)/.test(titulo) ? 'verificacao'
+    : null;
+  if (!tipoTarefa) throw new Error('Tarefa fora das duas categorias autorizadas E-BEF.');
   if (!cliente || !statusGestta || !responsavel) throw new Error('Cliente, status ou responsável em branco.');
   for (const [key, value] of Object.entries({ tarefa, cliente, departamento, responsavel, statusGestta })) {
     if (value.length > 500) throw new Error('Campo ' + key + ' excedeu 500 caracteres.');
@@ -51,7 +56,7 @@ export function normalizeRow(row) {
   // Sem ID da tarefa no relatório: a chave lógica muda se o título mudar.
   const sourceKey = createHash('sha256').update(cnpj + '|' + competencia + '|' + ascii(tarefa)).digest('hex');
   return {
-    source_key: sourceKey, cnpj, competencia, tarefa, cliente, departamento,
+    source_key: sourceKey, cnpj, competencia, tarefa, tipo_tarefa: tipoTarefa, cliente, departamento,
     responsavel, status_gestta: statusGestta,
   };
 }
