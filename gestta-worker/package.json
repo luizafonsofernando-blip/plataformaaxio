@@ -1,0 +1,19 @@
+{
+  "name": "luce-gestta-ebef-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "login": "node src/cli.mjs login",
+    "sync": "node src/cli.mjs sync",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "playwright": "^1.55.0"
+  }
+}

@@ -1,0 +1,69 @@
+# Luce E-BEF Sync | Robô Gestta (somente leitura)
+
+Serviço Node.js 20+ e Playwright que usa uma sessão autorizada no Gestta para exportar o relatório XLSX e sincronizá-lo com o backend da Luce. **Não executa operações de escrita no Gestta.** O navegador RPA roda no computador dedicado da ORTECONTE, fora da Vercel.
+
+## Preparação
+
+1. Revisar se a automação é permitida pelo contrato/políticas do Gestta e obter autorização interna.
+2. Em homologação, executar a migração SQL em \`supabase/migrations/20261015_ebef_gestta_sync.sql\`. Ela **apenas cria duas tabelas**.
+3. Na Vercel, definir as variáveis *server-side* \`GESTTA_SYNC_TOKEN\` (segredo exclusivo forte, 32+ caracteres), \`SUPABASE_URL\` e \`SUPABASE_SERVICE_ROLE_KEY\`. Nunca usar \`VITE_\` para a service role nem inseri-la no frontend.
+4. No computador com navegador (Windows PowerShell), executar:
+
+\`\`\`powershell
+cd gestta-worker
+npm install
+npx playwright install chromium
+Copy-Item .env.example .env
+\`\`\`
+
+5. Preencher \`.env\` com \`LUCE_SYNC_URL\` e \`LUCE_SYNC_TOKEN\` igual ao token Vercel. **Não compartilhe o arquivo, senhas ou cookies.**
+
+## Testes sem escrita
+
+\`\`\`powershell
+npm test
+npm run sync -- --file "C:\caminho\Clientes EBEF (1).xlsx" --dry-run
+\`\`\`
+
+O modo \`--dry-run\` valida e conta as tarefas sem chamar a API. Não divulga a lista de clientes em logs.
+
+## Sincronização assistida
+
+Primeiro, se a organização autorizar o acesso automatizado:
+
+\`\`\`powershell
+npm run login
+\`\`\`
+
+Entre no Gestta na janela exibida, incluindo eventual MFA, e retorne ao terminal. A sessão é guardada em \`.gestta-profile\`, ignorada pelo Git.
+
+Em seguida:
+
+\`\`\`powershell
+npm run sync -- --dry-run
+\`\`\`
+
+No navegador, ajuste os filtros de **tarefas E-BEF e competências desejadas** e exporte o XLSX. Confirme contagens. Quando aprovado, executar sem \`--dry-run\`.
+
+Também é possível sincronizar um relatório já baixado com \`npm run sync -- --file "C:\arquivo.xlsx"\`.
+
+## Automação total (somente após calibrar a interface)
+
+Configure a URL exata da página de relatório (\`GESTTA_REPORT_URL\`) e o seletor CSS do botão de exportação (\`GESTTA_EXPORT_SELECTOR\`) no \`.env\`. Valide que os filtros foram aplicados ao abrir a página em uma nova sessão. Depois:
+
+\`\`\`powershell
+npm run sync -- --auto --dry-run
+npm run sync -- --auto
+\`\`\`
+
+A rotina não contorna login, MFA ou CAPTCHA e **não** adivinha seletores. Se o layout ou a sessão mudar, falhará e exigirá revisão. Não programe execução automática antes de verificar uma exportação completa e correta.
+
+## Cuidados operacionais
+
+- Exportações parciais não excluem tarefas que estavam no banco; ausência da tarefa não equivale a conclusão.
+- A chave lógica é derivada de CNPJ + competência + título normalizado. Mudança no título gera uma chave nova; revisão posterior será necessária.
+- O status da tarefa **não comprova** a transmissão E-BEF. Protocolo, comprovantes e outras informações do controle continuam independentes.
+- Tokens/senhas não vão para o GitHub nem ao frontend; cookies permanecem no robô local.
+- O banco só permite acesso via função protegida de servidor; não foram criadas policies de leitura para usuários comuns.
+- Os seletores da interface real do Gestta e o agendamento ainda precisam de validação em homologação.
+- Fazer backup e revisar o fluxo antes de usar em produção.
