@@ -17,13 +17,17 @@ function ascii(value) {
 
 function validateTask(row) {
   if (!row || typeof row !== 'object' || Array.isArray(row)) return false;
-  const keys = ['source_key', 'cnpj', 'competencia', 'tarefa', 'cliente', 'departamento', 'responsavel', 'status_gestta'];
+  const keys = ['source_key', 'cnpj', 'competencia', 'tarefa', 'tipo_tarefa', 'cliente', 'departamento', 'responsavel', 'status_gestta'];
   if (!keys.every((key) => typeof row[key] === 'string')) return false;
   if (!/^[0-9]{14}$/.test(row.cnpj) || !/^20\d{2}-(0[1-9]|1[0-2])$/.test(row.competencia)) return false;
   if (!/^[a-f0-9]{64}$/.test(row.source_key)) return false;
   if (!row.tarefa || !row.cliente || !row.status_gestta || !row.responsavel) return false;
   if (keys.some((key) => row[key].length > 500 && key !== 'source_key')) return false;
-  if (!ascii(row.tarefa).includes('EBEF')) return false;
+  const title = ascii(row.tarefa);
+  const kind = /^DECLARACAO DE EBEF(?:\s*\||$)/.test(title) ? 'declaracao'
+    : /^VERIFICAR NECESSIDADE DE EBEF(?:\s*\||$)/.test(title) ? 'verificacao'
+    : null;
+  if (!kind || row.tipo_tarefa !== kind) return false;
   const expected = createHash('sha256').update(row.cnpj + '|' + row.competencia + '|' + ascii(row.tarefa)).digest('hex');
   return row.source_key === expected;
 }
@@ -84,7 +88,7 @@ export default async function handler(req, res) {
   const url = dbUrl.replace(/\/$/, '');
   const records = body.tasks.map((row) => ({
     source_key: row.source_key, cnpj: row.cnpj, competencia: row.competencia,
-    tarefa: row.tarefa, cliente: row.cliente, departamento: row.departamento,
+    tarefa: row.tarefa, tipo_tarefa: row.tipo_tarefa, cliente: row.cliente, departamento: row.departamento,
     responsavel: row.responsavel, status_gestta: row.status_gestta,
     export_sha256: body.export_sha256, last_seen_at: now,
   }));
