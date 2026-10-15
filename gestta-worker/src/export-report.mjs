@@ -124,7 +124,7 @@ async function applyAndVerifyWindow(page, window) {
   const customSelector = requiredSelector('GESTTA_DATE_CUSTOM_SELECTOR');
   const startSelector = requiredSelector('GESTTA_DATE_START_SELECTOR');
   const endSelector = requiredSelector('GESTTA_DATE_END_SELECTOR');
-  const applySelector = requiredSelector('GESTTA_DATE_APPLY_SELECTOR');
+  const applySelector = process.env.GESTTA_DATE_APPLY_SELECTOR?.trim();
   const clientSelector = requiredSelector('GESTTA_CLIENTS_ALL_SELECTOR');
   const userSelector = requiredSelector('GESTTA_USERS_ALL_SELECTOR');
   const dateModeSelector = requiredSelector('GESTTA_DATE_MODE_SELECTOR');
@@ -159,7 +159,11 @@ async function applyAndVerifyWindow(page, window) {
       normalized(await endField.inputValue()) !== normalized(fmt(window.end))) {
     throw new Error('Datas iniciais/finais nao permaneceram no calendario.');
   }
-  const applyButton = page.locator(applySelector);
+  // Seletor semantico confirmado pelo Inspector: getByRole('button', { name: 'Aplicar' }).
+  // CSS opcional continua disponível caso existam vários botões 'Aplicar'.
+  const applyButton = applySelector
+    ? page.locator(applySelector)
+    : page.getByRole('button', { name: 'Aplicar', exact: true });
   if (await applyButton.count() !== 1) throw new Error('Botao Aplicar nao localizado de forma unica.');
   await applyButton.click({ timeout: 10000 });
   await page.waitForTimeout(1200);
