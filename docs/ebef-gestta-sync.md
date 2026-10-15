@@ -74,6 +74,20 @@ Não há modal de exportação aberto nesta captura. Não é possível concluir 
 
 Para o espelho Gestta -> Luce, recomendamos TODOS os quatro status para acompanhar mudanças de situação e evitar conclusões invisíveis. Uma tarefa concluída é um estado do Gestta, não comprova transmissão E-BEF. Uma tarefa desconsiderada não implica automaticamente dispensa legal.
 
-Alteração feita no RPA: `GESTTA_ADVANCED_OPEN_SELECTOR`, `GESTTA_ADVANCED_APPLY_SELECTOR`, `GESTTA_ADVANCED_STATUS_SELECTORS` (objeto JSON com 4 chaves), `GESTTA_ADVANCED_TASK_TYPE_SELECTORS` (objeto JSON com 3 chaves), `GESTTA_ADVANCED_DEPARTMENT_SELECTOR` e `GESTTA_ADVANCED_DEPARTMENT_EXPECTED_TEXT`. Todos obrigatórios no --auto; o robô falha quando não consegue validar os controles, sem substituir os seletores por suposições.
+Alteração feita no RPA: `GESTTA_ADVANCED_OPEN_SELECTOR`, `GESTTA_ADVANCED_APPLY_SELECTOR`, `GESTTA_ADVANCED_STATUS_SELECTORS` (4 chaves), `GESTTA_ADVANCED_TASK_TYPE_SELECTORS` (3 chaves), `GESTTA_ADVANCED_DEPARTMENT_SELECTOR`, `GESTTA_ADVANCED_DEPARTMENT_SELECT_ALL_SELECTOR`, `GESTTA_ADVANCED_DEPARTMENT_OPTION_CHECKBOXES_SELECTOR` e `GESTTA_ADVANCED_DEPARTMENT_TOTAL_COUNT`. Todos são obrigatórios no --auto; o robô falha quando não consegue validar os controles, sem substituir seletores por suposições.
 
 A comparação textual `Contábil +16` não certifica o conjunto de departamentos. Na homologação, deve-se abrir o seletor e conferir todos os departamentos efetivos; se necessário evoluir para checagem individual de cada opção, antes de autorizar agendamento.
+
+## Captura do seletor Departamento aberto (15/10/2026)
+
+No dropdown aparecem as opções:
+- **Selecionar todos** (ação explícita disponível).
+- **Administrativo** marcado.
+- **Arquivo** desmarcado.
+- **Atendimento** marcado.
+- **Auditoria** marcada.
+- Outras opções são acessadas por rolagem; não é possível contar o total pela captura.
+
+O resumo `Contábil +16` não significa que TODOS os departamentos foram selecionados. A nova rotina do RPA deverá **abrir Departamento → clicar Selecionar todos → validar os checkboxes e a quantidade TOTAL esperada** antes de acionar `Filtrar`. Um menu com renderização virtualizada ou seletores desconhecidos deve abortar para nova calibração, nunca considerar cobertura integral apenas pelo resumo textual.
+
+**Pendente:** contar todos os departamentos após clicar Selecionar todos em sessão autorizada, calibrar a ação de seleção geral e o conjunto de checkboxes reais, e testar que os filtros se mantêm aplicados depois do botão Filtrar. O código foi atualizado em branch de rascunho e NÃO executado no Gestta.
