@@ -7,6 +7,7 @@ import { stdin as input, stdout as output } from 'node:process';
 import { brazilRange } from './month-windows.mjs';
 import { ADVANCED_STATUSES, ADVANCED_TASK_TYPES, parseRequiredSelectorMap, assertSelectedDepartmentNames } from './advanced-filter-config.mjs';
 import { applyDateWindow, readControlText } from './date-picker.mjs';
+import { ensureTasksView } from './task-navigation.mjs';
 
 const ROOT = resolve(process.cwd(), '.gestta-profile');
 const DEFAULT_DASHBOARD = 'https://app.gestta.com.br/';
@@ -155,8 +156,12 @@ export async function exportReport({ auto = false, window } = {}) {
   let context;
   try {
     ({ context } = await startBrowser());
-    const page = context.pages()[0] || await context.newPage();
-    await page.goto(checkUrl(reportUrl || DEFAULT_DASHBOARD), { waitUntil: 'domcontentloaded' });
+    const initialPage = context.pages()[0] || await context.newPage();
+    // O Gestta inicia na Dashboard. Primeiro abre a plataforma, depois clica em Tarefas.
+    await initialPage.goto(checkUrl(reportUrl || DEFAULT_DASHBOARD), { waitUntil: 'domcontentloaded' });
+    const page = await ensureTasksView(context, {
+      selector: process.env.GESTTA_DATE_RANGE_SELECTOR?.trim() || '#date-range',
+    });
     const configured = Number(process.env.GESTTA_DOWNLOAD_TIMEOUT_MS || 120000);
     const timeout = Number.isFinite(configured) ? Math.min(Math.max(configured, 10000), 600000) : 120000;
     console.log('\nRelatório desejado: ' + (window ? brazilRange(window) : 'período configurado manualmente'));
