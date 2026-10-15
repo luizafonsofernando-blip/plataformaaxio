@@ -33,7 +33,8 @@ export function buildMonthWindows({ from = '2026-01', through = brazilToday(), r
     const year = Math.floor(index / 12);
     const month = index % 12 + 1;
     const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
-    const available = Math.min(last, index === endIndex ? Number(through.slice(-2)) : last);
+    // Mes vigente inteiro: inclui vencimentos futuros ja cadastrados no Gestta.
+    const available = last;
     for (let day = 1; day <= available; day += 30) {
       const start = iso(year, month, day);
       const end = iso(year, month, Math.min(available, day + 29));
