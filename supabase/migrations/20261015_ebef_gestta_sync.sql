@@ -6,6 +6,7 @@ create table if not exists public.ebef_gestta_tasks (
   cnpj text not null check (cnpj ~ '^[0-9]{14}$'),
   competencia text not null check (competencia ~ '^20[0-9]{2}-(0[1-9]|1[0-2])$'),
   tarefa text not null,
+  tipo_tarefa text not null check (tipo_tarefa in ('declaracao', 'verificacao')),
   cliente text not null,
   departamento text not null default '',
   responsavel text not null,
