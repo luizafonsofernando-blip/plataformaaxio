@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { brazilRange } from './month-windows.mjs';
-import { ADVANCED_STATUSES, ADVANCED_TASK_TYPES, parseRequiredSelectorMap, assertCompleteDepartmentSelection } from './advanced-filter-config.mjs';
+import { ADVANCED_STATUSES, ADVANCED_TASK_TYPES, parseRequiredSelectorMap, assertSelectedDepartmentNames } from './advanced-filter-config.mjs';
 
 const ROOT = resolve(process.cwd(), '.gestta-profile');
 const DEFAULT_DASHBOARD = 'https://app.gestta.com.br/';
@@ -60,8 +60,9 @@ async function applyAndVerifyAdvancedFilters(page) {
   const applySelector = requiredSelector('GESTTA_ADVANCED_APPLY_SELECTOR');
   const departmentSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_SELECTOR');
   const selectAllDepartmentsSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_SELECT_ALL_SELECTOR');
-  const departmentCheckboxSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_OPTION_CHECKBOXES_SELECTOR');
-  const expectedDepartmentCount = Number(requiredSelector('GESTTA_ADVANCED_DEPARTMENT_TOTAL_COUNT'));
+  // Cada item deve conter nome de departamento e UM checkbox de selecao.
+  const departmentRowSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_ROW_SELECTOR');
+  const departmentRowCheckboxSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_ROW_CHECKBOX_SELECTOR');
   const statuses = parseRequiredSelectorMap(
     requiredSelector('GESTTA_ADVANCED_STATUS_SELECTORS'), ADVANCED_STATUSES,
     'GESTTA_ADVANCED_STATUS_SELECTORS'
@@ -91,14 +92,22 @@ async function applyAndVerifyAdvancedFilters(page) {
     throw new Error('Ação Selecionar todos do departamento não localizada de forma única.');
   }
   await selectAll.click({ timeout: 10000 });
-  const checkboxes = page.locator(departmentCheckboxSelector);
-  const count = await checkboxes.count();
-  const states = [];
+  const rows = page.locator(departmentRowSelector);
+  const count = await rows.count();
+  const records = [];
   for (let i = 0; i < count; i++) {
-    states.push(await checkboxes.nth(i).isChecked());
+    const row = rows.nth(i);
+    const checkbox = row.locator(departmentRowCheckboxSelector);
+    if (await checkbox.count() !== 1) {
+      throw new Error('Item de departamento sem checkbox unico. Recalibre o seletor da linha.');
+    }
+    records.push({
+      name: (await row.innerText()).trim(),
+      checked: await checkbox.isChecked(),
+    });
   }
-  // Falha se lista parcial/virtualizada, quantidade diferente da calibrada ou opcao desmarcada.
-  assertCompleteDepartmentSelection(states, expectedDepartmentCount);
+  // Falha se houver omissao, renomeacao, repeticao, virtualizacao ou departamento desmarcado.
+  assertSelectedDepartmentNames(records);
   await page.locator(applySelector).click({ timeout: 10000 });
   await page.waitForTimeout(1200);
 }
