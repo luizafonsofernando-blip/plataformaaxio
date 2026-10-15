@@ -39,3 +39,67 @@ export function assertCompleteDepartmentSelection(states, expectedTotal) {
   }
   return true;
 }
+
+
+// Relação integral confirmada pela ORTECONTE em 15/10/2026.
+// Sempre confrontar o NOME e a seleção. Uma contagem de 21, isoladamente, não basta.
+export const REQUIRED_DEPARTMENTS = Object.freeze([
+  'Administrativo',
+  'Arquivo',
+  'Atendimento',
+  'Auditoria',
+  'BPO | Financeiro',
+  'Certificadora Digital',
+  'Comercial',
+  'Compliance',
+  'Contábil',
+  'Financeiro',
+  'Fiscal',
+  'Gestta',
+  'Jurídico',
+  'Marketing',
+  'Pessoal',
+  'Processos',
+  'Processos / Regularização',
+  'Relacionamento',
+  'Societário',
+  'Tecnologia',
+  'Técnico',
+]);
+
+function normalizeDepartmentName(value) {
+  return String(value ?? '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .trim().replace(/\s+/g, ' ').toUpperCase();
+}
+
+export function assertSelectedDepartmentNames(records) {
+  if (!Array.isArray(records) || records.length !== REQUIRED_DEPARTMENTS.length) {
+    throw new Error('Departamento: esperado ' + REQUIRED_DEPARTMENTS.length +
+      ' opcoes visiveis/inspecionaveis, recebidas ' +
+      (Array.isArray(records) ? records.length : 0) +
+      '. Se a lista usar virtualizacao, configurar outra estrategia de leitura.');
+  }
+  const expected = new Set(REQUIRED_DEPARTMENTS.map(normalizeDepartmentName));
+  const seen = new Set();
+  for (const record of records) {
+    if (!record || typeof record.name !== 'string' || typeof record.checked !== 'boolean') {
+      throw new Error('Departamento: nome ou estado da selecao invalido.');
+    }
+    const name = normalizeDepartmentName(record.name);
+    if (!expected.has(name)) {
+      throw new Error('Departamento desconhecido/renomeado: ' + record.name);
+    }
+    if (seen.has(name)) {
+      throw new Error('Departamento duplicado: ' + record.name);
+    }
+    if (!record.checked) {
+      throw new Error('Departamento desmarcado: ' + record.name);
+    }
+    seen.add(name);
+  }
+  if (seen.size !== expected.size) {
+    throw new Error('Departamento: ha opcoes obrigatorias ausentes.');
+  }
+  return true;
+}
