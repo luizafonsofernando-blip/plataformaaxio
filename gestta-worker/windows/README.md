@@ -193,3 +193,18 @@ Para testar:
 Se surgir a instrução de navegação, no Chromium do Playwright entre manualmente na visão de tarefas (com o filtro Data Meta visível), volte ao PowerShell e pressione Enter. Se houver login/MFA, realize apenas manualmente. O teste só manipula filtro visual, não baixa relatório nem envia dados à Luce.
 
 Caso não apareça o calendário mesmo após navegação manual, enviar somente texto do erro sem dados privados. Ainda não ativar automação da exportação.
+
+
+## Correção da navegação manual após teste de calendário aprovado
+
+Na homologação, o robô validou o intervalo 01/10/2026 a 30/10/2026 depois de navegação manual. Uma possível causa da abertura da página inicial é a configuração da URL com # sem aspas no arquivo .env: dotenv trata o # não protegido como início de comentário.
+
+Configure a variável com a URL COMPLETA entre aspas duplas, por exemplo:
+
+    GESTTA_REPORT_URL="https://app.gestta.com.br/#/sidebar/task/overview/dashboard/6a4fc2888c762dd983242f93"
+
+Feche o navegador Playwright antigo, atualize a branch com git pull --ff-only e execute de novo:
+
+    npm run test:calendar -- --start=2026-10-01 --end=2026-10-30
+
+Agora o teste falha antecipadamente se a URL interpretada pelo dotenv não possuir a rota #/sidebar/task/. O próximo critério de homologação é abrir diretamente a lista de tarefas SEM intervenção manual. Caso o Gestta redirecione mesmo com a URL entre aspas, será preciso investigar sessão e navegação antes de habilitar o agendamento.
