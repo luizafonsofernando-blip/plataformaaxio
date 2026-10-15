@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { brazilRange } from './month-windows.mjs';
+import { ADVANCED_STATUSES, ADVANCED_TASK_TYPES, parseRequiredSelectorMap } from './advanced-filter-config.mjs';
 
 const ROOT = resolve(process.cwd(), '.gestta-profile');
 const DEFAULT_DASHBOARD = 'https://app.gestta.com.br/';
@@ -49,6 +50,47 @@ function requiredSelector(name) {
 }
 function normalizedText(value) {
   return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+}
+
+// Ajusta apenas filtros da interface (nao altera tarefas ou dados do Gestta).
+// Falha se os seletores nao forem unicos/compativeis com checkbox nativo ou
+// se a lista de departamentos nao coincidir com o escopo validado em homologacao.
+async function applyAndVerifyAdvancedFilters(page) {
+  const openSelector = requiredSelector('GESTTA_ADVANCED_OPEN_SELECTOR');
+  const applySelector = requiredSelector('GESTTA_ADVANCED_APPLY_SELECTOR');
+  const departmentSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_SELECTOR');
+  const departmentExpected = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_EXPECTED_TEXT');
+  const statuses = parseRequiredSelectorMap(
+    requiredSelector('GESTTA_ADVANCED_STATUS_SELECTORS'), ADVANCED_STATUSES,
+    'GESTTA_ADVANCED_STATUS_SELECTORS'
+  );
+  const kinds = parseRequiredSelectorMap(
+    requiredSelector('GESTTA_ADVANCED_TASK_TYPE_SELECTORS'), ADVANCED_TASK_TYPES,
+    'GESTTA_ADVANCED_TASK_TYPE_SELECTORS'
+  );
+  await page.locator(openSelector).click({ timeout: 10000 });
+  for (const [name, css] of [...Object.entries(statuses), ...Object.entries(kinds)]) {
+    const checkbox = page.locator(css);
+    if (await checkbox.count() !== 1) {
+      throw new Error('Filtro avançado "' + name + '" não localizado de forma única.');
+    }
+    await checkbox.check({ timeout: 10000 });
+    if (!(await checkbox.isChecked())) {
+      throw new Error('Filtro avançado "' + name + '" não permaneceu marcado.');
+    }
+  }
+  const department = page.locator(departmentSelector);
+  if (await department.count() !== 1) {
+    throw new Error('Campo Departamento não localizado de forma única.');
+  }
+  const actualDepartment = normalizedText(await department.innerText()).trim().replace(/\s+/g, ' ');
+  const expectedDepartment = normalizedText(departmentExpected).trim().replace(/\s+/g, ' ');
+  if (actualDepartment !== expectedDepartment) {
+    throw new Error('Escopo do Departamento mudou: esperado "' + expectedDepartment +
+      '", encontrado "' + actualDepartment + '". Validar a seleção no Gestta.');
+  }
+  await page.locator(applySelector).click({ timeout: 10000 });
+  await page.waitForTimeout(1200);
 }
 
 async function applyAndVerifyWindow(page, window) {
@@ -107,10 +149,16 @@ export async function exportReport({ auto = false, window } = {}) {
     const timeout = Number.isFinite(configured) ? Math.min(Math.max(configured, 10000), 600000) : 120000;
     console.log('\nRelatório desejado: ' + (window ? brazilRange(window) : 'período configurado manualmente'));
     if (!auto) {
-      console.log('Confirme: tres tarefas E-BEF (declaracao e as duas verificacoes), todos os clientes, todos os usuarios, Data Meta.');
+      console.log('Confirme: 3 tarefas E-BEF; 4 status (Aberta, Concluída, Impedimento, Desconsiderada); 3 tipos de tarefa e escopo de departamentos; todos clientes/usuários; Data Meta.');
       console.log('Selecione o periodo indicado e clique em exportar XLSX na janela. O robô aguardará o download.');
     } else {
       await applyAndVerifyWindow(page, window);
+      await applyAndVerifyAdvancedFilters(page);
+      // O comando Filtrar pode atualizar o dashboard. Confirme que o periodo nao mudou.
+      const selectedRange = page.locator(requiredSelector('GESTTA_DATE_RANGE_SELECTOR')).first();
+      if ((await selectedRange.inputValue()).replace(/\s/g, '') !== brazilRange(window).replace(/\s/g, '')) {
+        throw new Error('Filtro avançado alterou o período da Data Meta; cancelar exportação.');
+      }
     }
     const downloadPromise = page.waitForEvent('download', { timeout });
     if (auto) await page.locator(requiredSelector('GESTTA_EXPORT_SELECTOR')).click({ timeout: 30000 });
