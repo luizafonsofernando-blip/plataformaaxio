@@ -96,3 +96,5 @@ Automacao completa, apenas depois de calibrar seletores CSS reais no Windows e c
 Parametros exigidos: GESTTA_REPORT_URL, GESTTA_DATE_RANGE_SELECTOR, GESTTA_FILTER_APPLY_SELECTOR, GESTTA_CLIENTS_ALL_SELECTOR, GESTTA_USERS_ALL_SELECTOR, GESTTA_TASK_CHECKBOX_SELECTORS (JSON com 3 seletores) e GESTTA_EXPORT_SELECTOR.
 
 A captura de tela nao revela seletores HTML. Se o date-picker for somente leitura ou os checkboxes forem componentes customizados, sera necessaria calibracao presencial no Windows. NAO agendar antes desse teste.
+
+A calibracao automatica tambem exige GESTTA_DATE_MODE_SELECTOR para confirmar que o campo Exibir por esta em Data Meta. Somente inspecao do HTML autenticado pode estabelecer seletores confiaveis.
