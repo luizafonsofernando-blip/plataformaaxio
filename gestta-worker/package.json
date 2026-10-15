@@ -9,7 +9,8 @@
   "scripts": {
     "login": "node src/cli.mjs login",
     "sync": "node src/cli.mjs sync",
-    "test": "node --test"
+    "test": "node --test",
+    "inspect": "node src/inspect.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
