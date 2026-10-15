@@ -23,11 +23,11 @@ Edite .env localmente: LUCE_SYNC_URL e LUCE_SYNC_TOKEN. Configure GESTTA_REPORT_
 
     npm run login
     npm run sync -- --file "C:\Caminho\Clientes EBEF (1).xlsx" --dry-run
-    npm run sync -- --auto --dry-run
+    npm run sync -- --backfill --recent=2 --auto --dry-run
 
 Confira competencia, quantidade e status antes de executar um envio real:
 
-    npm run sync -- --auto
+    npm run sync -- --backfill --from=2026-01 --auto
 
 O login manual/MFA e obrigatorio quando a sessao expirar. O robô nao contorna autenticacao nem captcha.
 
@@ -47,6 +47,8 @@ Teste como o Agendador executaria, mas sem enviar:
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\windows\run-sync.ps1 -DryRun
 
+O agendamento usa --backfill --auto --recent=2. Para a primeira carga, execute --backfill --from=2026-01 --dry-run, confira cada mes e depois remova --dry-run em homologacao.
+
 Os logs resumidos ficam em gestta-worker\logs\sync-AAAAMMDD.log e sao retidos por 30 dias. Um mutex evita execucoes simultaneas. Nao ha exclusao automatica de tarefas ausentes do arquivo.
 
 Para desativar:
@@ -59,3 +61,8 @@ Para desativar:
 - Um Windows ligado com a conta encerrada nao executa tarefa configurada como Interactive.
 - Tarefa concluida no Gestta nao comprova protocolo de envio do E-BEF.
 - O MVP sincroniza dados de XLSX, nao anexos, historicos ou prazos individuais.
+
+
+## Exportacao por periodo
+
+O periodo padrao inicial vai de janeiro de 2026 ao MES ATUAL COMPLETO, nao apenas ate o dia da execucao. Em meses de 31 dias, usa 01-30 e 02-31 para obedecer o limite de 30 dias; repeticoes sao conciliadas pelo ID. O Excel atual possui 15 colunas e a Data Meta deve estar presente para validar o intervalo. A automacao so funciona depois de calibrar os seletores reais do HTML e confirmar todos os filtros.
