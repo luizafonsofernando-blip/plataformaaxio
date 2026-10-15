@@ -20,7 +20,7 @@ try {
     Add-Log ('Iniciando ' + $(if ($DryRun) { 'SIMULACAO' } else { 'SINCRONIZACAO REAL' }))
     Push-Location $worker
     try {
-        $args = @((Join-Path $worker 'src\cli.mjs'), 'sync', '--auto')
+        $args = @((Join-Path $worker 'src\cli.mjs'), 'sync', '--backfill', '--auto', '--recent=2')
         if ($DryRun) { $args += '--dry-run' }
         $messages = & $node @args 2>&1
         $code = $LASTEXITCODE
