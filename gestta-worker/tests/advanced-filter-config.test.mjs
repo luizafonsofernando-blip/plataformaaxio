@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  ADVANCED_STATUSES, ADVANCED_TASK_TYPES, parseRequiredSelectorMap,
+  ADVANCED_STATUSES, ADVANCED_TASK_TYPES, parseRequiredSelectorMap, assertCompleteDepartmentSelection,
 } from '../src/advanced-filter-config.mjs';
 
 test('cobre os quatro status do Gestta', () => {
@@ -32,4 +32,14 @@ test('falha fechado se faltar um status ou se um seletor for reutilizado', () =>
   ), /nao repita/);
   assert.throws(() => parseRequiredSelectorMap('[]', ADVANCED_STATUSES, 'ADV_STATUS'));
   assert.throws(() => parseRequiredSelectorMap('invalido', ADVANCED_STATUSES, 'ADV_STATUS'));
+});
+
+test('selecionar todos exige cada checkbox marcado e total conhecido', () => {
+  assert.equal(assertCompleteDepartmentSelection([true, true, true], 3), true);
+  assert.throws(() => assertCompleteDepartmentSelection([true, false, true], 3),
+    /Nem todos os departamentos/);
+  assert.throws(() => assertCompleteDepartmentSelection([true, true], 3),
+    /Nem todos os departamentos/);
+  assert.throws(() => assertCompleteDepartmentSelection([true], 0),
+    /inteiro positivo/);
 });
