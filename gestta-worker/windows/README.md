@@ -297,3 +297,11 @@ Para testar sem download nem transmissao:
     npm run test:calendar -- --start=2026-10-01 --end=2026-10-30
 
 Se o navegador continuar na Dashboard apos a espera, envie apenas as mensagens novas do PowerShell. Aguardar 5 segundos resolve atrasos de exibicao, mas nao substitui a calibracao de um seletor HTML ambiguo.
+
+## Ajuste de espera da Dashboard (15/10/2026, segundo teste)
+
+O teste no Windows retornou `Grafico Tarefas Abertas nao carregou em 30s`. Nas capturas o titulo pode ser exibido como `24 Tarefas Abertas`, com um numero variavel. O worker agora **nao exige mais** que exista um titulo EXATO para iniciar a espera de 5 segundos. Ele aguarda 5s logo apos entrar na Dashboard, registra apenas contagens de graficos e de rotulos `No Prazo` (sem dados de clientes) e tenta localizar o atalho do grafico. A identificacao contextual tambem aceita um titulo que inclua o contador.
+
+Caso o teste entre novamente em modo assistido, o terminal agora informa `Diagnostico de navegacao (sem dados de clientes): graficos=..., rotulos No Prazo=...`. Envie essa linha e a mensagem de falha; isso permite verificar se o problema e o titulo ou a estrutura do link.
+
+Para interromper o teste que estiver aguardando `ENTER para continuar`, pressione Ctrl+C no PowerShell. Em seguida, atualize a branch e reteste. Nenhum envio ou exportacao esta habilitado nessa rotina.
