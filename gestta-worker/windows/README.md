@@ -257,3 +257,23 @@ Teste somente navegação e calendário, após encerrar Chromium/Inspector anter
 Se continuar sem clicar, inspecionar href/atributos do link e obter seletor CSS estavel, configurando GESTTA_DASHBOARD_TASKS_SHORTCUT_SELECTOR. Nao enviar informacoes de sessao, cookies ou credenciais.
 
 Ainda falta homologar se o atalho do grafico pre-aplica filtro de status (por exemplo No Prazo) e se os filtros avancados sao zerados/atualizados corretamente. Nao habilitar exportacao completa ate isso estar confirmado.
+
+
+## Correcao de strict mode no grafico da Dashboard (15/10/2026)
+
+A execucao no Windows mostrou que getByText('No Prazo', { exact:true }) corresponde a DUAS etiquetas. A espera da etiqueta antes de validar sua contagem disparava strict mode violation, bloqueando a navegacao mesmo apos uma intervencao manual.
+
+Atualizacoes:
+- Contar as etiquetas antes de usar waitFor (sem ambiguidade).
+- Quando houver duas, limitar a procura ao grafico Tarefas Abertas, confirmando No Prazo, Em Atraso e Com Multas; aceitar apenas entre um e tres links numericos visiveis nesse grafico.
+- Se a estrutura real ainda nao permitir identificar o grafico, interromper sem clicar em links incertos.
+- No teste assistido, depois que o usuario navega manualmente, conferir #date-range diretamente, sem tentar clicar no grafico outra vez.
+
+Para testar a branch atualizada:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:calendar -- --start=2026-10-01 --end=2026-10-30
+
+Ainda nao foram executados testes ponta-a-ponta dessa alteracao no Gestta. O sucesso de um teste local nao autoriza exportacao ou sincronizacao sem homologar os filtros avancados.
