@@ -305,3 +305,27 @@ O teste no Windows retornou `Grafico Tarefas Abertas nao carregou em 30s`. Nas c
 Caso o teste entre novamente em modo assistido, o terminal agora informa `Diagnostico de navegacao (sem dados de clientes): graficos=..., rotulos No Prazo=...`. Envie essa linha e a mensagem de falha; isso permite verificar se o problema e o titulo ou a estrutura do link.
 
 Para interromper o teste que estiver aguardando `ENTER para continuar`, pressione Ctrl+C no PowerShell. Em seguida, atualize a branch e reteste. Nenhum envio ou exportacao esta habilitado nessa rotina.
+
+
+## Diagnostico antes de novos cliques (apos contadores 0/0)
+
+Em uma execucao Windows, mesmo aguardando 5 segundos, o robô observou `graficos=0`, `rotulos No Prazo=0`, e depois nao encontrou `#date-range` na navegacao manual. Estes sintomas nao comprovam lentidao: o browser pode estar na rota errada, em autenticacao ou em outra aba/frame.
+
+Novo comando estritamente de leitura para esclarecer o estado da pagina:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:navigation
+
+Feche antes qualquer Chromium/Inspector aberto com o mesmo perfil Playwright.
+O script abre Gestta, aguarda 8 segundos e imprime SOMENTE:
+- categoria de rota (login, dashboard, tarefas ou outra), nunca URL completa;
+- numero de abas e frames;
+- presenca do campo de senha e do calendario;
+- contagem de rotulos No Prazo, titulos Tarefas Abertas e links numericos.
+
+Depois ele espera voce olhar o Chromium, navegar manualmente ate tarefas e pressionar Enter. Compara os mesmos indicadores antes/depois. Nao clica automaticamente nem faz download, captura de tela, log de cliente ou sincronizacao.
+Envie as linhas `Aba 1: tipo=...` antes e depois, mas nao compartilhe credenciais ou paginas com dados sensiveis.
+
+Se o Chromium estiver em login, autentique-se manualmente; se o calendario estiver em uma segunda aba, o log distinguira. Somente depois desse diagnostico calibrar o passo Dashboard -> Tarefas, sem alterar as funcoes ja validadas do calendario.
