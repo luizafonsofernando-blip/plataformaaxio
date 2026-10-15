@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { applyDateWindow, validateDateWindow, DATE_SELECTORS } from './date-picker.mjs';
-import { ensureTasksView } from './task-navigation.mjs';
+import { ensureTasksView, findTaskView } from './task-navigation.mjs';
 
 const params = Object.fromEntries(
   process.argv.slice(2).filter(s => s.startsWith('--') && s.includes('='))
@@ -55,8 +55,11 @@ try {
   } catch (navigationError) {
     console.log('Navegacao automatica ainda nao homologada: ' + navigationError.message);
     await askUserToNavigate();
-    // Na retomada, a rotina confirma o quadro sem clicar novamente quando já está visível.
-    page = await ensureTasksView(context, { selector: dateCss });
+    // Após navegação manual, VERIFICAR a tela antes de tentar qualquer outro clique.
+    // Isso impede repetir o erro do seletor da Dashboard quando a tela já está aberta.
+    page = await findTaskView(context, dateCss);
+    if (!page) throw new Error('Após intervenção manual, o campo de datas continua ausente. ' +
+      'Abra a lista detalhada de tarefas e confirme que o calendário está visível.');
   }
   console.log('Campo de período localizado na página de tarefas.');
   const result = await applyDateWindow(page, window);
