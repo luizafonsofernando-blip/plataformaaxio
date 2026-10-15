@@ -102,6 +102,21 @@ export async function ensureTasksView(context, { timeout = 20000, selector = TAS
   }) || pages[0];
   if (!page) throw new Error('Chromium sem pagina do Gestta.');
 
+  // A Dashboard do Gestta pode exibir primeiro o layout e só depois os
+  // contadores. Aguarde o gráfico e mais 5 segundos antes do primeiro clique.
+  // Tempo fixo solicitado para homologação; nunca clicar sem confirmar o alvo.
+  const chartTitle = page.getByText('Tarefas Abertas', { exact: true }).first();
+  try {
+    await chartTitle.waitFor({ state: 'visible', timeout: 30000 });
+  } catch {
+    throw new Error('Grafico Tarefas Abertas nao carregou em 30s. Verifique a sessao ou a Dashboard.');
+  }
+  console.log('Dashboard carregada. Aguardando 5 segundos para os indicadores estabilizarem...');
+  await page.waitForTimeout(5000);
+  // Caso o usuário tenha navegado à lista durante a espera, não clicar no gráfico.
+  const nowInTasks = await findTaskView(context, selector);
+  if (nowInTasks) return nowInTasks;
+
   let indicator;
   try {
     indicator = await findDashboardIndicator(page);
