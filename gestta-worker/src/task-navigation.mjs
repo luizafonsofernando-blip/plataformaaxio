@@ -50,7 +50,7 @@ export async function findDashboardIndicator(page, { selector = process.env.GEST
     // Os valores numericos mudam; o usuario confirmou que os indicadores
     // No Prazo, Em Atraso e Com Multas levam ao quadro de tarefas.
     // O titulo do grafico pode conter um contador (ex.: 24 Tarefas Abertas).
-    const chartHeadings = page.getByText(/Tarefas\\s+Abertas/i);
+    const chartHeadings = page.getByText(/Tarefas\s+Abertas/i);
     const headingsCount = await chartHeadings.count();
     if (headingsCount >= 1 && headingsCount <= 3) {
       for (let headingIndex = 0; headingIndex < headingsCount; headingIndex++) {
@@ -108,13 +108,13 @@ export async function ensureTasksView(context, { timeout = 20000, selector = TAS
   if (!page) throw new Error('Chromium sem pagina do Gestta.');
 
   // A Dashboard do Gestta pode exibir primeiro o layout e só depois os
-  // contadores. Aguarde o gráfico e mais 5 segundos antes do primeiro clique.
-  // Tempo fixo solicitado para homologação; nunca clicar sem confirmar o alvo.
+  // contadores. Aguarde 5 segundos antes de localizar o atalho.
+  // Tempo solicitado para homologação; nunca clicar sem confirmar o alvo.
   // O titulo visivel pode ser "24 Tarefas Abertas", portanto nao exigir
   // correspondencia EXATA nem aguardar o titulo antes da espera inicial.
   console.log('Dashboard aberta. Aguardando 5 segundos para os indicadores estabilizarem...');
   await page.waitForTimeout(5000);
-  const chartHeadings = page.getByText(/Tarefas\\s+Abertas/i);
+  const chartHeadings = page.getByText(/Tarefas\s+Abertas/i);
   const chartCount = await chartHeadings.count();
   const labelCount = await page.getByText('No Prazo', { exact: true }).count();
   console.log('Diagnostico de navegacao (sem dados de clientes): graficos=' +
