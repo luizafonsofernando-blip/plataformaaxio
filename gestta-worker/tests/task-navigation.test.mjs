@@ -45,6 +45,7 @@ function mockGestta({ alreadyInTasks = false, duplicateIndicator = false,
   const heading = {
     count: async () => 1,
     first: () => heading,
+    nth: () => heading,
     waitFor: async () => {},
     locator: () => chart,
   };
@@ -73,6 +74,10 @@ function mockGestta({ alreadyInTasks = false, duplicateIndicator = false,
       return link;
     },
     getByText: (text, options) => {
+      if (text instanceof RegExp) {
+        assert(text.test('24 Tarefas Abertas'));
+        return heading;
+      }
       assert.equal(options.exact, true);
       if (text === 'No Prazo') return label;
       if (text === 'Tarefas Abertas') return heading;
