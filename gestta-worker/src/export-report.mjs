@@ -146,6 +146,10 @@ async function applyAndVerifyWindow(page, window) {
 export async function exportReport({ auto = false, window } = {}) {
   const reportUrl = process.env.GESTTA_REPORT_URL?.trim();
   if (auto && !window) throw new Error('--auto exige janela de datas para validar filtros.');
+  if (auto && (!reportUrl || !new URL(checkUrl(reportUrl)).hash.startsWith('#/sidebar/task/'))) {
+    throw new Error('Modo automatico exige GESTTA_REPORT_URL com rota de tarefas. ' +
+      'No arquivo .env, use aspas duplas ao redor da URL contendo #.');
+  }
   if (auto) requiredSelector('GESTTA_EXPORT_SELECTOR');
   const folder = await mkdtemp(join(tmpdir(), 'luce-ebef-'));
   let context;
