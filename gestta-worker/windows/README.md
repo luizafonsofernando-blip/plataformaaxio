@@ -219,3 +219,23 @@ O módulo src/task-navigation.mjs agora tenta clicar no elemento com texto exato
 Para conferir no computador sem exportar: fechar npm run inspect, executar git pull --ff-only na branch e testar npm run test:calendar -- --start=2026-10-01 --end=2026-10-30. Se precisar navegar manualmente, usar Pick Locator no texto do MENU Tarefas (na lateral), e não no nome de uma tarefa já aberta. Enviar apenas o localizador, sem dados de clientes.
 
 A URL com # no .env continua devendo estar entre aspas caso utilizada; ela não substitui a necessidade de clicar em Tarefas quando o Gestta redireciona à Dashboard.
+
+
+## Entrada no Gestta pelo gráfico de Tarefas Abertas (atualizado 15/10/2026)
+
+A ORTECONTE confirmou que o Gestta abre na Dashboard. Para acessar o quadro que contém o filtro #date-range, é possível clicar em QUALQUER contador no gráfico Tarefas Abertas: No Prazo (no print 7), Em Atraso (17) ou Com Multas (0). Estes números são dinâmicos.
+
+O módulo src/task-navigation.mjs agora procura o contador numérico vinculado ao rótulo "No Prazo" e clica nele. O teste exige que o rótulo e o número sejam encontrados de forma única em um grupo pequeno; não se baseia no valor 7. Se a estrutura do HTML impedir uma localização inequívoca, ele falha em segurança em vez de clicar em um número arbitrário.
+
+Caso não consiga localizar o contador, utilize npm run inspect, ative Pick Locator e clique DIRETAMENTE SOBRE O NÚMERO do indicador "No Prazo" no gráfico Tarefas Abertas. Configure o CSS obtido na variável opcional GESTTA_DASHBOARD_TASKS_SHORTCUT_SELECTOR no arquivo .env. Não envie informações privadas do Gestta.
+
+Ainda será necessário homologar se o filtro criado pelo atalho (por exemplo apenas tarefas no prazo) é substituído corretamente ao selecionar todos os status nos filtros avançados. Não executar sincronização automática sem esta verificação.
+
+Para atualizar e validar SOMENTE a navegação e o calendário:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:calendar -- --start=2026-10-01 --end=2026-10-30
+
+Após login na Dashboard, o robô tentará abrir Tarefas automaticamente pelo contador antes de preencher as datas. Se pedir navegação manual, coletar o localizador do número pelo Inspector para calibrar.
