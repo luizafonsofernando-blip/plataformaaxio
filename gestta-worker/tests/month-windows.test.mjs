@@ -4,16 +4,17 @@ import { buildMonthWindows, brazilRange, brazilToday } from '../src/month-window
 
 test('ano de 2026: meses de 31 dias geram um intervalo extra', () => {
   const windows = buildMonthWindows({ from: '2026-01', through: '2026-10-15' });
-  assert.equal(windows.length, 15);
+  assert.equal(windows.length, 16);
   assert.deepEqual(windows.slice(0, 2).map(x => [x.start, x.end]), [
     ['2026-01-01', '2026-01-30'], ['2026-01-31', '2026-01-31'],
   ]);
-  assert.deepEqual(windows.at(-1), {start:'2026-10-01', end:'2026-10-15', month:'2026-10'});
-  assert.equal(brazilRange(windows.at(-1)), '01/10/2026 - 15/10/2026');
+  assert.deepEqual(windows.at(-2), {start:'2026-10-01', end:'2026-10-30', month:'2026-10'});
+  assert.deepEqual(windows.at(-1), {start:'2026-10-31', end:'2026-10-31', month:'2026-10'});
+  assert.equal(brazilRange(windows.at(-2)), '01/10/2026 - 30/10/2026');
 });
 test('incremental inclui mes anterior e o atual', () => {
   const windows = buildMonthWindows({ from: '2026-01', through: '2026-10-15', recentMonths: 2 });
-  assert.deepEqual(windows.map(x => x.start), ['2026-09-01', '2026-10-01']);
+  assert.deepEqual(windows.map(x => x.start), ['2026-09-01', '2026-10-01', '2026-10-31']);
 });
 test('leap year e meses de 31 dias sao cobertos sem lacunas', () => {
   const windows = buildMonthWindows({ from: '2028-02', through: '2028-03-31' });
