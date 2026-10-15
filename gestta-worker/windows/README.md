@@ -208,3 +208,14 @@ Feche o navegador Playwright antigo, atualize a branch com git pull --ff-only e 
     npm run test:calendar -- --start=2026-10-01 --end=2026-10-30
 
 Agora o teste falha antecipadamente se a URL interpretada pelo dotenv não possuir a rota #/sidebar/task/. O próximo critério de homologação é abrir diretamente a lista de tarefas SEM intervenção manual. Caso o Gestta redirecione mesmo com a URL entre aspas, será preciso investigar sessão e navegação antes de habilitar o agendamento.
+
+
+## Navegação inicial Dashboard → Tarefas (15/10/2026)
+
+Confirmado pela ORTECONTE: após login o Gestta abre na Dashboard e é necessário clicar no menu "Tarefas" para exibir os filtros. Isso é um fluxo normal do aplicativo, não deve ser tratado como falha de autenticação nem depender de copiar uma URL de tarefa.
+
+O módulo src/task-navigation.mjs agora tenta clicar no elemento com texto exato "Tarefas" e aguarda o campo #date-range. Ele só prossegue se o menu for único e se a tela de tarefas aparecer. Se houver múltiplos elementos Tarefas, configurar o seletor CSS GESTTA_TASKS_MENU_SELECTOR após inspecionar o item no Playwright Inspector. A navegação manual permanece disponível somente no teste assistido; a exportação automática falha de forma segura até que o menu seja homologado.
+
+Para conferir no computador sem exportar: fechar npm run inspect, executar git pull --ff-only na branch e testar npm run test:calendar -- --start=2026-10-01 --end=2026-10-30. Se precisar navegar manualmente, usar Pick Locator no texto do MENU Tarefas (na lateral), e não no nome de uma tarefa já aberta. Enviar apenas o localizador, sem dados de clientes.
+
+A URL com # no .env continua devendo estar entre aspas caso utilizada; ela não substitui a necessidade de clicar em Tarefas quando o Gestta redireciona à Dashboard.
