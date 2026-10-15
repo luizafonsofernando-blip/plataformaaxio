@@ -386,3 +386,30 @@ Primeiro teste sem downloads ou envio de dados, apos fechar Chromium antigo:
 Mensagem esperada ao encontrar o menu: "Menu lateral Tarefas localizado; aguardando 5 segundos...".
 Se o menu abrir outra tela sem o calendario, envie so a mensagem de erro e
 uma captura sem dados de clientes. A primeira sincronizacao continua desabilitada.
+
+
+## MARCO VALIDADO NO WINDOWS: navegacao e calendario (15/10/2026)
+
+O PowerShell da ORTECONTE confirmou:
+- "Menu lateral Tarefas localizado; aguardando 5 segundos..."
+- "Menu lateral Tarefas acionado. Aguardando filtro de datas..."
+- "Quadro de tarefas aberto automaticamente pelo menu lateral."
+- "PERIODO VALIDADO NO GESTTA: 01/10/2026 - 30/10/2026"
+- Teste sem download, envio de dados ou alteracao de tarefas.
+
+A partir daqui, o foco da homologacao e a configuracao das tres tarefas E-BEF,
+dos quatro status, dos 21 departamentos e dos demais filtros. Ainda NAO ativar
+exportacoes ou sincronizacao automatica.
+
+Para abrir diretamente a tela de tarefas e o Playwright Inspector, sem
+navegacao manual e sem alterar tarefas:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run inspect:filters
+
+Feche antes Chromium e Inspector anteriores. Na tela de tarefas, use Pick Locator
+no campo do filtro de TAREFAS (na barra superior), sem abrir dados de clientes.
+Envie apenas o localizador do campo; o codigo nao transfere relatorios nem
+chama a API da Luce nesse comando.
