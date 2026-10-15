@@ -121,7 +121,8 @@ async function readControlText(locator) {
 async function applyAndVerifyWindow(page, window) {
   // Seletores devem ser obtidos no Gestta autenticado e conferidos localmente.
   const dateSelector = requiredSelector('GESTTA_DATE_RANGE_SELECTOR');
-  const customSelector = requiredSelector('GESTTA_DATE_CUSTOM_SELECTOR');
+  // O Inspector identificou getByText('Outro', { exact: true }); CSS é opcional.
+  const customSelector = process.env.GESTTA_DATE_CUSTOM_SELECTOR?.trim();
   const startSelector = requiredSelector('GESTTA_DATE_START_SELECTOR');
   const endSelector = requiredSelector('GESTTA_DATE_END_SELECTOR');
   const applySelector = process.env.GESTTA_DATE_APPLY_SELECTOR?.trim();
@@ -142,8 +143,10 @@ async function applyAndVerifyWindow(page, window) {
     throw new Error('Campo geral do periodo (#date-range) nao foi localizado de forma unica.');
   }
   await dateField.click({ timeout: 10000 });
-  const custom = page.locator(customSelector);
-  if (await custom.count() !== 1) throw new Error('Opcao Outro do calendario nao identificada.');
+  const custom = customSelector
+    ? page.locator(customSelector)
+    : page.getByText('Outro', { exact: true });
+  if (await custom.count() !== 1) throw new Error('Opcao Outro do calendario nao identificada de forma unica.');
   await custom.click({ timeout: 10000 });
   const startField = page.locator(startSelector);
   const endField = page.locator(endSelector);
