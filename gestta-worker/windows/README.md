@@ -353,3 +353,36 @@ Execute novamente (com Chromium/Inspector antigos fechados):
 Envie somente o texto das linhas "Frame 1", "Frame 2" e "Frame 3" que
 aparecerem após a espera inicial de 8 segundos. O script continua totalmente
 somente-leitura. A navegação automática não foi modificada nesta etapa.
+
+
+## Mudanca para o menu lateral Tarefas na Dashboard v2 (15/10/2026)
+
+O ultimo print do Chromium mostra a URL dashboard-v2 e, na barra lateral esquerda,
+um item chamado "Tarefas" logo abaixo de "Dashboard". Este item nao e um contador
+dinamico e pode servir de atalho mais estavel ao controle E-BEF.
+
+A rotina foi alterada para:
+1. Verificar se o filtro #date-range ja esta aberto.
+2. Na Dashboard v2, aguardar ate 60 segundos para que o elemento exato
+   "Tarefas" do menu lateral fique visivel.
+3. Exigir correspondencia unica e aguardar mais cinco segundos.
+4. Clicar no menu lateral e aguardar ate 45 segundos pelo filtro #date-range.
+5. Se a tela aberta nao tiver o filtro, PARAR: pode ser uma visao diferente
+   da lista antiga. Nao fazer exportacoes nem sincronizacao.
+
+Se houver varios elementos de texto exato "Tarefas", use npm run inspect,
+Pick Locator sobre o item do MENU ESQUERDO "Tarefas" e configure o CSS real
+em GESTTA_SIDEBAR_TASKS_SELECTOR no arquivo local .env. Nao fixe numeros dos
+graficos, IDs de clientes ou valores de contadores. Os atalhos antigos do
+grafico foram retirados como metodo automatico principal.
+
+Primeiro teste sem downloads ou envio de dados, apos fechar Chromium antigo:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:calendar -- --start=2026-10-01 --end=2026-10-30
+
+Mensagem esperada ao encontrar o menu: "Menu lateral Tarefas localizado; aguardando 5 segundos...".
+Se o menu abrir outra tela sem o calendario, envie so a mensagem de erro e
+uma captura sem dados de clientes. A primeira sincronizacao continua desabilitada.
