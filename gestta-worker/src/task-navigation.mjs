@@ -32,6 +32,15 @@ export async function findDashboardIndicator(page, { selector = process.env.GEST
     }
     return custom;
   }
+  // Inspector em 15/10: o numero clicavel é um link com nome acessivel
+  // numerico (exemplo observado: "21069"). Não fixar seu valor.
+  // Só usar este atalho se houver EXATAMENTE UM link numerico visivel;
+  // caso contrario, parar para calibrar um seletor estável.
+  const numericLinks = page.getByRole('link', { name: /^\d+$/ });
+  const countNumeric = await numericLinks.count();
+  if (countNumeric === 1 && await numericLinks.isVisible()) {
+    return numericLinks;
+  }
   const label = page.getByText(STARTER_LABEL, { exact: true });
   await label.waitFor({ state: 'visible', timeout: 15000 });
   if (await label.count() !== 1) {
@@ -46,8 +55,8 @@ export async function findDashboardIndicator(page, { selector = process.env.GEST
       return numbers.first();
     }
   }
-  throw new Error('Indicador numerico "No Prazo" nao localizado com seguranca. ' +
-    'Use Pick Locator no NUMERO do grafico e configure GESTTA_DASHBOARD_TASKS_SHORTCUT_SELECTOR.');
+  throw new Error('Link numerico de tarefas nao localizado unicamente na Dashboard. ' +
+    'Use Pick Locator no link do grafico e configure GESTTA_DASHBOARD_TASKS_SHORTCUT_SELECTOR.');
 }
 
 export async function ensureTasksView(context, { timeout = 20000, selector = TASKS_VIEW_SELECTOR } = {}) {
