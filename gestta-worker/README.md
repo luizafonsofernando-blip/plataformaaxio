@@ -98,3 +98,5 @@ Parametros exigidos: GESTTA_REPORT_URL, GESTTA_DATE_RANGE_SELECTOR, GESTTA_FILTE
 A captura de tela nao revela seletores HTML. Se o date-picker for somente leitura ou os checkboxes forem componentes customizados, sera necessaria calibracao presencial no Windows. NAO agendar antes desse teste.
 
 A calibracao automatica tambem exige GESTTA_DATE_MODE_SELECTOR para confirmar que o campo Exibir por esta em Data Meta. Somente inspecao do HTML autenticado pode estabelecer seletores confiaveis.
+
+A rotina tambem exige calibrar o filtro avancado Departamento: GESTTA_ADVANCED_DEPARTMENT_SELECTOR, GESTTA_ADVANCED_DEPARTMENT_SELECT_ALL_SELECTOR, GESTTA_ADVANCED_DEPARTMENT_OPTION_CHECKBOXES_SELECTOR e GESTTA_ADVANCED_DEPARTMENT_TOTAL_COUNT. Ao abrir o campo, o robo aciona **Selecionar todos** e valida cada checkbox e o total de departamentos cadastrados. Na captura, Arquivo estava desmarcado. Nao deduzir cobertura total pelo resumo `Contabil +16`. Se a lista for virtualizada, inspecionar e adaptar a verificacao antes de ativar o agendamento.
