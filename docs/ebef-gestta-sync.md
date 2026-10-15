@@ -40,3 +40,13 @@ O worker reconhece as categorias `declaracao` e `verificacao` pelos prefixos com
 **Validacao pendente antes de --auto:** exportar novo XLSX com esses filtros, comparar quantidade e titulos, inspecionar os controles DOM localmente, registrar os seletores corretos e confirmar que os filtros persistem em sessao nova. O atalho --auto disponivel no MVP **nao aplica nem valida os filtros automaticamente**, apenas aciona o seletor configurado em uma URL. Nao agendar ate implementar e homologar a verificacao do estado dos filtros.
 
 A calibracao automatica tambem exige GESTTA_DATE_MODE_SELECTOR para confirmar que o campo Exibir por esta em Data Meta. Somente inspecao do HTML autenticado pode estabelecer seletores confiaveis.
+
+## Validação com duas exportações de outubro (15/10/2026)
+
+Os arquivos gestta.busca.xlsx e gestta.busca(1).xlsx têm os mesmos 10 registros, com 10 IDs iguais, todos com vencimento 15/10 ou 20/10/2026. Não há divergência nas 15 colunas. Os arquivos binários têm hashes diferentes, mas o conteúdo tabular é igual.
+
+Esta comparação mostra que o mesmo ID pode aparecer em duas exportações e deve ser deduplicado. Entretanto, não permite comprovar que o segundo arquivo usou exatamente 02/10 a 31/10: o XLSX não contém os critérios do intervalo selecionado e as tarefas vencem em datas comuns aos dois recortes.
+
+Antes de agendar, obter uma captura do formulário/modal de exportação de datas (ou inspeção local dos controles) e validar também os filtros **específicos da exportação**, caso sejam independentes dos filtros do dashboard. A verificação dos vencimentos no Excel é necessária mas insuficiente para provar abrangência completa, sobretudo nos intervalos sobrepostos e nas exportações vazias.
+
+Para exportação mensal, o worker agora exige a coluna Id preenchida para cada tarefa e falha sem gravação se a identidade não for confiável.
