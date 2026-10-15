@@ -277,3 +277,23 @@ Para testar a branch atualizada:
     npm run test:calendar -- --start=2026-10-01 --end=2026-10-30
 
 Ainda nao foram executados testes ponta-a-ponta dessa alteracao no Gestta. O sucesso de um teste local nao autoriza exportacao ou sincronizacao sem homologar os filtros avancados.
+
+
+## Estabilizacao da Dashboard antes do clique (15/10/2026)
+
+A ORTECONTE informou que o Gestta demora alguns segundos para renderizar os numeros do grafico Tarefas Abertas. A rotina src/task-navigation.mjs agora espera o titulo desse grafico ficar visivel (ate 30s), aguarda MAIS 5 SEGUNDOS e so entao tenta localizar e clicar no indicador. A tela #date-range continua sendo verificada apos a navegacao.
+
+O texto que deve aparecer no PowerShell e:
+
+    Dashboard carregada. Aguardando 5 segundos para os indicadores estabilizarem...
+
+Essa espera nao desabilita os mecanismos de seguranca: em caso de links ambiguos ou grafico ausente, o robo interrompe a navegacao automatica.
+
+Para testar sem download nem transmissao:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:calendar -- --start=2026-10-01 --end=2026-10-30
+
+Se o navegador continuar na Dashboard apos a espera, envie apenas as mensagens novas do PowerShell. Aguardar 5 segundos resolve atrasos de exibicao, mas nao substitui a calibracao de um seletor HTML ambiguo.
