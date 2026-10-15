@@ -50,3 +50,16 @@ Esta comparação mostra que o mesmo ID pode aparecer em duas exportações e de
 Antes de agendar, obter uma captura do formulário/modal de exportação de datas (ou inspeção local dos controles) e validar também os filtros **específicos da exportação**, caso sejam independentes dos filtros do dashboard. A verificação dos vencimentos no Excel é necessária mas insuficiente para provar abrangência completa, sobretudo nos intervalos sobrepostos e nas exportações vazias.
 
 Para exportação mensal, o worker agora exige a coluna Id preenchida para cada tarefa e falha sem gravação se a identidade não for confiável.
+
+
+## Captura adicional da tela Gestta (15/10/2026)
+
+O print mais recente mostra o painel com:
+- Intervalo visível `02/10/2026 - 30/10/2026` (não chega ao dia 31).
+- Exibir por `Data Meta`; clientes `Todos clientes`; usuários `Todos usuários`.
+- Contador `10 | 10 Tarefas`, com vencimentos visíveis nos dias 15 e 20.
+- Um indicador laranja sobre o ícone de filtros avançados e um botão de download no alto à direita.
+
+Não há modal de exportação aberto nesta captura. Não é possível concluir se clicar em Download abre outro seletor de período ou inicia um arquivo direto.
+
+**Guardrail de homologação:** enquanto não for confirmado que o Gestta aceita exportar um período abrangendo o dia 31 (p.ex. 02/10 a 31/10), não liberar o robô automático mensal. Testar o calendário com término em 31/10, conferir intervalo exibido e exportação realmente gerada. Se filtros avançados afetarem a carteira, documentar e verificar seu estado efetivo no RPA, sem pressupor que o campo de três tarefas é o único filtro ativo.
