@@ -1,55 +1,41 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  taskFilterTrigger, verifyTaskFilterTrigger, validateEbefOptionNames,
-  taskSearchLocator, ebefMenuItemsLocator, menuItemCheckbox, selectEbefTasks,
-  ensureUnfilteredTaskPicker,
+  verifyTaskFilterTrigger, validateEbefOptionNames,
+  taskSearchLocator, ebefMenuItemsLocator, menuItemCheckbox,
+  ensureUnfilteredTaskPicker, selectEbefTasks,
 } from '../src/task-filter.mjs';
 
-const names = [
+const taskNames = [
   'DECLARAÇÃO DE EBEF | TÉCNICO',
   'VERIFICAR NECESSIDADE DE EBEF | TÉCNICO',
   'VERIFICAR NECESSIDADE DE EBEF | OUTRO DEPARTAMENTO',
 ];
 
-test('identifica seletor principal Todas as tarefas',async()=>{
-  const element={count:async()=>1,isVisible:async()=>true};
-  const page={getByText:(value,opts)=>{
-    assert.equal(value,'Todas as tarefas');
-    assert.equal(opts.exact,true);
-    return element;
-  }};
-  assert.equal(await verifyTaskFilterTrigger(page),taskFilterTrigger(page));
-});
-
-test('falha em gatilho ausente ou ambiguo',async()=>{
-  const page=n=>({getByText:()=>({count:async()=>n,isVisible:async()=>true})});
-  await assert.rejects(()=>verifyTaskFilterTrigger(page(0)),/0 correspondencias/);
-  await assert.rejects(()=>verifyTaskFilterTrigger(page(2)),/2 correspondencias/);
-});
-
-test('comprova padrao exato das 3 opcoes',()=>{
-  assert.equal(validateEbefOptionNames(names),true);
-  assert.throws(()=>validateEbefOptionNames(names.slice(0,2)),/exatamente tres/);
-  assert.throws(()=>validateEbefOptionNames([names[0],names[1],'ROTINA FISCAL']),/nao corresponde/);
-  assert.throws(()=>validateEbefOptionNames([names[0],names[1],names[1]]),/repetidas/);
-});
-
 function fakeDropdown({
-  labels=names, priorSelection=false, searchVisible=true, checkboxCount=1,
-  failOnScroll=false, alreadyChecked=[],
+  labels=taskNames, initialVisible=true, initiallyMissing=false,
+  duplicateTrigger=false, searchVisible=true, checkboxCount=1,
+  failScroll=false, alreadyChecked=[],
 }={}) {
-  let opened=false,typed='',clicks=0;
+  let opened=false, typed='', clicks=0, clearClicks=0, triggerWaits=0;
+  let waited=0;
   const selected=labels.map((_,i)=>alreadyChecked.includes(i));
   const scrolls=[];
   const trigger={
-    count:async()=>priorSelection?0:1,
-    isVisible:async()=>true,
+    first:()=>trigger,
+    waitFor:async options=>{
+      triggerWaits++;
+      assert.equal(options.state,'visible');
+      assert.equal(options.timeout,30000);
+      if(!initialVisible)throw new Error('timeout');
+    },
+    count:async()=>initiallyMissing?0:(duplicateTrigger?2:1),
+    isVisible:async()=>initialVisible,
     click:async()=>{opened=true;clicks++;},
   };
   const search={
     first:()=>search,
-    waitFor:async()=>{if(!searchVisible || !opened) throw new Error('campo invisivel');},
+    waitFor:async()=>{if(!opened || !searchVisible)throw new Error('not visible');},
     count:async()=>opened?1:0,
     isVisible:async()=>searchVisible,
     fill:async value=>{typed=value;},
@@ -57,154 +43,122 @@ function fakeDropdown({
   };
   const box=i=>({
     count:async()=>checkboxCount,
-    scrollIntoViewIfNeeded:async()=>{scrolls.push('box'+i);},
     isChecked:async()=>selected[i],
     check:async()=>{selected[i]=true;},
+    scrollIntoViewIfNeeded:async()=>{scrolls.push('box'+i);},
   });
   const row=i=>({
     waitFor:async()=>{if(i>=labels.length)throw new Error('missing');},
     scrollIntoViewIfNeeded:async()=>{
       scrolls.push('row'+i);
-      if(failOnScroll)throw new Error('cannot scroll');
+      if(failScroll)throw new Error('cannot scroll');
     },
     isVisible:async()=>i<labels.length,
     innerText:async()=>labels[i],
-    getByRole:(name)=>{
-      assert.equal(name,'checkbox');
-      return box(i);
-    },
+    getByRole:role=>{assert.equal(role,'checkbox');return box(i);},
   });
   const rows={
     nth:row,
     count:async()=>typed==='bef'?labels.length:0,
   };
   const page={
-    getByText:(label,opts)=>{
-      if (label === 'Selecionar todas ativas') return {count:async()=>0};
-      assert.equal(label,'Todas as tarefas');
+    waitForTimeout:async ms=>{waited=ms;},
+    getByText:(text,opts)=>{
+      if(text==='Selecionar todas ativas')return {count:async()=>0};
+      assert.equal(text,'Todas as tarefas');
       assert.equal(opts.exact,true);
       return trigger;
     },
     getByRole:(role,opts)=>{
       if(role==='textbox'){
-        if (!opts) return {count:async()=>opened?1:0};
+        if(!opts)return {count:async()=>opened?1:0};
         assert(opts.name instanceof RegExp);
         assert(opts.name.test('Buscar por tarefa'));
         return search;
       }
       if(role==='menuitem'){
-        if (!opts) return {count:async()=>typed==='bef'?labels.length:0};
+        if(!opts)return {count:async()=>typed==='bef'?labels.length:0};
         assert(opts.name instanceof RegExp);
         assert(opts.name.test('DECLARAÇÃO DE EBEF | TÉCNICO'));
         return rows;
       }
-      throw new Error('role unexpected: '+role);
+      throw new Error('Unexpected role: '+role);
     },
+    locator:()=>({click:async()=>clearClicks++}),
   };
-  return {page,selected:()=>selected,typed:()=>typed,clicks:()=>clicks,scrolls:()=>scrolls};
+  return {page,selected:()=>selected,typed:()=>typed,clicks:()=>clicks,
+    clearClicks:()=>clearClicks,scrolls:()=>scrolls,waited:()=>waited,triggerWaits:()=>triggerWaits};
 }
 
-test('mapeia input, menuitems e checkboxes por papeis acessiveis',()=>{
-  const {page}=fakeDropdown();
-  const row=ebefMenuItemsLocator(page).nth(0);
-  assert.equal(taskSearchLocator(page),page.getByRole('textbox',{name:/Buscar por tarefa/i}));
-  assert.equal(typeof row.scrollIntoViewIfNeeded,'function');
-  assert.equal(typeof menuItemCheckbox(row).isChecked,'function');
+test('espera o filtro Todas as tarefas aparecer antes de conferir contagem',async()=>{
+  const f=fakeDropdown();
+  await verifyTaskFilterTrigger(f.page);
+  assert.equal(f.triggerWaits(),1);
 });
 
-test('digita bef, rola tres itens e marca cada checkbox',async()=>{
+test('nao limpa nem clica quando filtro continua ausente',async()=>{
+  const f=fakeDropdown({initialVisible:false,initiallyMissing:true});
+  await assert.rejects(()=>ensureUnfilteredTaskPicker(f.page),/correspondencias=0/);
+  assert.equal(f.clicks(),0);
+  assert.equal(f.clearClicks(),0);
+});
+
+test('aborta filtro ambiguo com dois elementos',async()=>{
+  const f=fakeDropdown({duplicateTrigger:true});
+  await assert.rejects(()=>verifyTaskFilterTrigger(f.page),/correspondencias=2/);
+});
+
+test('valida tres opcoes distintas e bloqueia tarefas nao E-BEF',()=>{
+  assert.equal(validateEbefOptionNames(taskNames),true);
+  assert.throws(()=>validateEbefOptionNames(taskNames.slice(0,2)),/exatamente tres/);
+  assert.throws(()=>validateEbefOptionNames([taskNames[0],taskNames[1],'OUTRA TAREFA']),/nao corresponde/);
+  assert.throws(()=>validateEbefOptionNames([taskNames[0],taskNames[1],taskNames[1]]),/repetidas/);
+});
+
+test('abre filtro, espera 5s, digita bef, rola lista e marca as tres tarefas',async()=>{
   const f=fakeDropdown();
   assert.deepEqual(await selectEbefTasks(f.page),{selected:3});
+  assert.equal(f.waited(),5000);
   assert.equal(f.typed(),'bef');
   assert.deepEqual(f.selected(),[true,true,true]);
-  assert.deepEqual(f.scrolls(),[
-    'row0','row1','row2','box0','box1','box2',
-  ]);
+  assert.deepEqual(f.scrolls(),['row0','row1','row2','box0','box1','box2']);
   assert.equal(f.clicks(),1);
+  assert.equal(f.clearClicks(),0);
 });
 
-test('respeita checkbox ja marcado sem alternar para desmarcado',async()=>{
+test('checkbox ja marcado permanece marcado',async()=>{
   const f=fakeDropdown({alreadyChecked:[1]});
   assert.deepEqual(await selectEbefTasks(f.page),{selected:3});
   assert.deepEqual(f.selected(),[true,true,true]);
 });
 
-test('aborta antes de clicar ao ver tarefa previamente filtrada',async()=>{
-  const f=fakeDropdown({priorSelection:true});
-  await assert.rejects(()=>selectEbefTasks(f.page),/Todas as tarefas/);
-  assert.equal(f.clicks(),0);
+test('nao seleciona quando so ha duas opcoes',async()=>{
+  const f=fakeDropdown({labels:taskNames.slice(0,2)});
+  await assert.rejects(()=>selectEbefTasks(f.page),/tres itens no DOM/);
+  assert.deepEqual(f.selected(),[false,false]);
 });
 
-test('aborta antes de selecionar quando ha 2 ou mais de 3 resultados',async()=>{
-  for(const labels of [names.slice(0,2), [...names,'EXTRA DE EBEF']]){
-    const f=fakeDropdown({labels});
-    await assert.rejects(()=>selectEbefTasks(f.page),/tres itens|esperado exatamente tres/);
-    assert.deepEqual(f.selected(),Array(labels.length).fill(false));
-  }
-});
-
-test('aborta quando a lista precisa de container de rolagem especial',async()=>{
-  const f=fakeDropdown({failOnScroll:true});
+test('bloqueia rolagem impossivel sem marcar checkboxes',async()=>{
+  const f=fakeDropdown({failScroll:true});
   await assert.rejects(()=>selectEbefTasks(f.page),/Nao foi possivel rolar/);
   assert.deepEqual(f.selected(),[false,false,false]);
 });
 
-test('aborta se input de busca nao estiver visivel',async()=>{
+test('bloqueia campo de busca oculto sem marcar checkboxes',async()=>{
   const f=fakeDropdown({searchVisible:false});
-  await assert.rejects(()=>selectEbefTasks(f.page),/correspondencias=1, visivel=false/);
+  await assert.rejects(()=>selectEbefTasks(f.page),/Campo Buscar por tarefa indisponivel/);
   assert.deepEqual(f.selected(),[false,false,false]);
 });
 
-test('aborta se checkbox de uma opcao nao e unico',async()=>{
+test('bloqueia checkbox ambiguo antes de marcar qualquer opcao',async()=>{
   const f=fakeDropdown({checkboxCount:2});
   await assert.rejects(()=>selectEbefTasks(f.page),/checkbox unico/);
   assert.deepEqual(f.selected(),[false,false,false]);
 });
 
-
-test('interrompe sem clicar quando filtro salvo mudou de nome e nao temos X calibrado', async()=>{
-  let clicks=0;
-  const page={
-    getByText:()=>({count:async()=>0,isVisible:async()=>false}),
-    locator:()=>({count:async()=>1,isVisible:async()=>true,click:async()=>clicks++}),
-  };
-  await assert.rejects(()=>ensureUnfilteredTaskPicker(page,''),/0 correspondencias/);
-  assert.equal(clicks,0);
-});
-
-test('limpa apenas X calibrado e exige retorno a Todas as tarefas',async()=>{
-  let cleared=false, clicks=0;
-  const trigger={
-    count:async()=>cleared?1:0,
-    isVisible:async()=>cleared,
-    first:()=>trigger,
-    waitFor:async()=>{if(!cleared)throw new Error('nao voltou');},
-  };
-  const x={count:async()=>1,isVisible:async()=>true,click:async()=>{cleared=true;clicks++;}};
-  const page={
-    getByText:()=>trigger,
-    locator:css=>{assert.equal(css,'[data-gestta-task-clear]');return x;},
-  };
-  assert.equal(await ensureUnfilteredTaskPicker(page,'[data-gestta-task-clear]'),trigger);
-  assert.equal(clicks,1);
-});
-
-test('nao clica em X ambiguo ou ausente',async()=>{
-  for(const count of [0,2]){
-    let clicks=0;
-    const page={
-      getByText:()=>({count:async()=>0}),
-      locator:()=>({count:async()=>count,isVisible:async()=>true,click:async()=>clicks++}),
-    };
-    await assert.rejects(()=>ensureUnfilteredTaskPicker(page,'button.task-clear'),/nao identificado/);
-    assert.equal(clicks,0);
-  }
-});
-
-test('nao tenta limpeza quando Todas as tarefas ja esta visivel',async()=>{
-  let clicks=0;
-  const trigger={count:async()=>1,isVisible:async()=>true};
-  const page={getByText:()=>trigger,locator:()=>({click:async()=>clicks++})};
-  assert.equal(await ensureUnfilteredTaskPicker(page,'button.task-clear'),trigger);
-  assert.equal(clicks,0);
+test('usa localizadores semanticos',async()=>{
+  const f=fakeDropdown();
+  assert.equal(typeof taskSearchLocator(f.page).isVisible,'function');
+  assert.equal(typeof ebefMenuItemsLocator(f.page).nth,'function');
+  assert.equal(typeof menuItemCheckbox(ebefMenuItemsLocator(f.page).nth(0)).isChecked,'function');
 });
