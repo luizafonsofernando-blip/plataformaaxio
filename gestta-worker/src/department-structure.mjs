@@ -74,32 +74,47 @@ export function summarizeDepartmentSnapshots(allSnapshots) {
   };
 }
 
+// Leitura sem espera por localizadores do Playwright. A versao anterior
+// usava locator.evaluateAll() com :has(), que nao retornou no Gestta real.
+// querySelectorAll() no DOM e imediata, inclusive quando houver ZERO linhas.
+// textContent evita calculos de layout de innerText em menus grandes.
 export async function inspectDepartmentStructure(page) {
-  const rows = departmentRowCandidates(page);
-  // A versão anterior fazia count() e evaluate() para cada linha do menu,
-  // podendo esperar indefinidamente se o Gestta renderizasse de novo o DOM.
-  // evaluateAll coleta tudo em uma única operação, sem nth/espera individual.
-  const snapshots = await rows.evaluateAll(list => list.map(li => {
-    const toggle = li.querySelector(':scope > .gestta-multiselect-dropdown__item-toggle');
-    const checkbox = toggle?.querySelector('.checkbox-item') ?? null;
-    const inner = checkbox?.matches('input[type="checkbox"]') ? checkbox :
-      checkbox?.querySelector('input[type="checkbox"]') ?? null;
-    const ariaNode = [checkbox,toggle,li].find(el =>
-      el && el.getAttribute('aria-checked') !== null) ?? null;
-    const safeClasses = el => Array.from(el?.classList || [])
-      .filter(x => /^[\w-]{1,64}$/.test(x)).slice(0,8);
-    return {
-      label: String(li.innerText || '').trim().slice(0,160),
-      elementTag:checkbox?.tagName.toLowerCase() || 'none',
-      toggleTag:toggle?.tagName.toLowerCase() || 'none',
-      checkboxClasses:safeClasses(checkbox),
-      toggleClasses:safeClasses(toggle),
-      checkboxRole:checkbox?.getAttribute('role') || '',
-      inputType:inner?.type || null,
-      inputChecked:inner ? Boolean(inner.checked) : null,
-      ariaChecked:ariaNode?.getAttribute('aria-checked') ?? null,
-      dataState:checkbox?.getAttribute('data-state') || '',
-    };
-  }));
+  const snapshots = await page.evaluate(() => {
+    const toggles = document.querySelectorAll('.gestta-multiselect-dropdown__item-toggle');
+    const list = [];
+    for (const toggle of toggles) {
+      const li=toggle.closest('li');
+      if (!li || !toggle.querySelector('.checkbox-item')) continue;
+      const checkbox=toggle.querySelector('.checkbox-item');
+      const inner=checkbox.matches('input[type="checkbox"]') ? checkbox :
+        checkbox.querySelector('input[type="checkbox"]');
+      const ariaNode=[checkbox,toggle,li].find(el=>
+        el && el.getAttribute('aria-checked') !== null);
+      const safeClasses=el=>Array.from(el?.classList || [])
+        .filter(x=>/^[\w-]{1,64}$/.test(x)).slice(0,8);
+      list.push({
+        label:String(li.textContent || '').trim().replace(/\s+/g,' ').slice(0,160),
+        elementTag:checkbox.tagName.toLowerCase(),
+        toggleTag:toggle.tagName.toLowerCase(),
+        checkboxClasses:safeClasses(checkbox),
+        toggleClasses:safeClasses(toggle),
+        checkboxRole:checkbox.getAttribute('role') || '',
+        inputType:inner?.type || null,
+        inputChecked:inner ? Boolean(inner.checked) : null,
+        ariaChecked:ariaNode?.getAttribute('aria-checked') ?? null,
+        dataState:checkbox.getAttribute('data-state') || '',
+      });
+    }
+    return list;
+  });
   return summarizeDepartmentSnapshots(snapshots);
+}
+
+// Diagnostica SOMENTE contagens, sem acessar dados de clientes ou de tarefas.
+export async function inspectDepartmentCounts(page) {
+  return page.evaluate(() => ({
+    toggleCount:document.querySelectorAll('.gestta-multiselect-dropdown__item-toggle').length,
+    checkboxItemCount:document.querySelectorAll('.checkbox-item').length,
+    listItemCount:document.querySelectorAll('li').length,
+  }));
 }
