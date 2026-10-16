@@ -9,6 +9,7 @@ import { assertSelectedDepartmentNames } from './advanced-filter-config.mjs';
 import { ensureAllTaskTypes } from './advanced-task-type-locators.mjs';
 import { ensureAllAdvancedStatuses } from './advanced-status-locators.mjs';
 import { clickAdvancedApplyButton } from './advanced-action-locators.mjs';
+import { openDepartmentPicker, clickDepartmentSelectAll } from './department-controls.mjs';
 import { applyDateWindow, readControlText } from './date-picker.mjs';
 import { ensureTasksView } from './task-navigation.mjs';
 import { selectEbefTasks } from './task-filter.mjs';
@@ -64,8 +65,8 @@ function normalizedText(value) {
 async function applyAndVerifyAdvancedFilters(page) {
   const openSelector = requiredSelector('GESTTA_ADVANCED_OPEN_SELECTOR');
   const applySelector = process.env.GESTTA_ADVANCED_APPLY_SELECTOR?.trim();
-  const departmentSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_SELECTOR');
-  const selectAllDepartmentsSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_SELECT_ALL_SELECTOR');
+  const departmentSelector = process.env.GESTTA_ADVANCED_DEPARTMENT_SELECTOR?.trim();
+  const selectAllDepartmentsSelector = process.env.GESTTA_ADVANCED_DEPARTMENT_SELECT_ALL_SELECTOR?.trim();
   // Cada item deve conter nome de departamento e UM checkbox de selecao.
   const departmentRowSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_ROW_SELECTOR');
   const departmentRowCheckboxSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_ROW_CHECKBOX_SELECTOR');
@@ -74,16 +75,10 @@ async function applyAndVerifyAdvancedFilters(page) {
   // getByRole('checkbox'); nao dependem de CSS posicional nem de glifos.
   await ensureAllAdvancedStatuses(page);
   await ensureAllTaskTypes(page);
-  const department = page.locator(departmentSelector);
-  if (await department.count() !== 1) {
-    throw new Error('Campo Departamento não localizado de forma única.');
-  }
-  await department.click({ timeout: 10000 });
-  const selectAll = page.locator(selectAllDepartmentsSelector);
-  if (await selectAll.count() !== 1) {
-    throw new Error('Ação Selecionar todos do departamento não localizada de forma única.');
-  }
-  await selectAll.click({ timeout: 10000 });
+  // Campo e ação de selecionar todos calibrados no Inspector. A seleção
+  // só é aceita se a conferência posterior de nomes/checkboxes passar.
+  await openDepartmentPicker(page, departmentSelector);
+  await clickDepartmentSelectAll(page, selectAllDepartmentsSelector);
   const rows = page.locator(departmentRowSelector);
   const count = await rows.count();
   const records = [];
