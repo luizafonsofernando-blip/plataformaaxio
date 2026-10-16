@@ -66,7 +66,7 @@ test('inspeção do popup não clica em itens e exige ID validado',async()=>{
   const page={evaluate:async(fn,id)=>{
     calls++;assert.equal(id,valid().userId);
     return {found:true,optionsInDom:596,selectedCount:596,
-      uncheckedCount:0,unknownCount:0,allOptionsCheckedProven:true};
+      uncheckedCount:0,unknownCount:0,allVisibleOptionsChecked:true};
   }};
   const info=await inspectUsersPopup(page,valid().userId);
   assert.equal(info.selectedCount,596);
