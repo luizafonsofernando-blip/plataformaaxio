@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   taskFilterTrigger, verifyTaskFilterTrigger, validateEbefOptionNames,
   taskSearchLocator, ebefMenuItemsLocator, menuItemCheckbox, selectEbefTasks,
+  ensureUnfilteredTaskPicker,
 } from '../src/task-filter.mjs';
 
 const names = [
@@ -158,4 +159,52 @@ test('aborta se checkbox de uma opcao nao e unico',async()=>{
   const f=fakeDropdown({checkboxCount:2});
   await assert.rejects(()=>selectEbefTasks(f.page),/checkbox unico/);
   assert.deepEqual(f.selected(),[false,false,false]);
+});
+
+
+test('interrompe sem clicar quando filtro salvo mudou de nome e nao temos X calibrado', async()=>{
+  let clicks=0;
+  const page={
+    getByText:()=>({count:async()=>0,isVisible:async()=>false}),
+    locator:()=>({count:async()=>1,isVisible:async()=>true,click:async()=>clicks++}),
+  };
+  await assert.rejects(()=>ensureUnfilteredTaskPicker(page,''),/0 correspondencias/);
+  assert.equal(clicks,0);
+});
+
+test('limpa apenas X calibrado e exige retorno a Todas as tarefas',async()=>{
+  let cleared=false, clicks=0;
+  const trigger={
+    count:async()=>cleared?1:0,
+    isVisible:async()=>cleared,
+    first:()=>trigger,
+    waitFor:async()=>{if(!cleared)throw new Error('nao voltou');},
+  };
+  const x={count:async()=>1,isVisible:async()=>true,click:async()=>{cleared=true;clicks++;}};
+  const page={
+    getByText:()=>trigger,
+    locator:css=>{assert.equal(css,'[data-gestta-task-clear]');return x;},
+  };
+  assert.equal(await ensureUnfilteredTaskPicker(page,'[data-gestta-task-clear]'),trigger);
+  assert.equal(clicks,1);
+});
+
+test('nao clica em X ambiguo ou ausente',async()=>{
+  for(const count of [0,2]){
+    let clicks=0;
+    const page={
+      getByText:()=>({count:async()=>0}),
+      locator:()=>({count:async()=>count,isVisible:async()=>true,click:async()=>clicks++}),
+    };
+    await assert.rejects(()=>ensureUnfilteredTaskPicker(page,'button.task-clear'),/nao identificado/);
+    assert.equal(clicks,0);
+  }
+});
+
+test('nao tenta limpeza quando Todas as tarefas ja esta visivel',async()=>{
+  let clicks=0;
+  const trigger={count:async()=>1,isVisible:async()=>true};
+  const page={getByText:()=>trigger,locator:()=>({click:async()=>clicks++})};
+  assert.equal(await ensureUnfilteredTaskPicker(page,'button.task-clear'),trigger);
+  assert.equal(clicks,0);
 });
