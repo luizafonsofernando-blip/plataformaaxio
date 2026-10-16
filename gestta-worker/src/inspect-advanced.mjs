@@ -27,7 +27,9 @@ async function inspectAdvancedButtonAttributes(page) {
     return;
   }
   const candidate = buttons.nth(4);
-  const attributes = await candidate.evaluate(el => {
+  let attributes;
+  try {
+    attributes = await candidate.evaluate(el => {
     const allowed = ['id', 'type', 'title', 'aria-label', 'data-testid', 'data-test', 'name'];
     const button = {};
     for (const key of allowed) {
@@ -51,10 +53,13 @@ async function inspectAdvancedButtonAttributes(page) {
       }
     }
     return {button, icon, parent:parentData};
-  });
-  const visible = await candidate.isVisible();
-  console.log('DIAGNOSTICO FUNIL: quinto_botao_visivel=' + visible +
-    '; atributos_permitidos=' + JSON.stringify(attributes));
+    });
+    const visible = await candidate.isVisible();
+    console.log('DIAGNOSTICO FUNIL: quinto_botao_visivel=' + visible +
+      '; atributos_permitidos=' + JSON.stringify(attributes));
+  } catch {
+    console.log('DIAGNOSTICO FUNIL: botao mudou durante a leitura; inspecione-o manualmente.');
+  }
   console.log('Apenas diagnostico; o indice 4 ainda nao sera usado para clicar automaticamente.');
 }
 
