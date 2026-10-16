@@ -1060,3 +1060,43 @@ Repetir apos fechar instancias anteriores de teste:
 
 Enviar as linhas renderer_respondeu, ANTES, ESTRUTURA, DEPOIS (se houver)
 e eventuais mensagens de erro. A homologacao dos 21 checkboxes segue pendente.
+
+
+## Homologado no Windows: 21/21 departamentos marcados (16/10/2026)
+
+Resultado REAL do npm run diagnose:departments, em modo headless:
+- Tarefas E-BEF verificadas 3/3.
+- Funil de Filtros avançados aberto.
+- Dropdown Departamento aberto.
+- ANTES: 21 departamentos conhecidos distintos, 0 marcados e 21 desmarcados.
+- Selecionar todos acionado apenas no filtro de Departamento.
+- DEPOIS: 21 departamentos conhecidos distintos e 21 marcados.
+- Mensagem: "DEPARTAMENTOS: 21/21 marcados confirmados por estado de checkbox."
+- Nenhum download, envio à Luce ou alteração de tarefa.
+
+A leitura global produziu rowCount=7735 (unknownCount=7714), pois o
+Gestta conserva milhares de toggles de outros elementos no DOM. Isso
+não invalida a validação pontual dos 21 nomes, mas impede confiar em
+contagens globais em automação produtiva.
+
+Preparada nova leitura com src/department-scope.mjs, que:
+- ancora-se no menuitem visível Selecionar todos (ou Desselecionar todos);
+- busca o menor contêiner cuja lista contenha EXATAMENTE os 21 nomes
+  distintos cadastrados, sem itens desconhecidos;
+- rejeita escopo ausente/ambíguo, sem clicar em Selecionar todos;
+- imprime ESCOPO_ANTES e ESCOPO_DEPOIS com somente contagens;
+- permite ao futuro exportador confirmar, dentro do escopo, 21/21
+  marcados, sem CSS baseado em nth-child e sem percorrer milhares de linhas.
+Este NOVO escopo ainda precisa ser testado contra o Gestta real.
+
+Próxima verificação segura (SEM EXPORTACAO):
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:departments
+
+Se ESCOPO_ANTES indicar found=false, o script NÃO deve clicar em
+Selecionar todos, mesmo que a leitura global mostre os 21 nomes;
+enviar ESCOPO_ANTES, ANTES e ESTRUTURA para calibração.
+Se found=true, validar rowCount=21, unknownCount=0 e DEPOIS 21/21.
+Não habilitar sincronização antes do teste conjunto dos filtros.
