@@ -46,8 +46,12 @@ export async function assertEbefSelectionPreserved(page) {
   }
   const text=(await container.innerText()).normalize('NFD')
     .replace(/[\u0300-\u036f]/g,'').toUpperCase();
-  if(!text.includes('EBEF')){
-    throw new Error('Filtro superior de tarefas nao confirma E-BEF; exportacao bloqueada.');
+  // O resumo observado na homologacao e "DECLARACAO DE EBEF | TECNICO +2".
+  // Um simples "inclui EBEF" aceita selecao parcial, por exemplo 1/3.
+  // Este resumo e apenas uma verificacao de cobertura aparente: nao substitui
+  // a leitura dos 3 checkboxes, que deve ser validada em homologacao no Gestta.
+  if (!/^DECLARACAO DE EBEF\\b[\\s\\S]*\\+\\s*2\\s*$/.test(text.trim())) {
+    throw new Error('Filtro superior de tarefas nao confirma resumo E-BEF 3/3; exportacao bloqueada.');
   }
   // Não exibir texto integral do componente.
   return true;
