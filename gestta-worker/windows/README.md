@@ -413,3 +413,28 @@ Feche antes Chromium e Inspector anteriores. Na tela de tarefas, use Pick Locato
 no campo do filtro de TAREFAS (na barra superior), sem abrir dados de clientes.
 Envie apenas o localizador do campo; o codigo nao transfere relatorios nem
 chama a API da Luce nesse comando.
+
+
+## Filtro principal de tarefas identificado no Inspector (16/10/2026)
+
+O Playwright Inspector confirmou o gatilho do dropdown, enquanto ainda mostra
+o valor inicial "Todas as tarefas":
+
+    getByText('Todas as tarefas')
+
+Foi registrado em src/task-filter.mjs com correspondencia exata e validacao
+de elemento unico/visivel. Isto NAO identifica nem seleciona ainda as tres
+opcoes E-BEF dentro do dropdown. O texto do gatilho tambem pode mudar apos
+selecionar uma tarefa, portanto nao deve ser a unica ancora definitiva
+durante toda a sincronizacao.
+
+Proximo passo em npm run inspect:filters:
+- Se o dropdown estiver fechado, desativar Pick Locator, clicar normalmente
+  em "Todas as tarefas" e abrir a lista de opcoes.
+- Reativar Pick Locator e clicar sobre a caixa ou texto de UMA opcao
+  de tarefa E-BEF. Enviar o localizador da opcao, nao dados de clientes.
+- Se houver opcao "Desselecionar todas ativas" ou "Selecionar todas",
+  tambem identificar seu texto/localizador antes de automatizar a troca
+  de selecao.
+- Nao ativar --auto: a selecao e a validacao das tres tarefas ainda nao
+  foram homologadas. O Inspector apenas observa a interface.
