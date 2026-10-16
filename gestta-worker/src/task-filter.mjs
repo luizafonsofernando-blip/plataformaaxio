@@ -21,6 +21,41 @@ export async function verifyTaskFilterTrigger(page) {
 }
 
 
+// Não pressupor que a seleção inicial persista vazia entre execuções.
+// O seletor do X de limpeza precisa ser capturado do próprio Gestta:
+// jamais clicar genericamente em todos os botões X da página.
+export async function ensureUnfilteredTaskPicker(page, clearCss = process.env.GESTTA_TASK_FILTER_CLEAR_SELECTOR) {
+  const trigger = taskFilterTrigger(page);
+  const initialCount = await trigger.count();
+  if (initialCount === 1 && await trigger.isVisible()) return trigger;
+  if (initialCount > 1) {
+    throw new Error('Campo Todas as tarefas ambiguo (' + initialCount +
+      ' elementos). Inspecione o filtro superior antes de continuar.');
+  }
+  if (!clearCss?.trim()) {
+    throw new Error('Filtro principal Todas as tarefas ausente (0 correspondencias). ' +
+      'O Gestta pode ter preservado uma selecao anterior. ' +
+      'Abra o Inspector e capture o X de LIMPAR SOMENTE o filtro de tarefas. ' +
+      'Nao usar --auto nem clicar no X de outros filtros.');
+  }
+
+  const clear = page.locator(clearCss.trim());
+  if (await clear.count() !== 1 || !(await clear.isVisible())) {
+    throw new Error('Controle de limpeza do filtro de tarefas nao identificado ' +
+      'de forma unica e visivel. Cancelando sem alterar filtros.');
+  }
+  await clear.click({timeout:10000});
+  try {
+    await trigger.first().waitFor({state:'visible',timeout:15000});
+  } catch {
+    throw new Error('Filtro de tarefas nao voltou a Todas as tarefas apos limpeza.');
+  }
+  if (await trigger.count() !== 1 || !(await trigger.isVisible())) {
+    throw new Error('Nao foi possivel confirmar filtro inicial apos limpeza.');
+  }
+  return trigger;
+}
+
 export const EBEF_SEARCH_TERM = 'bef';
 
 // A interface é filtrável por "bef", conforme confirmado pelo operador.
@@ -73,10 +108,10 @@ export function menuItemCheckbox(item, css) {
     : item.getByRole('checkbox');
 }
 
-export async function selectEbefTasks(page, { searchCss, rowCss, checkboxCss } = {}) {
+export async function selectEbefTasks(page, { searchCss, rowCss, checkboxCss, clearCss } = {}) {
   // Antes de pesquisar é importante não haver seleção prévia de outras
   // tarefas. O texto inicial "Todas as tarefas" foi confirmado no Inspector.
-  const trigger = await verifyTaskFilterTrigger(page);
+  const trigger = await ensureUnfilteredTaskPicker(page, clearCss);
   await trigger.click({ timeout: 10000 });
 
   const search = taskSearchLocator(page, searchCss);
