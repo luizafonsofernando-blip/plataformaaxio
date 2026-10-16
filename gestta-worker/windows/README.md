@@ -586,3 +586,26 @@ Aberta, Impedimento e Desconsiderada, uma de cada vez. Envie apenas
 os três localizadores. Depois será necessário capturar o botão Filtrar
 (que aplica os status) e homologar o funil por identificador estável.
 Não marcar/desmarcar tarefas reais; somente inspecionar os filtros.
+
+
+## 4 status E-BEF mapeados no Inspector (16/10/2026)
+
+Confirmados na página real:
+- Aberta: checkbox com nome acessível Aberta + ícone auxiliar
+- Concluída: getByRole('checkbox', { name: 'Concluída' })
+- Impedimento: checkbox com nome acessível Impedimento + ícone auxiliar
+- Desconsiderada: getByRole('checkbox', { name: 'Desconsiderada' })
+
+Em src/advanced-status-locators.mjs, Aberta/Impedimento são regex
+ancoradas pelo nome para tolerar glifos decorativos do Gestta.
+Concluída/Desconsiderada usam nomes exatos.
+A rotina exige os 4 checkboxes únicos/visíveis ANTES de marcar, só marca
+os que estiverem desmarcados e confirma que os 4 permanecem marcados.
+Essa operação seleciona filtros visuais; não altera status de tarefas.
+O exportador agora utiliza estes seletores semânticos, mas a sincronização
+automática NÃO está pronta porque faltam calibrar o botão de abrir filtros,
+o botão Filtrar para aplicar, tipos, departamentos e demais controles.
+
+Próximo passo com Inspector JÁ aberto: inspecionar o botão Filtrar
+na parte inferior do painel Filtros avançados. Enviar apenas o
+localizador. Não é necessário executar outro comando neste momento.
