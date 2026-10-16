@@ -23,7 +23,8 @@
     "test:apply": "node src/test-apply-filters.mjs",
     "diagnose:department-trigger": "node src/diagnose-department-trigger.mjs",
     "diagnose:entry": "node src/diagnose-entry.mjs",
-    "test:period": "node src/test-period.mjs"
+    "test:period": "node src/test-period.mjs",
+    "plan:months": "node src/plan-months.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
