@@ -97,9 +97,18 @@ test('espera o filtro Todas as tarefas aparecer antes de conferir contagem',asyn
   assert.equal(f.triggerWaits(),1);
 });
 
-test('nao limpa nem clica quando filtro continua ausente',async()=>{
+test('nao limpa nem clica quando o filtro e o X estao ausentes',async()=>{
   const f=fakeDropdown({initialVisible:false,initiallyMissing:true});
-  await assert.rejects(()=>ensureUnfilteredTaskPicker(f.page),/correspondencias=0/);
+  // O X padrão confirmado pelo Inspector também pode estar ausente se
+  // o Gestta não tiver carregado. Nesse caso deve interromper sem clicar.
+  f.page.locator=selector=>{
+    assert.equal(selector,TASK_FILTER_CLEAR_CONTAINER);
+    return {getByRole:role=>{
+      assert.equal(role,'button');
+      return {count:async()=>0,isVisible:async()=>false,click:async()=>{throw Error('nao clicar');}};
+    }};
+  };
+  await assert.rejects(()=>ensureUnfilteredTaskPicker(f.page,{clearCss:''}),/correspondencias=0/);
   assert.equal(f.clicks(),0);
   assert.equal(f.clearClicks(),0);
 });
