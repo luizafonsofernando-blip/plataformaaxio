@@ -10,6 +10,7 @@ import { selectEbefTasks } from './task-filter.mjs';
 import { openAdvancedFilters } from './advanced-open-locator.mjs';
 import { openDepartmentPicker, clickDepartmentSelectAll } from './department-controls.mjs';
 import { inspectDepartmentStructure } from './department-structure.mjs';
+import { withDeadline } from './timeout-utils.mjs';
 
 const target = new URL(process.env.GESTTA_REPORT_URL?.trim() || 'https://app.gestta.com.br/');
 if (target.protocol !== 'https:' || target.hostname !== 'app.gestta.com.br') {
@@ -18,31 +19,16 @@ if (target.protocol !== 'https:' || target.hostname !== 'app.gestta.com.br') {
 const profile=resolve(process.cwd(),'.gestta-profile');
 await mkdir(profile,{recursive:true,mode:0o700});
 let context;
-async function withDeadline(label, task, ms=20000) {
-  let timer;
-  try {
-    return await Promise.race([
-      task(),
-      new Promise((_,reject)=>{
-        timer=setTimeout(()=>reject(new Error(
-          label+' excedeu '+ms/1000+' segundos; nao foi possivel ler os departamentos.'
-        )),ms);
-      }),
-    ]);
-  } finally {
-    if(timer)clearTimeout(timer);
-  }
-}
 async function report(page,stage) {
   console.log('DEPARTAMENTOS: iniciando leitura '+stage+' do menu...');
-  const result=await withDeadline('Leitura '+stage,inspectDepartmentStructure(page));
+  const result=await withDeadline('Leitura '+stage, () => inspectDepartmentStructure(page));
   console.log(stage+': '+JSON.stringify(result));
   if(result.rowCount===0){
     // Somente contagens estruturais para diagnosticar mudança do HTML.
     const li=await withDeadline('Contagem toggles',
-      page.locator('.gestta-multiselect-dropdown__item-toggle').count(),8000);
+      () => page.locator('.gestta-multiselect-dropdown__item-toggle').count(),8000);
     const checkbox=await withDeadline('Contagem checkboxes',
-      page.locator('.checkbox-item').count(),8000);
+      () => page.locator('.checkbox-item').count(),8000);
     console.log('ESTRUTURA: toggles='+li+'; checkbox_items='+checkbox);
   }
   return result;
@@ -92,7 +78,7 @@ try {
 } finally {
   if(context) {
     try {
-      await withDeadline('Encerramento do Chromium',context.close(),8000);
+      await withDeadline('Encerramento do Chromium', () => context.close(),8000);
     } catch {
       console.error('O Chromium de teste demorou a encerrar; finalize somente essa instancia.');
     }
