@@ -753,3 +753,38 @@ diagnostica e pausa no Inspector, nao remove selecao alguma.
 Depois que o seletor for homologado no Windows, executaremos test:tasks
 com o filtro previamente preenchido e repetiremos duas vezes para
 confirmar a idempotencia. Ainda sem liberar o --auto/exportacoes.
+
+
+## X de limpar Tarefas confirmado no Inspector (16/10/2026)
+
+O Inspector retornou exatamente:
+    locator('#gestta-multiselect-dropdown-5-p').getByRole('button')
+
+O worker usa esse localizador default no filtro de Tarefas, sem necessidade
+de alterar o .env. A escolha é deliberadamente estreita: nunca clicar num
+button genérico ou num X de outro filtro. Se o Gestta alterar o ID, o
+worker aborta com segurança e permite um CSS alternativo exclusivo em
+GESTTA_TASK_FILTER_CLEAR_SELECTOR.
+
+Sequência de consultas:
+1. Se "Todas as tarefas" está visível, não limpar nada.
+2. Se foi preservada seleção anterior, localizar X único e visível,
+   conferir que o contêiner default contém EBEF, clicar e confirmar
+   que "Todas as tarefas" voltou.
+3. Buscar bef, conferir as três tarefas, marcar e verificar 3/3.
+
+Homologação RECOMENDADA NO WINDOWS, com Chromium/Inspector antigos fechados:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:tasks
+    npm run test:tasks
+
+Executar o mesmo comando duas vezes: a segunda deverá primeiro registrar
+"Selecao anterior de tarefas limpa; Todas as tarefas confirmado."
+e concluir novamente com "TAREFAS E-BEF SELECIONADAS E VERIFICADAS: 3/3".
+O teste modifica SOMENTE os filtros visuais, não tarefas ou dados do Gestta.
+Nenhum arquivo é exportado e nenhuma informação é transmitida à Luce.
+Atenção: o ID #gestta-multiselect-dropdown-5-p foi observado na interface
+atual e ainda exige confirmação na repetição real do Windows.
