@@ -1,3 +1,4 @@
+import {usersPortalClassFromTrigger,summarizeUsersCheckboxes} from './users-portal-menu.mjs';
 // Inspeção do campo Usuários, identificado somente por relações geométricas
 // conhecidas: Tarefas à esquerda, Todos clientes no meio, calendário à direita.
 // Não registra nome de usuário, e-mail, texto arbitrário, HTML ou token.
@@ -87,59 +88,59 @@ export async function openUsersFilterForInspection(page,topology) {
 }
 
 export async function inspectUsersPopup(page,id) {
-  if(!/^gestta-multiselect-dropdown-\d+-p$/.test(id))throw new Error('ID invalido');
-  return page.evaluate(id=>{
+  const portalClass=usersPortalClassFromTrigger(id);
+  // O menu de Usuarios NÃO é descendente do gatilho. O Gestta o renderiza
+  // num UL externo com a classe data-uuid-gestta-multiselect-dropdown-N,
+  // correspondendo ao ID dinâmico do gatilho N-p. A classe observada no
+  // Windows foi confirmada para o próprio campo, não para outros dropdowns.
+  const raw=await page.evaluate(({id,portalClass})=>{
     const trigger=document.getElementById(id);
-    if(!trigger)return {found:false,reason:'gatilho_ausente'};
-    const visible=node=>{
-      const r=node.getBoundingClientRect(),css=getComputedStyle(node);
-      return r.width>0&&r.height>0&&css.visibility!=='hidden'&&css.display!=='none';
-    };
-    let node=trigger.parentElement;
-    const menus=[];
-    for(let depth=1;node&&depth<=5;depth++,node=node.parentElement){
-      const matches=[...node.querySelectorAll('.gestta-multiselect-dropdown__menu')]
-        .filter(visible);
-      if(matches.length){
-        menus.push(...matches.map(menu=>({menu,depth})));
-        break;
-      }
+    if(!trigger)return {found:false,reason:'gatilho_ausente',count:0};
+    if(trigger.getAttribute('aria-expanded')!=='true'){
+      return {found:false,reason:'gatilho_nao_expandido',count:0};
     }
-    if(menus.length!==1) return {found:false,reason:'menu_inexistente_ou_ambiguo',
-      count:menus.length};
-    const {menu,depth}=menus[0];
-    const norm=v=>String(v??'').normalize('NFD')
-      .replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ').toUpperCase();
-    const items=[...menu.querySelectorAll('.gestta-multiselect-dropdown__item-toggle')];
-    const controlTitles=new Set(['SELECIONAR TODOS','DESSELECIONAR TODOS']);
-    const extras=items.filter(item=>controlTitles.has(norm(item.closest('li')?.textContent)));
-    const options=items.filter(item=>!controlTitles.has(norm(item.closest('li')?.textContent)));
-    const states=options.map(item=>{
-      const cb=item.querySelector('input[type="checkbox"]') ||
-        item.querySelector('.checkbox-item');
-      if(!cb)return null;
-      if(cb.matches('input[type="checkbox"]'))return cb.checked;
-      const input=cb.querySelector('input[type="checkbox"]');
-      if(input)return input.checked;
-      const aria=cb.getAttribute('aria-checked')??item.getAttribute('aria-checked');
-      if(aria==='true'||aria==='false')return aria==='true';
-      const className=cb.className||'';
-      if(typeof className==='string' && /\bchecked\b/.test(className))return true;
-      return null;
-    });
-    const selectedCount=states.filter(v=>v===true).length;
-    const uncheckedCount=states.filter(v=>v===false).length;
-    const unknownCount=states.filter(v=>v===null).length;
-    const x=menu.getBoundingClientRect();
-    return {
-      found:true,depth,optionsInDom:options.length,
-      selectionControls:extras.length,
-      selectedCount,uncheckedCount,unknownCount,
-      allVisibleOptionsChecked:options.length>0&&unknownCount===0&&
-        uncheckedCount===0,
-      // Menu pode virtualizar usuários. Isso ainda NÃO comprova Todos
-      // usuários selecionado; precisaremos validar escopo e total real.
-      menuHeightApprox:Math.round(x.height/10)*10,
+    const selector='.gestta-multiselect-dropdown__menu.'+portalClass;
+    const all=[...document.querySelectorAll(selector)];
+    const visible=el=>{
+      const r=el.getBoundingClientRect(),style=getComputedStyle(el);
+      return r.width>0&&r.height>0&&style.display!=='none'&&
+        style.visibility!=='hidden';
     };
-  },id);
+    const matches=all.filter(visible);
+    if(matches.length!==1 || all.length!==1){
+      return {
+        found:false,
+        reason:all.length===0?'menu_portal_nao_encontrado':'menu_portal_ambiguo_ou_oculto',
+        count:matches.length,
+        totalMatches:all.length,
+      };
+    }
+    const menu=matches[0];
+    const toggles=[...menu.querySelectorAll(
+      '.gestta-multiselect-dropdown__item-toggle'
+    )];
+    const inputs=[...menu.querySelectorAll('input[type="checkbox"]')];
+    const normalize=v=>String(v??'').normalize('NFD')
+      .replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+    const controls=toggles.filter(node=>{
+      const label=normalize(node.closest('li')?.textContent);
+      return label==='SELECIONAR TODOS'||label==='DESSELECIONAR TODOS';
+    });
+    // Os booleanos são retornados somente em memória; nenhuma identificação
+    // pessoal, texto de usuário ou dados de sessão é emitido no console.
+    return {
+      found:true,menuAssociation:'data_uuid_trigger',
+      liCount:menu.querySelectorAll('li').length,
+      inputStates:inputs.map(input=>Boolean(input.checked)),
+      disabledInputCount:inputs.filter(input=>input.disabled).length,
+      toggleCount:toggles.length,
+      controlCount:controls.length,
+    };
+  },{id,portalClass});
+  if(!raw.found)return raw;
+  const {inputStates,toggleCount,controlCount,...safe}=raw;
+  return {
+    ...safe,
+    ...summarizeUsersCheckboxes(inputStates,toggleCount,controlCount),
+  };
 }
