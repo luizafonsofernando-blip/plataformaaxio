@@ -162,3 +162,85 @@ test('usa localizadores semanticos',async()=>{
   assert.equal(typeof ebefMenuItemsLocator(f.page).nth,'function');
   assert.equal(typeof menuItemCheckbox(ebefMenuItemsLocator(f.page).nth(0)).isChecked,'function');
 });
+
+
+function fakePersistedTaskFilter({
+  initiallySelected=true, clearMatches=1, visibleClear=true,
+  restoresDefault=true, css='#task-filter .clear-selection',
+} = {}) {
+  let selected=initiallySelected, clearClicks=0, triggerClicks=0, waited=0;
+  const trigger={
+    first:()=>trigger,
+    waitFor:async()=>{if(selected)throw new Error('default not visible');},
+    count:async()=>selected?0:1,
+    isVisible:async()=>!selected,
+    click:async()=>triggerClicks++,
+  };
+  const clear={
+    count:async()=>clearMatches,
+    isVisible:async()=>visibleClear,
+    click:async()=>{clearClicks++; if(restoresDefault)selected=false;},
+  };
+  const page={
+    getByText:(text,options)=>{
+      assert.equal(text,'Todas as tarefas');
+      assert.equal(options.exact,true);
+      return trigger;
+    },
+    locator:selector=>{assert.equal(selector,css);return clear;},
+  };
+  return {
+    page, css,
+    clearClicks:()=>clearClicks,
+    triggerClicks:()=>triggerClicks,
+    selected:()=>selected,
+  };
+}
+
+test('quando filtro ja esta em Todas as tarefas nao clica no X',async()=>{
+  const f=fakePersistedTaskFilter({initiallySelected:false});
+  await ensureUnfilteredTaskPicker(f.page,{clearCss:f.css});
+  assert.equal(f.clearClicks(),0);
+});
+
+test('quando havia selecao salva limpa apenas o X calibrado e valida estado inicial',async()=>{
+  const f=fakePersistedTaskFilter();
+  await ensureUnfilteredTaskPicker(f.page,{clearCss:f.css});
+  assert.equal(f.clearClicks(),1);
+  assert.equal(f.selected(),false);
+});
+
+test('quando havia selecao salva e falta seletor para X interrompe sem clique',async()=>{
+  const f=fakePersistedTaskFilter();
+  await assert.rejects(
+    ()=>ensureUnfilteredTaskPicker(f.page,{clearCss:''}),
+    /GESTTA_TASK_FILTER_CLEAR_SELECTOR/
+  );
+  assert.equal(f.clearClicks(),0);
+});
+
+test('nao clica em X generico, ambiguo ou oculto',async()=>{
+  const f=fakePersistedTaskFilter({css:'button'});
+  await assert.rejects(
+    ()=>ensureUnfilteredTaskPicker(f.page,{clearCss:'button'}),/demasiado generico/
+  );
+  assert.equal(f.clearClicks(),0);
+  for(const state of [{clearMatches:2},{clearMatches:0},{visibleClear:false}]){
+    const g=fakePersistedTaskFilter(state);
+    await assert.rejects(
+      ()=>ensureUnfilteredTaskPicker(g.page,{clearCss:g.css}),
+      /nao localizado de forma unica/
+    );
+    assert.equal(g.clearClicks(),0);
+  }
+});
+
+test('se o X nao devolver Todas as tarefas nao prossegue para busca',async()=>{
+  const f=fakePersistedTaskFilter({restoresDefault:false});
+  await assert.rejects(
+    ()=>ensureUnfilteredTaskPicker(f.page,{clearCss:f.css}),
+    /nao reapareceu/
+  );
+  assert.equal(f.clearClicks(),1);
+  assert.equal(f.triggerClicks(),0);
+});
