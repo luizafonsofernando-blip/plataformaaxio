@@ -8,6 +8,7 @@ import { brazilRange } from './month-windows.mjs';
 import { ADVANCED_STATUSES, ADVANCED_TASK_TYPES, parseRequiredSelectorMap, assertSelectedDepartmentNames } from './advanced-filter-config.mjs';
 import { applyDateWindow, readControlText } from './date-picker.mjs';
 import { ensureTasksView } from './task-navigation.mjs';
+import { selectEbefTasks } from './task-filter.mjs';
 
 const ROOT = resolve(process.cwd(), '.gestta-profile');
 const DEFAULT_DASHBOARD = 'https://app.gestta.com.br/';
@@ -118,14 +119,9 @@ async function applyAndVerifyWindow(page, window) {
   const clientSelector = requiredSelector('GESTTA_CLIENTS_ALL_SELECTOR');
   const userSelector = requiredSelector('GESTTA_USERS_ALL_SELECTOR');
   const dateModeSelector = requiredSelector('GESTTA_DATE_MODE_SELECTOR');
-  const taskSelectorsRaw = requiredSelector('GESTTA_TASK_CHECKBOX_SELECTORS');
-  let taskSelectors;
-  try { taskSelectors = JSON.parse(taskSelectorsRaw); }
-  catch { throw new Error('GESTTA_TASK_CHECKBOX_SELECTORS deve ser JSON de tres seletores CSS.'); }
-  if (!Array.isArray(taskSelectors) || taskSelectors.length !== 3 ||
-      taskSelectors.some(value => typeof value !== 'string' || !value.trim())) {
-    throw new Error('Configure exatamente tres seletores de tarefas E-BEF.');
-  }
+  const searchCss = requiredSelector('GESTTA_TASK_SEARCH_SELECTOR');
+  const rowCss = requiredSelector('GESTTA_TASK_RESULT_ROW_SELECTOR');
+  const checkboxCss = requiredSelector('GESTTA_TASK_ROW_CHECKBOX_SELECTOR');
   await applyDateWindow(page, window);
   if (!/TODOS.*CLIENTES/.test(normalizedText(await page.locator(clientSelector).first().innerText()))) {
     throw new Error('Filtro de clientes não está em Todos os clientes.');
@@ -136,12 +132,9 @@ async function applyAndVerifyWindow(page, window) {
   if (!/DATA META/.test(normalizedText(await page.locator(dateModeSelector).first().innerText()))) {
     throw new Error('Modo de exibição não está em Data Meta.');
   }
-  for (const css of taskSelectors) {
-    const locator = page.locator(css);
-    if (await locator.count() !== 1 || !(await locator.isChecked())) {
-      throw new Error('Uma das três tarefas E-BEF não está selecionada. Recalibre os seletores.');
-    }
-  }
+  // Buscar 'bef', validar 3 opções e selecioná-las SOMENTE se nenhuma tarefa
+  // estiver previamente selecionada (rótulo Todas as tarefas).
+  await selectEbefTasks(page, { searchCss, rowCss, checkboxCss });
 }
 
 export async function exportReport({ auto = false, window } = {}) {
