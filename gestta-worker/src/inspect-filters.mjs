@@ -6,6 +6,7 @@ import 'dotenv/config';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { ensureTasksView } from './task-navigation.mjs';
+import { verifyTaskFilterTrigger } from './task-filter.mjs';
 
 process.env.PWDEBUG = '1';
 // Inspector deve estar habilitado antes de carregar Playwright.
@@ -30,7 +31,14 @@ try {
   await first.goto(url.href, { waitUntil: 'domcontentloaded', timeout: 45000 });
   const page = await ensureTasksView(context);
   console.log('Gestta: tela de tarefas aberta automaticamente.');
-  console.log('Inspector em pausa. Use Pick Locator no campo de selecao de tarefas E-BEF.');
+  try {
+    await verifyTaskFilterTrigger(page);
+    console.log('Filtro principal confirmado: getByText(\'Todas as tarefas\', { exact: true }).');
+  } catch (error) {
+    console.log('Filtro principal ainda precisa de calibracao: ' + error.message);
+  }
+  console.log('Inspector em pausa: desative Pick Locator, abra o menu Todas as tarefas,');
+  console.log('depois reative Pick Locator para inspecionar uma opcao E-BEF/checkbox.');
   console.log('Nao clique em concluir, descartar, transferir ou alterar tarefas.');
   console.log('Nao copie URLs de sessao, nomes de clientes ou credenciais.');
   await page.pause();
