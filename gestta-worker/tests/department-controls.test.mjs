@@ -54,7 +54,7 @@ test('nao clica em dropdown ausente, duplicado ou invisivel',async()=>{
     {triggerCount:0},{triggerCount:2},{triggerVisible:false},
   ]) {
     const m=mockControls(variation);
-    await assert.rejects(()=>openDepartmentPicker(m.page),/Campo Departamento preenchido|nao localizado de forma unica|ambiguo/);
+    await assert.rejects(()=>openDepartmentPicker(m.page),/Nao foi encontrado um unico grupo|nao localizado de forma unica|ambiguo/);
     assert.equal(m.triggerClicks(),0);
   }
 });
@@ -87,40 +87,70 @@ test('nao verifica estado dos 21 so pelo clique',async()=>{
 });
 
 
-test('abre departamento selecionado via ID próximo ao título sem limpar seleção',async()=>{
-  let clicked=0, selected=0;
+
+const verifiedLayout=(id='gestta-multiselect-dropdown-6-p')=>({
+  uniqueGroupCount:1,matchedDepartmentRows:21,
+  ancestors:[
+    {depth:0,descendantToggleCount:22,descendantDropdownCount:0,
+      descendantDropdownIds:[]},
+    {depth:1,descendantToggleCount:22,descendantDropdownCount:1,
+      descendantDropdownIds:[id]},
+    {depth:2,descendantToggleCount:22,descendantDropdownCount:1,
+      descendantDropdownIds:[id]},
+  ],
+});
+
+test('abre o departamento preenchido pelo grupo 21+1 sem clicar no X',async()=>{
+  let clicked=0,clickPosition;
   const control={
     count:async()=>1,isVisible:async()=>true,
-    click:async()=>{clicked++;},
+    evaluate:async()=>({safe:true,x:12,y:16}),
+    click:async options=>{clicked++;clickPosition=options.position;},
   };
   const page={
-    getByText:()=>({count:async()=>0,isVisible:async()=>false}),
-    evaluate:async()=>({
-      labelCount:1,candidateCount:1,depth:2,
-      candidateId:'gestta-multiselect-dropdown-18-p',
-    }),
+    getByText:()=>({count:async()=>0}),
+    evaluate:async()=>verifiedLayout(),
     locator:css=>{
-      assert.equal(css,'#gestta-multiselect-dropdown-18-p');
+      assert.equal(css,'#gestta-multiselect-dropdown-6-p');
       return control;
     },
   };
   await openDepartmentPicker(page);
   assert.equal(clicked,1);
-  assert.equal(selected,0);
+  assert.deepEqual(clickPosition,{x:12,y:16});
 });
 
-test('não clica em campo de cliente se título Departamento for ausente ou ambíguo',async()=>{
-  for(const labelCount of [0,2]){
-    let clicked=0;
+test('rejeita grupo inexistente e ID compartilhado por dois dropdowns',async()=>{
+  for(const layout of [
+    {...verifiedLayout(),uniqueGroupCount:0},
+    {...verifiedLayout(),ancestors:[
+      {depth:1,descendantToggleCount:22,descendantDropdownCount:2,
+        descendantDropdownIds:['gestta-multiselect-dropdown-6-p','gestta-multiselect-dropdown-7-p']},
+    ]},
+  ]){
+    let clicks=0;
     const page={
       getByText:()=>({count:async()=>0}),
-      evaluate:async()=>({
-        labelCount,candidateCount:1,depth:2,
-        candidateId:'gestta-multiselect-dropdown-5-p',
-      }),
-      locator:()=>({count:async()=>1,isVisible:async()=>true,click:async()=>{clicked++;}}),
+      evaluate:async()=>layout,
+      locator:()=>({count:async()=>1,isVisible:async()=>true,
+        evaluate:async()=>({safe:true,x:12,y:14}),click:async()=>{clicks++;}}),
     };
-    await assert.rejects(()=>openDepartmentPicker(page),/contêiner não identificado/);
-    assert.equal(clicked,0);
+    await assert.rejects(()=>openDepartmentPicker(page),/Nada foi clicado/);
+    assert.equal(clicks,0);
   }
+});
+
+test('não clica se o ponto do campo estiver coberto pelo X ou por outro elemento',async()=>{
+  let clicks=0;
+  const page={
+    getByText:()=>({count:async()=>0}),
+    evaluate:async()=>verifiedLayout(),
+    locator:()=>({
+      count:async()=>1,isVisible:async()=>true,
+      evaluate:async()=>({safe:false,reason:'area_interativa_insegura'}),
+      click:async()=>{clicks++;},
+    }),
+  };
+  await assert.rejects(()=>openDepartmentPicker(page),/Nao ha ponto seguro/);
+  assert.equal(clicks,0);
 });
