@@ -28,10 +28,20 @@ export async function verifyTaskFilterTrigger(page) {
   return trigger;
 }
 
-// O Gestta pode manter o filtro selecionado de uma execução para outra,
-// substituindo o texto "Todas as tarefas" pelo nome da tarefa e exibindo um X.
-// Somente limpar quando o seletor CSS do X específico do FILTRO DE TAREFAS
-// estiver calibrado e houver uma correspondência única e visível.
+// O Inspector confirmou o pequeno X dentro de #gestta-multiselect-dropdown-5-p.
+// Esse id é específico da interface inspecionada e pode mudar em futuras versões.
+// Nunca usar "button" global ou nth() para limpar filtros distintos.
+export const TASK_FILTER_CLEAR_CONTAINER = '#gestta-multiselect-dropdown-5-p';
+
+export function taskFilterClearLocator(page, clearCss) {
+  if (typeof clearCss === 'string' && clearCss.trim()) {
+    return page.locator(clearCss.trim());
+  }
+  return page.locator(TASK_FILTER_CLEAR_CONTAINER).getByRole('button');
+}
+
+// O Gestta pode manter as tarefas selecionadas entre execuções, substituindo
+// "Todas as tarefas" por "DECLARAÇÃO DE EBEF | ..." e mostrando um pequeno X.
 export async function ensureUnfilteredTaskPicker(page, {
   clearCss = process.env.GESTTA_TASK_FILTER_CLEAR_SELECTOR?.trim(),
 } = {}) {
@@ -47,24 +57,32 @@ export async function ensureUnfilteredTaskPicker(page, {
       ' ocorrencias). Cancelando sem clicar.');
   }
 
-  if (!clearCss) {
-    throw new Error('Todas as tarefas nao aparece. O Gestta pode ter preservado ' +
-      'as tarefas selecionadas; falta calibrar GESTTA_TASK_FILTER_CLEAR_SELECTOR ' +
-      'com o X especifico da caixa superior de tarefas. NENHUM X foi clicado.');
-  }
-
   // Exigir seletor específico: jamais clicar em X por ordem do DOM ou usar
   // seletores vagos que possam limpar Clientes, Usuários ou período.
   const unsafe = /^(?:button|a|span|svg|\*|\.close|\.clear|\.ng-clear|\.select2-selection__clear)$/i;
-  if (unsafe.test(clearCss)) {
+  if (typeof clearCss === 'string' && unsafe.test(clearCss.trim())) {
     throw new Error('Seletor do X demasiado generico. Use um CSS escopado ' +
       'exclusivamente ao filtro superior de tarefas.');
   }
-  const clear = page.locator(clearCss);
+
+  const clear = taskFilterClearLocator(page, clearCss);
   const matches = await clear.count();
   if (matches !== 1 || !(await clear.isVisible())) {
     throw new Error('X do filtro de tarefas nao localizado de forma unica e visivel ' +
-      '(correspondencias=' + matches + '). Nenhum filtro foi limpo.');
+      '(correspondencias=' + matches + '). O identificador do Gestta pode ter mudado; ' +
+      'nenhum filtro foi limpo.');
+  }
+  // O id default foi obtido quando o filtro exibia DECLARAÇÃO DE EBEF.
+  // Como IDs numerados podem se deslocar, evitar que um botão de outro filtro
+  // seja tratado como o X das tarefas após uma atualização do Gestta.
+  if (!clearCss) {
+    const container = page.locator(TASK_FILTER_CLEAR_CONTAINER);
+    const text = (await container.innerText()).normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    if (!text.includes('EBEF')) {
+      throw new Error('O controle de limpeza encontrado nao exibe uma tarefa E-BEF. ' +
+        'Nao clicamos; calibre novamente o X do filtro superior de tarefas.');
+    }
   }
   await clear.click({ timeout: 10000 });
 
