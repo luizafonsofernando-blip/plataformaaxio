@@ -1758,3 +1758,49 @@ HTML da pagina, URL com tokens ou cookies no log. Não aciona Filtrar,
 Exportar, download ou sync. Três testes simulados passaram.
 Aguarda-se a saída GLOBAL_FILTERS para calibrar a verificação do
 estado do usuário SEM inferir a partir da ordem dos dropdowns.
+
+
+## Diagnóstico Todos usuários – associação estrutural, sem pressupor seleção (16/10/2026)
+
+O usuário executou diagnose:global-filters após a primeira exportação
+test:export-one ter sido interrompida com correspondências=0 em
+"Todos usuários". Resultado real:
+- 3/3 tarefas E-BEF confirmadas;
+- "Todos clientes" encontrado uma vez e visível;
+- "Data Meta" encontrada uma vez e visível;
+- "Todos usuários": 0 correspondências textuais;
+- 3 dropdowns superiores com ID seguro:
+  5-p (à esquerda), 3-p (Todos clientes), 4-p (à direita de clientes).
+- No 4-p não houve correspondência com "Todos usuários",
+  mesmo considerando texto interno/atributos conhecidos.
+
+O 4-p é um forte candidato ao filtro de usuários por posição, mas a
+seleção "Todos usuários" AINDA NÃO foi comprovada. Pode estar com
+seleção anterior de usuários específicos, resumo "+N" ou outro estado.
+Não remover a guarda de exportação.
+
+Novo diagnóstico controlado, SEM exportação:
+  cd "$HOME\Luce\plataformaaxio"
+  git pull --ff-only
+  cd gestta-worker
+  npm run diagnose:users-filter
+
+Diferente do diagnose:global-filters, este comando ABRE APENAS O MENU
+do provável campo Usuários, identificado dinamicamente como único
+dropdown à direita do campo reconhecido "Todos clientes" e à esquerda
+do calendário. Antes do clique, exige identificador seguro e ponto
+longe de botão de limpar (X). Depois apenas lê contagens e estados
+dos checkboxes presentes no DOM, sem marcar ou desmarcar.
+
+Saídas previstas:
+  USERS_TRIGGER: {...}
+  USERS_POPUP: {...}
+
+O diagnóstico não exporta, não transmite dados, não imprime nomes
+de usuários/clientes, e-mails, URLs ou cookies. Se a topologia
+estiver ambígua, não clica. A contagem de itens visíveis pode não
+incluir opções virtualizadas; portanto allVisibleOptionsChecked não
+comprova, isoladamente, que TODOS usuários estejam incluídos.
+
+Cinco testes simulados passaram. A homologação real do campo Usuários,
+do XLSX e da sincronização permanece PENDENTE.
