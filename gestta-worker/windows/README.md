@@ -1562,3 +1562,44 @@ de competencia. A navegacao sequencial REAL ainda precisa ser aprovada.
 Apos o teste, enviar as linhas SEQUENCIA: ou FALHA NO TESTE SEQUENCIAL.
 A proxima fase sera exportacao de um XLSX de forma supervisionada e
 validacao de colunas/identificadores antes de qualquer sincronizacao.
+
+
+## Falha na passagem sequencial setembro -> outubro e ajuste direcional (16/10/2026)
+
+No teste real npm run test:sequence com 3 janelas:
+- tarefas E-BEF 3/3;
+- 1/3 CONFIRMADA: 01/09/2026 - 30/09/2026;
+- erro na janela 2/3: 01/10/2026 - 30/10/2026;
+- mensagem: "As datas digitadas nao permaneceram nos campos do Gestta."
+A falha ocorreu ANTES de aplicar a segunda janela, sem clicar Filtrar,
+sem exportacao de XLSX e sem sincronizacao.
+
+Hipotese ainda a confirmar no navegador: o daterangepicker pode reagir
+ao preenchimento de INICIO=01/10 quando FIM ainda vale 30/09, pois a
+faixa ficaria temporariamente invertida. Ao voltar de outubro para
+setembro, esse problema nao ocorreu no primeiro teste.
+
+Correção em src/calendar-field-entry.mjs, integrada a date-picker.mjs:
+- Ao avançar alem do fim atual, preenche FIM antes de INICIO.
+- Ao retroceder antes do inicio atual, preenche INICIO antes de FIM.
+- Aguarda reacoes curtas da UI entre os campos.
+- Compara ambos os inputs antes de clicar Aplicar.
+- Se um campo foi modificado pelo Gestta, tenta apenas mais uma
+  passagem de correção. Nunca aplica enquanto os dois estiverem errados.
+- Em erro, registra somente inicio_ok/fim_ok, evitando HTML,
+  credenciais, cookies e nomes de clientes.
+
+Oito testes simulados passaram, incluindo mudança de mes, retorno,
+sobreposição, data invalida, reset da interface, segunda verificacao e
+falha sem acionar Aplicar. O resultado REAL ainda precisa ser verificado.
+
+Com Chromium/Inspector anteriores fechados, executar:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:sequence -- --from=2026-09 --through=2026-10-16 --limit=3
+
+Procurar CALENDARIO: ordem de preenchimento=end->start na passagem
+setembro->outubro; depois linhas 2/3 CONFIRMADA, 3/3 CONFIRMADA
+e SEQUENCIA: 3/3 CONFIRMADAS. Caso falhe, enviar linhas CALENDARIO:
+e FALHA NO TESTE SEQUENCIAL. Permanecem bloqueados download e sync.
