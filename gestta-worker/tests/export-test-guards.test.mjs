@@ -52,7 +52,19 @@ test('seleção EBEF obrigatória após Filtrar',async()=>{
     }),
   });
   assert.equal(await assertEbefSelectionPreserved(makePage('DECLARAÇÃO DE EBEF | TÉCNICO +2')),true);
-  await assert.rejects(()=>assertEbefSelectionPreserved(makePage('TODAS TAREFAS')),/nao confirma E-BEF/);
+  await assert.rejects(()=>assertEbefSelectionPreserved(makePage('TODAS TAREFAS')),/nao confirma resumo E-BEF 3\\/3/);
+  // "EBEF" sozinho ou resumo +1 nao comprovam as tres tarefas.
+  for (const incomplete of [
+    'DECLARAÇÃO DE EBEF | TÉCNICO',
+    'DECLARAÇÃO DE EBEF | TÉCNICO +1',
+    'OUTRA TAREFA EBEF +2',
+    'DECLARAÇÃO DE EBEF | TÉCNICO +3',
+  ]) {
+    await assert.rejects(
+      ()=>assertEbefSelectionPreserved(makePage(incomplete)),
+      /nao confirma resumo E-BEF 3\\/3/
+    );
+  }
 });
 test('botão de exportação só é usado quando o diagnóstico retorna candidato único',async()=>{
   let touched=0;
