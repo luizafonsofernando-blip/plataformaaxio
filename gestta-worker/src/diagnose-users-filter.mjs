@@ -11,6 +11,7 @@ import {
   inspectUserDropdownTopology,openUsersFilterForInspection,inspectUsersPopup,
 } from './users-filter-inspection.mjs';
 import {withDeadline} from './timeout-utils.mjs';
+import {inspectUsersPopupStructure} from './users-popup-structure.mjs';
 
 const url=new URL(process.env.GESTTA_REPORT_URL?.trim()||'https://app.gestta.com.br/');
 if(url.protocol!=='https:'||url.hostname!=='app.gestta.com.br'){
@@ -37,11 +38,24 @@ try{
     console.log('USUARIOS: controle nao identificado com seguranca. Nenhum menu foi aberto.');
   }else{
     const id=await openUsersFilterForInspection(page,topology);
-    await page.waitForTimeout(700);
-    const popup=await withDeadline('Inspecao de menu Usuarios',
+    // Gestta pode carregar as opções após o primeiro clique.
+    await page.waitForTimeout(1500);
+    let popup=await withDeadline('Inspecao de menu Usuarios',
       ()=>inspectUsersPopup(page,id),15000);
+    if(!popup.found){
+      await page.waitForTimeout(3500);
+      popup=await withDeadline('Reinspecao do menu Usuarios',
+        ()=>inspectUsersPopup(page,id),15000);
+    }
     console.log('USERS_POPUP: '+JSON.stringify(popup));
-    console.log('USUARIOS: menu aberto apenas para leitura. Nenhum checkbox acionado.');
+    if(!popup.found){
+      const structure=await withDeadline('Estrutura do menu Usuarios',
+        ()=>inspectUsersPopupStructure(page,id),15000);
+      console.log('USERS_STRUCTURE: '+JSON.stringify(structure));
+      console.log('USUARIOS: painel de opcoes ainda NAO confirmado. Nao houve alteracao.');
+    }else{
+      console.log('USUARIOS: menu identificado apenas para leitura. Nenhum checkbox acionado.');
+    }
   }
   console.log('USUARIOS: SEM DOWNLOAD E SEM SINCRONIZACAO.');
 }catch(error){
