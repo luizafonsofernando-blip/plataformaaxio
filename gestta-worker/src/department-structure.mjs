@@ -41,7 +41,7 @@ export async function inspectDepartmentStructure(page) {
       const inner = checkbox?.matches('input[type="checkbox"]') ? checkbox :
         checkbox?.querySelector('input[type="checkbox"]') ?? null;
       const ariaNode = [checkbox, toggle, li].find(el =>
-        el?.getAttribute('aria-checked') !== null) ?? null;
+        el && el.getAttribute('aria-checked') !== null) ?? null;
       const safeClasses = el => Array.from(el?.classList || [])
         .filter(x => /^[\w-]{1,64}$/.test(x))
         .slice(0,8);
