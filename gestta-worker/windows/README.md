@@ -997,3 +997,34 @@ interromper com Ctrl+C e instalar o ajuste:
 
 Não há download, alteração de tarefas ou envio de dados à Luce.
 Não concluir seleção 21/21 se o estado permanecer indeterminado.
+
+
+## Correção de task is not a function no diagnóstico de departamentos (16/10/2026)
+
+A execução real concluiu navegação E-BEF 3/3, abertura do funil e
+abertura de Departamento, mas falhou ao iniciar ANTES:
+    FALHA NO DIAGNOSTICO DOS DEPARTAMENTOS: task is not a function
+A causa foi confirmada no código: withDeadline(label,task) invocava
+task(), mas recebia Promises já iniciadas, inclusive de context.close().
+Isso gerou também rejeição tardia do Playwright após encerramento,
+com "Target page, context or browser has been closed".
+
+Correção:
+- Função withDeadline centralizada em src/timeout-utils.mjs.
+- Todas as chamadas utilizam callbacks, por exemplo:
+    withDeadline('Leitura ANTES', () => inspectDepartmentStructure(page))
+- Promise.race observa a rejeição tardia mesmo se o timeout ocorrer.
+- Encerramento do contexto também passa callback.
+- Testes automatizados com sucesso para leitura, timeout, erros
+  síncronos/assíncronos, promessa inválida e rejeição tardia.
+Não foi executado ainda contra o Gestta real após a correção.
+
+Para repetir com Chromium headless e sem Inspector:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:departments
+
+Enviar ANTES, DEPOIS, ESTRUTURA ou eventual FALHA que aparecer.
+Não rodar exportações ou sincronização enquanto departamentos e
+checkboxes não forem homologados.
