@@ -524,3 +524,27 @@ Mensagem esperada antes da busca:
     Tela de tarefas aberta. Aguardando 5 segundos para carregar os filtros...
 
 O teste continua limitado a selecao visual das tres tarefas E-BEF.
+
+
+## Marco aprovado em Windows: filtro de tres tarefas E-BEF (16/10/2026)
+
+O terminal confirmou "TAREFAS E-BEF SELECIONADAS E VERIFICADAS: 3/3".
+O teste abriu Gestta, navegou por Tarefas, aguardou 5 segundos, pesquisou
+bef, rolou o dropdown e confirmou uma Declaracao e duas Verificacoes.
+Nao houve exportacao nem transmissao de dados. O sucesso abrange apenas
+navegacao, calendario (teste anterior) e selecao das tres tarefas.
+
+Para iniciar a proxima fase de inspeção dos filtros avancados, execute:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run inspect:advanced
+
+Este comando abre a tela de tarefas, seleciona as tres tarefas E-BEF
+ja homologadas e pausa o Playwright Inspector. Use Pick Locator no botao
+do funil, no alto a direita; envie apenas o locator encontrado. Depois
+inspecione os quatro status: Aberta, Concluida, Impedimento e
+Desconsiderada. Ainda faltam homologar esses filtros, os tipos, todos os
+21 departamentos, a exportacao mensal XLSX e a sincronizacao para a Luce.
+Nao habilitar operacao automatica antes dessas validacoes.
