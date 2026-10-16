@@ -1,4 +1,4 @@
-import { discoverDepartmentTrigger } from './department-trigger-discovery.mjs';
+import { discoverDepartmentTriggerByRows } from './department-trigger-discovery.mjs';
 // Gestta: controles de Departamento confirmados via Pick Locator (16/10/2026).
 // Acoes afetam somente o filtro visual, nao o cadastro de departamentos.
 // Os 21 nomes/checkboxes precisam ser verificados separadamente antes de exportar.
@@ -42,13 +42,13 @@ export async function openDepartmentPicker(page, cssOverride) {
     throw new Error('Campo Todos departamentos ambiguo ('+count+
       ' correspondencias); nenhum dropdown foi acionado.');
   }
-  // Quando já há 21 departamentos marcados o Gestta pode mostrar, por
-  // exemplo, "Contábil +16" em vez de "Todos departamentos".
-  // Identificar o campo pelo título exato Departamento + ID do seu
-  // próprio dropdown, nunca pelo texto selecionado ou por posição.
-  const preserved=await discoverDepartmentTrigger(page);
-  console.log('DEPARTAMENTOS: selecao anterior detectada; campo encontrado pelo titulo Departamento.');
-  await preserved.click({timeout:10000});
+  // O Gestta preserva departamentos selecionados e altera o texto do
+  // controle. O título Departamento não existia como nó simples no DOM
+  // do ambiente real (títulos=0); usar a lista de 21 nomes homologados
+  // para identificar exclusivamente o dropdown e um ponto longe do X.
+  const {control,position}=await discoverDepartmentTriggerByRows(page);
+  console.log('DEPARTAMENTOS: campo preenchido identificado pela lista unica 21+1.');
+  await control.click({position,timeout:10000});
 }
 
 export async function clickDepartmentSelectAll(page, cssOverride) {
