@@ -9,7 +9,7 @@ import { ensureTasksView } from './task-navigation.mjs';
 import { selectEbefTasks } from './task-filter.mjs';
 import { openAdvancedFilters } from './advanced-open-locator.mjs';
 import { openDepartmentPicker, clickDepartmentSelectAll } from './department-controls.mjs';
-import { inspectDepartmentStructure } from './department-structure.mjs';
+import { inspectDepartmentStructure, inspectDepartmentCounts } from './department-structure.mjs';
 import { withDeadline } from './timeout-utils.mjs';
 
 const target = new URL(process.env.GESTTA_REPORT_URL?.trim() || 'https://app.gestta.com.br/');
@@ -23,13 +23,11 @@ async function report(page,stage) {
   console.log('DEPARTAMENTOS: iniciando leitura '+stage+' do menu...');
   const result=await withDeadline('Leitura '+stage, () => inspectDepartmentStructure(page));
   console.log(stage+': '+JSON.stringify(result));
-  if(result.rowCount===0){
-    // Somente contagens estruturais para diagnosticar mudança do HTML.
-    const li=await withDeadline('Contagem toggles',
-      () => page.locator('.gestta-multiselect-dropdown__item-toggle').count(),8000);
-    const checkbox=await withDeadline('Contagem checkboxes',
-      () => page.locator('.checkbox-item').count(),8000);
-    console.log('ESTRUTURA: toggles='+li+'; checkbox_items='+checkbox);
+  if(result.rowCount===0 || !result.allExpectedPresent){
+    // Sem locator que aguarde match. Apenas tres contagens diretas no DOM.
+    const counts=await withDeadline('Diagnostico estrutural',
+      () => inspectDepartmentCounts(page),8000);
+    console.log('ESTRUTURA: '+JSON.stringify(counts));
   }
   return result;
 }
@@ -50,6 +48,11 @@ try {
   await openDepartmentPicker(page);
   console.log('DEPARTAMENTOS: menu Departamento aberto.');
   await page.waitForTimeout(500);
+  // Se esta verificacao rapida nao responder, ha indicio de bloqueio
+  // do contexto JS da pagina, e nao apenas um seletor sem elementos.
+  const pageAlive=await withDeadline('Resposta basica do DOM',
+    () => page.evaluate(() => document.readyState),6000);
+  console.log('DEPARTAMENTOS: renderer_respondeu='+pageAlive);
 
   const before=await report(page,'ANTES');
   if(!before.allExpectedPresent || before.recognizedUnique!==21){
