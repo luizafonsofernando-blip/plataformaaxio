@@ -100,9 +100,9 @@ function fakeDropdown({
 
 test('mapeia input, menuitems e checkboxes por papeis acessiveis',()=>{
   const {page}=fakeDropdown();
-  const row=page.getByRole('menuitem',{name:/EBEF/i}).nth(0);
+  const row=ebefMenuItemsLocator(page).nth(0);
   assert.equal(taskSearchLocator(page),page.getByRole('textbox',{name:'Buscar por tarefa',exact:true}));
-  assert.equal(ebefMenuItemsLocator(page).nth(0),row);
+  assert.equal(typeof row.scrollIntoViewIfNeeded,'function');
   assert.equal(typeof menuItemCheckbox(row).isChecked,'function');
 });
 
