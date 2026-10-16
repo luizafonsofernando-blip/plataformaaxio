@@ -1843,3 +1843,48 @@ Com Chromium/Inspector anteriores fechados, execute:
 Enviar USERS_TRIGGER, USERS_POPUP e, se existir, USERS_STRUCTURE.
 Nao executar test:export-one ate confirmar a selecao abrangente de
 usuarios no Gestta e a semantica do menu.
+
+
+## Portal do menu Usuários localizado (16/10/2026)
+
+O usuário repetiu npm run diagnose:users-filter e o diagnóstico real exibiu:
+- USERS_TRIGGER: topologyConfirmed=true;
+- userId=gestta-multiselect-dropdown-4-p (ID desta sessão, não fixo);
+- labelKind=resumo_com_quantidade;
+- USERS_POPUP antigo: found=false, porque buscava somente ancestrais;
+- USERS_STRUCTURE: trigger ariaExpanded=true;
+- um menu próximo: UL.gestta-multiselect-dropdown__menu,
+  classe data-uuid-gestta-multiselect-dropdown-4;
+- liCount=603, toggleCount=599, inputCheckboxCount=596, anchors=601.
+
+O menu está aberto, mas é PORTALED: a lista não é descendente
+do gatilho. O ID numérico 4 não deve ser codificado de forma fixa.
+A relação entre o gatilho N-p e a classe do menu
+data-uuid-gestta-multiselect-dropdown-N é dinâmica.
+
+Correção implementada:
+- users-portal-menu.mjs determina a classe do menu pelo gatilho;
+- inspectUsersPopup busca no documento o menu com classe Gestta +
+  classe vinculada ao ID, exige um único menu visível e aria-expanded;
+- só lê os booleanos checked de input[type=checkbox] e conta controles,
+  sem exibir nomes, e-mails, clientes, IDs pessoais ou HTML;
+- imprime USERS_POPUP com inputCheckboxCount, checkedCount,
+  uncheckedCount, unknownInputCount e allRenderedCheckboxesChecked;
+- allUsersProven fica propositalmente false mesmo que todos os inputs
+  renderizados estejam marcados: ainda pode existir paginação,
+  virtualização ou estado "Todos" não comprovado.
+- se não houver menu válido, mantém found=false e NÃO exporta.
+
+Nove testes simulados de localizadores e portal passaram, inclusive
+uma simulação com 603 itens e 596 checkboxes. A verificação real
+continua pendente.
+
+Próximo teste no Windows (sem XLSX):
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:users-filter
+
+Enviar USERS_TRIGGER e USERS_POPUP; USERS_STRUCTURE só aparecerá
+se a vinculação ainda falhar. NENHUM download ou sync será realizado.
+Não executar test:export-one até homologação abrangente de usuários.
