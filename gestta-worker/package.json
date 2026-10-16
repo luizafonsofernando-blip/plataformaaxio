@@ -13,7 +13,8 @@
     "inspect": "node src/inspect.mjs",
     "test:calendar": "node src/test-calendar.mjs",
     "diagnose:navigation": "node src/diagnose-navigation.mjs",
-    "inspect:filters": "node src/inspect-filters.mjs"
+    "inspect:filters": "node src/inspect-filters.mjs",
+    "test:tasks": "node src/test-task-filter.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
