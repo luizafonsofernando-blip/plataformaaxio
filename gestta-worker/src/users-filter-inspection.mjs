@@ -89,52 +89,70 @@ export async function openUsersFilterForInspection(page,topology) {
 
 export async function inspectUsersPopup(page,id) {
   const portalClass=usersPortalClassFromTrigger(id);
-  // O menu de Usuarios NÃO é descendente do gatilho. O Gestta o renderiza
-  // num UL externo com a classe data-uuid-gestta-multiselect-dropdown-N,
-  // correspondendo ao ID dinâmico do gatilho N-p. A classe observada no
-  // Windows foi confirmada para o próprio campo, não para outros dropdowns.
+  // Diagnóstico somente leitura. O menu pode ser renderizado em um portal
+  // fora da hierarquia do campo. Procurar primeiro pelo token de classe
+  // data-uuid ligado ao ID do campo; caso não corresponda, considerar
+  // EXCLUSIVAMENTE para diagnóstico um único menu visível nas proximidades.
   const raw=await page.evaluate(({id,portalClass})=>{
     const trigger=document.getElementById(id);
     if(!trigger)return {found:false,reason:'gatilho_ausente',count:0};
-    if(trigger.getAttribute('aria-expanded')!=='true'){
+    if(trigger.getAttribute('aria-expanded')!=='true') {
       return {found:false,reason:'gatilho_nao_expandido',count:0};
     }
-    const selector='.gestta-multiselect-dropdown__menu.'+portalClass;
-    const all=[...document.querySelectorAll(selector)];
+    const rect=trigger.getBoundingClientRect();
     const visible=el=>{
       const r=el.getBoundingClientRect(),style=getComputedStyle(el);
       return r.width>0&&r.height>0&&style.display!=='none'&&
         style.visibility!=='hidden';
     };
-    const matches=all.filter(visible);
-    if(matches.length!==1 || all.length!==1){
+    // Evita CSS concatenado frágil e valida classes via classList.
+    const all=[...document.querySelectorAll('.gestta-multiselect-dropdown__menu')];
+    const near=all.filter(el=>{
+      if(!visible(el))return false;
+      const r=el.getBoundingClientRect();
+      return r.left<=rect.right+80 && r.right>=rect.left-80 &&
+        r.top>=rect.top-30 && r.top<rect.bottom+620;
+    });
+    const uuidMatches=near.filter(el=>el.classList.contains(portalClass));
+    const strongMatch=uuidMatches.length===1;
+    const provisional=!strongMatch && uuidMatches.length===0 && near.length===1;
+    if((!strongMatch && !provisional) || (strongMatch && near.length!==1)){
       return {
         found:false,
-        reason:all.length===0?'menu_portal_nao_encontrado':'menu_portal_ambiguo_ou_oculto',
-        count:matches.length,
-        totalMatches:all.length,
+        reason:near.length===0?'nenhum_menu_proximo':'menus_ambiguos',
+        count:near.length,totalGlobalMenus:all.length,
+        uuidMatches:uuidMatches.length,
       };
     }
-    const menu=matches[0];
+    const menu=strongMatch?uuidMatches[0]:near[0];
     const toggles=[...menu.querySelectorAll(
       '.gestta-multiselect-dropdown__item-toggle'
     )];
     const inputs=[...menu.querySelectorAll('input[type="checkbox"]')];
+    // Nunca imprimir texto das linhas, mesmo do "Selecionar todos".
+    // O painel possui uma estrutura conhecida: itens, toggles e inputs.
+    if(inputs.length===0 || toggles.length<inputs.length){
+      return {
+        found:false,reason:'estrutura_de_checkbox_incompatível',
+        count:near.length,totalGlobalMenus:all.length,
+        uuidMatches:uuidMatches.length,
+      };
+    }
     const normalize=v=>String(v??'').normalize('NFD')
       .replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
     const controls=toggles.filter(node=>{
       const label=normalize(node.closest('li')?.textContent);
       return label==='SELECIONAR TODOS'||label==='DESSELECIONAR TODOS';
     });
-    // Os booleanos são retornados somente em memória; nenhuma identificação
-    // pessoal, texto de usuário ou dados de sessão é emitido no console.
     return {
-      found:true,menuAssociation:'data_uuid_trigger',
+      found:true,
+      menuAssociation:strongMatch?'uuid_class_confirmed':'geometric_provisional',
+      totalGlobalMenus:all.length,nearbyMenus:near.length,
+      uuidMatches:uuidMatches.length,
       liCount:menu.querySelectorAll('li').length,
       inputStates:inputs.map(input=>Boolean(input.checked)),
       disabledInputCount:inputs.filter(input=>input.disabled).length,
-      toggleCount:toggles.length,
-      controlCount:controls.length,
+      toggleCount:toggles.length,controlCount:controls.length,
     };
   },{id,portalClass});
   if(!raw.found)return raw;
