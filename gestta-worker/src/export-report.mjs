@@ -5,7 +5,8 @@ import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { brazilRange } from './month-windows.mjs';
-import { ADVANCED_TASK_TYPES, parseRequiredSelectorMap, assertSelectedDepartmentNames } from './advanced-filter-config.mjs';
+import { assertSelectedDepartmentNames } from './advanced-filter-config.mjs';
+import { ensureAllTaskTypes } from './advanced-task-type-locators.mjs';
 import { ensureAllAdvancedStatuses } from './advanced-status-locators.mjs';
 import { clickAdvancedApplyButton } from './advanced-action-locators.mjs';
 import { applyDateWindow, readControlText } from './date-picker.mjs';
@@ -68,24 +69,11 @@ async function applyAndVerifyAdvancedFilters(page) {
   // Cada item deve conter nome de departamento e UM checkbox de selecao.
   const departmentRowSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_ROW_SELECTOR');
   const departmentRowCheckboxSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_ROW_CHECKBOX_SELECTOR');
-  const kinds = parseRequiredSelectorMap(
-    requiredSelector('GESTTA_ADVANCED_TASK_TYPE_SELECTORS'), ADVANCED_TASK_TYPES,
-    'GESTTA_ADVANCED_TASK_TYPE_SELECTORS'
-  );
   await page.locator(openSelector).click({ timeout: 10000 });
-  // Quatro status identificados pelo Inspector com getByRole('checkbox'),
-  // sem depender de CSS posicional ou de glifos de ícones.
+  // Quatro status e tres tipos identificados pelo Inspector com
+  // getByRole('checkbox'); nao dependem de CSS posicional nem de glifos.
   await ensureAllAdvancedStatuses(page);
-  for (const [name, css] of Object.entries(kinds)) {
-    const checkbox = page.locator(css);
-    if (await checkbox.count() !== 1) {
-      throw new Error('Filtro avançado "' + name + '" não localizado de forma única.');
-    }
-    await checkbox.check({ timeout: 10000 });
-    if (!(await checkbox.isChecked())) {
-      throw new Error('Filtro avançado "' + name + '" não permaneceu marcado.');
-    }
-  }
+  await ensureAllTaskTypes(page);
   const department = page.locator(departmentSelector);
   if (await department.count() !== 1) {
     throw new Error('Campo Departamento não localizado de forma única.');
