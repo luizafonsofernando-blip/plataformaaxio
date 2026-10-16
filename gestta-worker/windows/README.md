@@ -1211,3 +1211,39 @@ Executar:
 Copiar o bloco desde STATUS: ou FALHA NO TESTE INTEGRADO.
 Se aparecer erro com botoes_Filtrar=0, possivelmente o painel fechou;
 não tentar corrigir clicando botões globais sem investigação.
+
+
+## TESTE INTEGRADO APROVADO NO WINDOWS (16/10/2026)
+
+O usuário executou npm run test:advanced, com resultado real:
+- Tarefas E-BEF: 3/3
+- Quatro status: 4/4, incluindo Concluída e Desconsiderada
+- Três tipos de tarefa: 3/3
+- Escopo de Departamento validado: 21 nomes; ANTES 0 marcados,
+  DEPOIS 21/21 marcados
+- Verificação após a seleção: status e tipos permaneceram marcados
+- INTEGRADO: SUCESSO SEM EXPORTACAO, SEM FILTRAR E SEM SINCRONIZACAO.
+
+Portanto, a seleção INTEGRADA dos filtros está homologada, mas o
+botão Filtrar, as datas mensais, o XLSX e a sincronização NÃO estão.
+
+Proxima etapa preparada: teste isolado do botão Filtrar, ainda sem
+qualquer download ou envio de dados:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:apply
+
+Esse teste em headless:
+- seleciona e confirma E-BEF 3/3;
+- registra o período atual antes do clique;
+- garante 4/4 status, 3/3 tipos e 21/21 departamentos;
+- reconfirma seleções e valida o botão Filtrar único e visível;
+- CLICA no botão Filtrar (aplica apenas filtros visuais);
+- espera a tela carregar e confirma que o período exibido permaneceu
+  idêntico ao observado antes do clique;
+- NÃO muda datas, NÃO faz download, NÃO exporta XLSX, NÃO envia à Luce.
+
+Se falhar, enviar o log a partir de APLICAR: ou
+FALHA NO TESTE DE APLICACAO:. Não executar npm run sync -- --auto.
+A aprovação desse teste não substitui a homologação das datas e do XLSX.
