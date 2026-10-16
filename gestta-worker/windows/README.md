@@ -1888,3 +1888,43 @@ Próximo teste no Windows (sem XLSX):
 Enviar USERS_TRIGGER e USERS_POPUP; USERS_STRUCTURE só aparecerá
 se a vinculação ainda falhar. NENHUM download ou sync será realizado.
 Não executar test:export-one até homologação abrangente de usuários.
+
+
+## Usuarios: portal aberto, seletor de classe especifica falha (16/10/2026)
+
+O teste real posterior ao ajuste data-uuid exibiu:
+- USERS_TRIGGER: clients=1, candidates=1, dateVisible=true,
+  userId=gestta-multiselect-dropdown-4-p, topologyConfirmed=true;
+- USERS_POPUP: found=false, reason=menu_portal_nao_encontrado,
+  totalMatches=0;
+- USERS_STRUCTURE: ariaExpanded=true e um unico menu visivel
+  próximo ao gatilho, classe gestta-multiselect-dropdown__menu,
+  liCount=603, toggleCount=599, inputCheckboxCount=596.
+
+Portanto o menu estava de fato aberto, mas a busca com CSS composto
+falhou neste carregamento. O motivo exato da divergencia da classe
+ainda nao foi demonstrado no DOM real. Não inferir usuários marcados.
+
+Correção de DIAGNÓSTICO (sem alteração de seleções):
+- inspectUsersPopup agora enumera menus Gestta por classe geral,
+  cruza classList com classe dinâmica data-uuid vinculada ao gatilho,
+  e valida a geometria do campo expandido;
+- quando classList não confere, mas existe SOMENTE UM menu visível
+  próximo, pode ler estados com associacao "geometric_provisional";
+- se dois menus estiverem perto ou nenhum menu for visível,
+  falha sem ler seleção como sendo do campo correto;
+- USERS_POPUP passa a trazer menuAssociation, checkedCount,
+  uncheckedCount e unknownInputCount, sem nomes de pessoas;
+- allUsersProven permanece SEMPRE false, até que todo o escopo e
+  a regra de seleção de Usuários sejam homologados.
+- 11 testes simulados do conjunto de menu e associação passaram,
+  incluindo o caso portal com classe, fallback geométrico e ambiguidade.
+
+A exportação continua BLOQUEADA. Para novo diagnóstico:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:users-filter
+
+Enviar apenas USERS_POPUP e, caso ainda falhe, USERS_STRUCTURE.
+NÃO rodar test:export-one nem sync até confirmação de todos usuários.
