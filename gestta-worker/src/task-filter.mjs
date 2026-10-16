@@ -56,7 +56,9 @@ export function validateEbefOptionNames(names) {
 export function taskSearchLocator(page, css) {
   return css?.trim()
     ? page.locator(css.trim())
-    : page.getByRole('textbox', { name: 'Buscar por tarefa', exact: true });
+    // O Inspector forneceu getByRole('textbox', { name: 'Buscar por tarefa' }),
+    // SEM exact:true. Usar regex tolera eventuais espacos e sufixos da label.
+    : page.getByRole('textbox', { name: /Buscar\s+por\s+tarefa/i });
 }
 
 export function ebefMenuItemsLocator(page, css) {
@@ -78,8 +80,30 @@ export async function selectEbefTasks(page, { searchCss, rowCss, checkboxCss } =
   await trigger.click({ timeout: 10000 });
 
   const search = taskSearchLocator(page, searchCss);
-  if (await search.count() !== 1 || !(await search.isVisible())) {
-    throw new Error('Campo Buscar por tarefa nao localizado de forma unica.');
+  // A lista do Gestta pode abrir de forma assincrona. Antes, count()
+  // executado imediatamente após click() devolvia 0 de modo intermitente.
+  // .first() aqui apenas aguarda o primeiro campo; a cardinalidade eh
+  // conferida antes de digitar, portanto nunca selecionamos um ambiguo.
+  let timedOut = false;
+  try {
+    await search.first().waitFor({ state: 'visible', timeout: 15000 });
+  } catch {
+    timedOut = true;
+  }
+  const matches = await search.count();
+  const visible = matches === 1 && await search.isVisible();
+  if (timedOut || matches !== 1 || !visible) {
+    // Logar somente contagens de controles, nunca texto digitado por usuarios,
+    // nomes de clientes, DOM, URLs de sessao ou outros dados privados.
+    const textboxes = await page.getByRole('textbox').count();
+    const items = await page.getByRole('menuitem').count();
+    const selectAll = await page.getByText('Selecionar todas ativas', { exact: true }).count();
+    throw new Error('Campo Buscar por tarefa indisponivel: ' +
+      'correspondencias=' + matches + ', visivel=' + visible +
+      ', total_textboxes=' + textboxes +
+      ', total_menuitems=' + items +
+      ', acao_selecionar_todas=' + selectAll +
+      '. O dropdown pode estar fechado ou o nome acessivel pode ter mudado.');
   }
   await search.fill(EBEF_SEARCH_TERM, { timeout: 10000 });
   if ((await search.inputValue()).trim().toLowerCase() !== EBEF_SEARCH_TERM) {
