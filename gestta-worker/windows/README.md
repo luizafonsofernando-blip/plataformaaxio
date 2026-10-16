@@ -858,3 +858,41 @@ Esse teste adicional é opcional e não deve ser feito antes de analisar
 o resultado no modo normal. Se até o teste sem interação congelar,
 avaliar consumo de memória/CPU e processos do Chromium antes de prosseguir.
 Nenhum comando de sincronização ou exportação deve ser usado aqui.
+
+
+## Resposta do Chromium confirmada; alteração do diagnóstico dos departamentos (16/10/2026)
+
+O usuário executou diagnose:browser e obteve:
+- BROWSER_ANTES: ok=true, readyState=complete, visible, hasFocus=true,
+  calendarElements=1, elapsedMs=7.
+- BROWSER_DEPOIS_8S: mesmo estado com elapsedMs=4.
+- Filtro E-BEF confirmado: 3/3.
+
+As duas leituras mostram o DOM responsivo, mas NÃO garantem que toda a
+interação com mouse/teclado esteja funcionando. O congelamento aparente
+aconteceu no teste anterior ao pedir que o usuário operasse o Chromium
+enquanto o PowerShell aguardava ENTER. A causa ainda não está determinada.
+
+O comando diagnose:departments foi alterado para usar duas pausas do
+Playwright Inspector, mecanismo que já funcionou em inspeções anteriores,
+sem depender do PowerShell aguardar ENTER.
+
+Após fechar todos os Chromiums de TESTE anteriores:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:departments
+
+Fluxo do novo teste:
+1. O Chromium abre a lista E-BEF (3/3); abre o Inspector na primeira pausa.
+2. Desativar Pick Locator, abrir manualmente Funil > Departamento e deixar
+   o dropdown expandido. No Inspector, clicar RESUME (triângulo verde).
+   O terminal imprimirá ANTES: {...}.
+3. O Inspector pausa uma segunda vez. Clicar manualmente "Selecionar todos"
+   no dropdown (se disponível), manter aberto e clicar RESUME.
+   O terminal imprimirá DEPOIS: {...}.
+
+Se a janela Chromium continuar sem responder, não insistir em clicar.
+Fechar somente Chromium e Inspector de teste, interromper pelo terminal
+e compartilhar o erro ou a descrição. Não baixar nem transmitir dados.
