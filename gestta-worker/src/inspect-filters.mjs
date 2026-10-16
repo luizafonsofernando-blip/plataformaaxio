@@ -6,7 +6,7 @@ import 'dotenv/config';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { ensureTasksView } from './task-navigation.mjs';
-import { verifyTaskFilterTrigger } from './task-filter.mjs';
+import { taskFilterTrigger } from './task-filter.mjs';
 
 process.env.PWDEBUG = '1';
 // Inspector deve estar habilitado antes de carregar Playwright.
@@ -31,15 +31,17 @@ try {
   await first.goto(url.href, { waitUntil: 'domcontentloaded', timeout: 45000 });
   const page = await ensureTasksView(context);
   console.log('Gestta: tela de tarefas aberta automaticamente.');
-  try {
-    await verifyTaskFilterTrigger(page);
-    console.log('Filtro principal confirmado: getByText(\'Todas as tarefas\', { exact: true }).');
-  } catch (error) {
-    console.log('Filtro principal ainda precisa de calibracao: ' + error.message);
+  await page.waitForTimeout(5000);
+  const defaultLabels = await taskFilterTrigger(page).count();
+  if (defaultLabels === 1 && await taskFilterTrigger(page).isVisible()) {
+    console.log('Filtro superior esta em Todas as tarefas; nenhum reset necessario.');
+  } else {
+    console.log('O Gestta pode ter preservado tarefas selecionadas.');
+    console.log('Ative Pick Locator no X do PRIMEIRO FILTRO (tarefas), perto da seta.');
+    console.log('Nao clique no X de clientes, usuarios ou datas.');
+    console.log('Envie somente o locator do X para escoparmos seu seletor CSS.');
   }
-  console.log('Inspector em pausa: desative Pick Locator, clique em Todas as tarefas,');
-  console.log('digite bef na pesquisa do dropdown e confira as tres opcoes E-BEF.');
-  console.log('Depois reative Pick Locator e localize o campo de busca e o checkbox de uma opcao.');
+  console.log('Inspector em pausa; nao altere tarefas nem abra relatorios.');
   console.log('Nao use Selecionar todas ativas: isso pode selecionar tarefas nao E-BEF.');
   console.log('Nao clique em concluir, descartar, transferir ou alterar tarefas.');
   console.log('Nao copie URLs de sessao, nomes de clientes ou credenciais.');
