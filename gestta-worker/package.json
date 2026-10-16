@@ -18,7 +18,8 @@
     "inspect:advanced": "node src/inspect-advanced.mjs",
     "diagnose:departments": "node src/diagnose-departments.mjs",
     "diagnose:browser": "node src/diagnose-browser.mjs",
-    "diagnose:funnel": "node src/diagnose-funnel.mjs"
+    "diagnose:funnel": "node src/diagnose-funnel.mjs",
+    "test:advanced": "node src/test-advanced-filters.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
