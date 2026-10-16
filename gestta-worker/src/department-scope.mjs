@@ -28,7 +28,7 @@ export function summarizeScopedResult(raw) {
 }
 
 export async function inspectScopedDepartments(page) {
-  const raw = await page.evaluate((expected, allowedExtras) => {
+  const raw = await page.evaluate(({expected, allowedExtras}) => {
     const normalize = text => String(text ?? '')
       .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
       .replace(/\s+/g,' ').trim().toUpperCase();
@@ -127,6 +127,6 @@ export async function inspectScopedDepartments(page) {
       return {...base,found:false,snapshots:[]};
     }
     return {...base,snapshots};
-  },REQUIRED_DEPARTMENTS,ALLOWED_EXTRA_LABELS);
+  },{expected:REQUIRED_DEPARTMENTS,allowedExtras:ALLOWED_EXTRA_LABELS});
   return summarizeScopedResult(raw);
 }
