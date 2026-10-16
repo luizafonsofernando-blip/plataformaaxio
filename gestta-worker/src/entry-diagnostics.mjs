@@ -29,21 +29,23 @@ export async function inspectEntry(page) {
       return r.width>0 && r.height>0 && css.display!=='none' &&
         css.visibility!=='hidden';
     };
-    const tasks=[...document.querySelectorAll('a,span,div,li,button')]
-      .filter(el=>el.textContent?.trim()==='Tarefas' && visible(el));
     // Nao retorna texto da pagina nem identificadores de usuarios.
     return {
       readyState:document.readyState,
       calendarioVisivel:[...document.querySelectorAll('#date-range')].some(visible),
-      menuTarefasQuantidade:tasks.length,
-      menuTarefasVisivel:tasks.length>0,
       senhaVisivel:[...document.querySelectorAll('input[type="password"]')].some(visible),
       formSenhaCount:document.querySelectorAll('input[type="password"]').length,
     };
   });
+  // Usar o MESMO localizador da navegacao que apresentou timeout.
+  const menu=page.getByText('Tarefas',{exact:true});
+  const count=await menu.count();
+  const menuVisible=count>0 && await menu.first().isVisible();
   const state={
     rota:classifyEntryUrl(page.url()),
     ...summary,
+    menuTarefasQuantidade:count,
+    menuTarefasVisivel:menuVisible,
     frames:page.frames().length,
   };
   return {...state,diagnostico:categorizeEntry(state)};
