@@ -5,7 +5,8 @@ import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { brazilRange } from './month-windows.mjs';
-import { ADVANCED_STATUSES, ADVANCED_TASK_TYPES, parseRequiredSelectorMap, assertSelectedDepartmentNames } from './advanced-filter-config.mjs';
+import { ADVANCED_TASK_TYPES, parseRequiredSelectorMap, assertSelectedDepartmentNames } from './advanced-filter-config.mjs';
+import { ensureAllAdvancedStatuses } from './advanced-status-locators.mjs';
 import { applyDateWindow, readControlText } from './date-picker.mjs';
 import { ensureTasksView } from './task-navigation.mjs';
 import { selectEbefTasks } from './task-filter.mjs';
@@ -66,16 +67,15 @@ async function applyAndVerifyAdvancedFilters(page) {
   // Cada item deve conter nome de departamento e UM checkbox de selecao.
   const departmentRowSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_ROW_SELECTOR');
   const departmentRowCheckboxSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_ROW_CHECKBOX_SELECTOR');
-  const statuses = parseRequiredSelectorMap(
-    requiredSelector('GESTTA_ADVANCED_STATUS_SELECTORS'), ADVANCED_STATUSES,
-    'GESTTA_ADVANCED_STATUS_SELECTORS'
-  );
   const kinds = parseRequiredSelectorMap(
     requiredSelector('GESTTA_ADVANCED_TASK_TYPE_SELECTORS'), ADVANCED_TASK_TYPES,
     'GESTTA_ADVANCED_TASK_TYPE_SELECTORS'
   );
   await page.locator(openSelector).click({ timeout: 10000 });
-  for (const [name, css] of [...Object.entries(statuses), ...Object.entries(kinds)]) {
+  // Quatro status identificados pelo Inspector com getByRole('checkbox'),
+  // sem depender de CSS posicional ou de glifos de ícones.
+  await ensureAllAdvancedStatuses(page);
+  for (const [name, css] of Object.entries(kinds)) {
     const checkbox = page.locator(css);
     if (await checkbox.count() !== 1) {
       throw new Error('Filtro avançado "' + name + '" não localizado de forma única.');
