@@ -1603,3 +1603,29 @@ Procurar CALENDARIO: ordem de preenchimento=end->start na passagem
 setembro->outubro; depois linhas 2/3 CONFIRMADA, 3/3 CONFIRMADA
 e SEQUENCIA: 3/3 CONFIRMADAS. Caso falhe, enviar linhas CALENDARIO:
 e FALHA NO TESTE SEQUENCIAL. Permanecem bloqueados download e sync.
+
+
+## Sequencia setembro-outubro APROVADA no Gestta real (16/10/2026)
+
+Apos a correcao da ordem direcional dos campos, o usuario executou
+npm run test:sequence com --from=2026-09 --through=2026-10-16 --limit=3.
+Resultado confirmado pelo PowerShell:
+- tarefas E-BEF=3/3;
+- 1/3 CONFIRMADA: 01/09/2026 - 30/09/2026;
+- setembro -> outubro: CALENDARIO ordem=end->start, inicio_ok=true,
+  fim_ok=true, passagens=1;
+- 2/3 CONFIRMADA: 01/10/2026 - 30/10/2026;
+- outubro primeira -> segunda janela: ordem=start->end,
+  inicio_ok=true, fim_ok=true, passagens=1;
+- 3/3 CONFIRMADA: 02/10/2026 - 31/10/2026;
+- SEQUENCIA: 3/3 CONFIRMADAS. SUCESSO SEM FILTRAR,
+  SEM DOWNLOAD, SEM XLSX E SEM SINCRONIZACAO.
+
+Homologadas no ambiente real: selecao E-BEF 3/3, 4 status,
+3 tipos, 21 departamentos, botao Filtrar, configuracao individual
+de 30 dias e passagem de mes em uma unica sessao.
+A exportacao XLSX e conciliacao de dados permanecem NAO HOMOLOGADAS.
+A PR continua DRAFT. A proxima fase deve primeiro identificar
+seletor do controle de exportacao de forma somente-leitura e valida-lo
+contra o menu de tarefas antes de baixar um unico XLSX.
+
