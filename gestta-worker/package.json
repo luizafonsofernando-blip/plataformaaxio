@@ -29,7 +29,8 @@
     "diagnose:export": "node src/diagnose-export-control.mjs",
     "test:export-one": "node src/test-export-one.mjs",
     "diagnose:global-filters": "node src/diagnose-global-filters.mjs",
-    "diagnose:users-filter": "node src/diagnose-users-filter.mjs"
+    "diagnose:users-filter": "node src/diagnose-users-filter.mjs",
+    "test:users-select-all": "node src/test-users-select-all.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
