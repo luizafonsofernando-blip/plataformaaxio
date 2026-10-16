@@ -10,6 +10,7 @@ import { selectEbefTasks } from './task-filter.mjs';
 import { openAdvancedFilters } from './advanced-open-locator.mjs';
 import { openDepartmentPicker, clickDepartmentSelectAll } from './department-controls.mjs';
 import { inspectDepartmentStructure, inspectDepartmentCounts } from './department-structure.mjs';
+import { inspectScopedDepartments } from './department-scope.mjs';
 import { withDeadline } from './timeout-utils.mjs';
 
 const target = new URL(process.env.GESTTA_REPORT_URL?.trim() || 'https://app.gestta.com.br/');
@@ -21,15 +22,28 @@ await mkdir(profile,{recursive:true,mode:0o700});
 let context;
 async function report(page,stage) {
   console.log('DEPARTAMENTOS: iniciando leitura '+stage+' do menu...');
-  const result=await withDeadline('Leitura '+stage, () => inspectDepartmentStructure(page));
-  console.log(stage+': '+JSON.stringify(result));
-  if(result.rowCount===0 || !result.allExpectedPresent){
-    // Sem locator que aguarde match. Apenas tres contagens diretas no DOM.
-    const counts=await withDeadline('Diagnostico estrutural',
-      () => inspectDepartmentCounts(page),8000);
-    console.log('ESTRUTURA: '+JSON.stringify(counts));
+  // PRIMEIRO tentar apenas a lista de 21 opções associada ao Select All
+  // que esteja visível. Não examinar 7.735 toggles se houver escopo válido.
+  const scoped=await withDeadline('Escopo '+stage,
+    () => inspectScopedDepartments(page),10000);
+  console.log('ESCOPO_'+stage+': '+JSON.stringify({
+    found:scoped.found,candidateScopes:scoped.candidateScopes,
+    visibleSelectAllCandidates:scoped.visibleSelectAllCandidates,
+    nearbyToggleCounts:scoped.nearbyToggleCounts,
+  }));
+  if(scoped.found){
+    console.log(stage+': '+JSON.stringify(scoped));
+    return {...scoped,scoped:true};
   }
-  return result;
+  // Diagnóstico de transição: leitura global APENAS para investigar DOM,
+  // jamais suficiente para autorizar Selecionar todos.
+  const global=await withDeadline('Leitura global '+stage,
+    () => inspectDepartmentStructure(page),20000);
+  console.log(stage+': '+JSON.stringify(global));
+  const counts=await withDeadline('Diagnostico estrutural',
+    () => inspectDepartmentCounts(page),8000);
+  console.log('ESTRUTURA: '+JSON.stringify(counts));
+  return {...global,scoped:false};
 }
 try {
   console.log('DEPARTAMENTOS: teste headless sem Inspector ou intervencao manual.');
@@ -55,8 +69,9 @@ try {
   console.log('DEPARTAMENTOS: renderer_respondeu='+pageAlive);
 
   const before=await report(page,'ANTES');
-  if(!before.allExpectedPresent || before.recognizedUnique!==21){
-    console.log('DEPARTAMENTOS: menu nao apresentou os 21 nomes distintos esperados. '+
+  if(!before.scoped || !before.allExpectedPresent ||
+     before.recognizedUnique!==21 || before.rowCount!==21){
+    console.log('DEPARTAMENTOS: escopo da lista de 21 departamentos nao confirmado. '+
       'Nenhuma opcao Selecionar todos foi acionada.');
   } else if(before.stateCounts.marcado===21){
     console.log('DEPARTAMENTOS: todos os 21 ja parecem marcados, sem novo clique.');
@@ -67,7 +82,7 @@ try {
     await clickDepartmentSelectAll(page);
     await page.waitForTimeout(350);
     const after=await report(page,'DEPOIS');
-    if(after.allExpectedPresent && after.stateCounts.marcado===21){
+    if(after.scoped && after.allExpectedPresent && after.rowCount===21 && after.stateCounts.marcado===21){
       console.log('DEPARTAMENTOS: 21/21 marcados confirmados por estado de checkbox.');
     } else {
       console.log('DEPARTAMENTOS: clique nao comprova a selecao integral. '+
