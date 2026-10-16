@@ -5,7 +5,8 @@ import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { brazilRange } from './month-windows.mjs';
-import { assertSelectedDepartmentNames } from './advanced-filter-config.mjs';
+import { REQUIRED_DEPARTMENTS } from './advanced-filter-config.mjs';
+import { inspectScopedDepartments } from './department-scope.mjs';
 import { ensureAllTaskTypes } from './advanced-task-type-locators.mjs';
 import { ensureAllAdvancedStatuses } from './advanced-status-locators.mjs';
 import { clickAdvancedApplyButton } from './advanced-action-locators.mjs';
@@ -68,34 +69,33 @@ async function applyAndVerifyAdvancedFilters(page) {
   const applySelector = process.env.GESTTA_ADVANCED_APPLY_SELECTOR?.trim();
   const departmentSelector = process.env.GESTTA_ADVANCED_DEPARTMENT_SELECTOR?.trim();
   const selectAllDepartmentsSelector = process.env.GESTTA_ADVANCED_DEPARTMENT_SELECT_ALL_SELECTOR?.trim();
-  // Cada item deve conter nome de departamento e UM checkbox de selecao.
-  const departmentRowSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_ROW_SELECTOR');
-  const departmentRowCheckboxSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_ROW_CHECKBOX_SELECTOR');
+  // Os 21 checkboxes são verificados por escopo, sem seletores CSS posicionais.
   await openAdvancedFilters(page, openSelector);
   // Quatro status e tres tipos identificados pelo Inspector com
   // getByRole('checkbox'); nao dependem de CSS posicional nem de glifos.
   await ensureAllAdvancedStatuses(page);
   await ensureAllTaskTypes(page);
-  // Campo e ação de selecionar todos calibrados no Inspector. A seleção
-  // só é aceita se a conferência posterior de nomes/checkboxes passar.
+  // Nunca confiar em uma contagem global do Gestta (há milhares de
+  // checkboxes de outros filtros). Exigir lista de 21 nomes únicos
+  // ancorada ao "Selecionar todos" do dropdown atualmente aberto.
   await openDepartmentPicker(page, departmentSelector);
-  await clickDepartmentSelectAll(page, selectAllDepartmentsSelector);
-  const rows = page.locator(departmentRowSelector);
-  const count = await rows.count();
-  const records = [];
-  for (let i = 0; i < count; i++) {
-    const row = rows.nth(i);
-    const checkbox = row.locator(departmentRowCheckboxSelector);
-    if (await checkbox.count() !== 1) {
-      throw new Error('Item de departamento sem checkbox unico. Recalibre o seletor da linha.');
-    }
-    records.push({
-      name: (await row.innerText()).trim(),
-      checked: await checkbox.isChecked(),
-    });
+  const before = await inspectScopedDepartments(page);
+  if (!before.found || before.rowCount!==REQUIRED_DEPARTMENTS.length ||
+      !before.allExpectedPresent || before.unknownCount!==0) {
+    throw new Error('Escopo do filtro Departamento nao confirmado. '+
+      'Nao aplicar filtros ou exportar XLSX.');
   }
-  // Falha se houver omissao, renomeacao, repeticao, virtualizacao ou departamento desmarcado.
-  assertSelectedDepartmentNames(records);
+  if (before.stateCounts.marcado!==REQUIRED_DEPARTMENTS.length) {
+    await clickDepartmentSelectAll(page, selectAllDepartmentsSelector);
+    await page.waitForTimeout(350);
+  }
+  const after = await inspectScopedDepartments(page);
+  if (!after.found || after.rowCount!==REQUIRED_DEPARTMENTS.length ||
+      !after.allExpectedPresent || after.unknownCount!==0 ||
+      after.stateCounts.marcado!==REQUIRED_DEPARTMENTS.length) {
+    throw new Error('Departamentos nao confirmados como 21/21 marcados '+
+      'no menu correto. Exportacao cancelada.');
+  }
   await clickAdvancedApplyButton(page, applySelector);
   await page.waitForTimeout(1200);
 }
