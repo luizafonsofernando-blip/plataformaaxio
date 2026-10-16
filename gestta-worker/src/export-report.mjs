@@ -9,6 +9,7 @@ import { assertSelectedDepartmentNames } from './advanced-filter-config.mjs';
 import { ensureAllTaskTypes } from './advanced-task-type-locators.mjs';
 import { ensureAllAdvancedStatuses } from './advanced-status-locators.mjs';
 import { clickAdvancedApplyButton } from './advanced-action-locators.mjs';
+import { openAdvancedFilters } from './advanced-open-locator.mjs';
 import { openDepartmentPicker, clickDepartmentSelectAll } from './department-controls.mjs';
 import { applyDateWindow, readControlText } from './date-picker.mjs';
 import { ensureTasksView } from './task-navigation.mjs';
@@ -63,14 +64,14 @@ function normalizedText(value) {
 // Falha se os seletores nao forem unicos/compativeis com checkbox nativo ou
 // se a lista de departamentos nao coincidir com o escopo validado em homologacao.
 async function applyAndVerifyAdvancedFilters(page) {
-  const openSelector = requiredSelector('GESTTA_ADVANCED_OPEN_SELECTOR');
+  const openSelector = process.env.GESTTA_ADVANCED_OPEN_SELECTOR?.trim();
   const applySelector = process.env.GESTTA_ADVANCED_APPLY_SELECTOR?.trim();
   const departmentSelector = process.env.GESTTA_ADVANCED_DEPARTMENT_SELECTOR?.trim();
   const selectAllDepartmentsSelector = process.env.GESTTA_ADVANCED_DEPARTMENT_SELECT_ALL_SELECTOR?.trim();
   // Cada item deve conter nome de departamento e UM checkbox de selecao.
   const departmentRowSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_ROW_SELECTOR');
   const departmentRowCheckboxSelector = requiredSelector('GESTTA_ADVANCED_DEPARTMENT_ROW_CHECKBOX_SELECTOR');
-  await page.locator(openSelector).click({ timeout: 10000 });
+  await openAdvancedFilters(page, openSelector);
   // Quatro status e tres tipos identificados pelo Inspector com
   // getByRole('checkbox'); nao dependem de CSS posicional nem de glifos.
   await ensureAllAdvancedStatuses(page);
