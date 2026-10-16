@@ -27,46 +27,23 @@ function classifyChecked(snapshot) {
   return 'indeterminado';
 }
 
-export async function inspectDepartmentStructure(page) {
-  const rows = departmentRowCandidates(page);
-  const count = await rows.count();
+export function summarizeDepartmentSnapshots(allSnapshots) {
+  const snapshotsList = Array.isArray(allSnapshots) ? allSnapshots : [];
+  const count = snapshotsList.length;
   const allowed = new Set(REQUIRED_DEPARTMENTS.map(normalizeDepartmentLabel));
   const recognized = [];
   const snapshots = {};
   let unknownCount = 0;
-  for (let i = 0; i < count; i++) {
-    const snapshot = await rows.nth(i).evaluate(li => {
-      const toggle = li.querySelector(':scope > .gestta-multiselect-dropdown__item-toggle');
-      const checkbox = toggle?.querySelector('.checkbox-item') ?? null;
-      const inner = checkbox?.matches('input[type="checkbox"]') ? checkbox :
-        checkbox?.querySelector('input[type="checkbox"]') ?? null;
-      const ariaNode = [checkbox, toggle, li].find(el =>
-        el && el.getAttribute('aria-checked') !== null) ?? null;
-      const safeClasses = el => Array.from(el?.classList || [])
-        .filter(x => /^[\w-]{1,64}$/.test(x))
-        .slice(0,8);
-      return {
-        label: String(li.innerText || '').trim().slice(0,160),
-        elementTag: checkbox?.tagName.toLowerCase() || 'none',
-        toggleTag: toggle?.tagName.toLowerCase() || 'none',
-        checkboxClasses: safeClasses(checkbox),
-        toggleClasses: safeClasses(toggle),
-        checkboxRole: checkbox?.getAttribute('role') || '',
-        inputType: inner?.type || null,
-        inputChecked: inner ? Boolean(inner.checked) : null,
-        ariaChecked: ariaNode?.getAttribute('aria-checked') ?? null,
-        dataState: checkbox?.getAttribute('data-state') || '',
-      };
-    });
+
+  for (const snapshot of snapshotsList) {
     const normalized = normalizeDepartmentLabel(snapshot.label);
     if (!allowed.has(normalized)) {
       unknownCount++;
-      continue; // nao exibir nomes desconhecidos, possivelmente de outros clientes
+      continue; // não imprimir outros nomes ou texto do Gestta
     }
     recognized.push(normalized);
-    // Somente os nomes conhecidos da lista ORTECONTE são apresentados.
     snapshots[normalized] = {
-      state: classifyChecked(snapshot),
+      state:classifyChecked(snapshot),
       elementTag:snapshot.elementTag,
       toggleTag:snapshot.toggleTag,
       checkboxRole:snapshot.checkboxRole,
@@ -95,4 +72,34 @@ export async function inspectDepartmentStructure(page) {
       ARQUIVO:snapshots.ARQUIVO || null,
     },
   };
+}
+
+export async function inspectDepartmentStructure(page) {
+  const rows = departmentRowCandidates(page);
+  // A versão anterior fazia count() e evaluate() para cada linha do menu,
+  // podendo esperar indefinidamente se o Gestta renderizasse de novo o DOM.
+  // evaluateAll coleta tudo em uma única operação, sem nth/espera individual.
+  const snapshots = await rows.evaluateAll(list => list.map(li => {
+    const toggle = li.querySelector(':scope > .gestta-multiselect-dropdown__item-toggle');
+    const checkbox = toggle?.querySelector('.checkbox-item') ?? null;
+    const inner = checkbox?.matches('input[type="checkbox"]') ? checkbox :
+      checkbox?.querySelector('input[type="checkbox"]') ?? null;
+    const ariaNode = [checkbox,toggle,li].find(el =>
+      el && el.getAttribute('aria-checked') !== null) ?? null;
+    const safeClasses = el => Array.from(el?.classList || [])
+      .filter(x => /^[\w-]{1,64}$/.test(x)).slice(0,8);
+    return {
+      label: String(li.innerText || '').trim().slice(0,160),
+      elementTag:checkbox?.tagName.toLowerCase() || 'none',
+      toggleTag:toggle?.tagName.toLowerCase() || 'none',
+      checkboxClasses:safeClasses(checkbox),
+      toggleClasses:safeClasses(toggle),
+      checkboxRole:checkbox?.getAttribute('role') || '',
+      inputType:inner?.type || null,
+      inputChecked:inner ? Boolean(inner.checked) : null,
+      ariaChecked:ariaNode?.getAttribute('aria-checked') ?? null,
+      dataState:checkbox?.getAttribute('data-state') || '',
+    };
+  }));
+  return summarizeDepartmentSnapshots(snapshots);
 }
