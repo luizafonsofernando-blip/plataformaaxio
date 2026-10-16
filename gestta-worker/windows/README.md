@@ -1718,3 +1718,43 @@ IMPORTANTES:
   pendente.
 - Enviar apenas linhas XLSX UNICO: ou FALHA XLSX UNICO: do PowerShell,
   nunca dados de clientes, extratos, planilha bruta, senha ou token.
+
+
+## Primeiro XLSX interrompido antes do download: Todos usuarios (16/10/2026)
+
+O usuario executou:
+  npm run test:export-one -- --start=2026-10-01 --end=2026-10-30 --confirm-download
+
+No Gestta real:
+- As tarefas E-BEF 3/3 foram confirmadas;
+- A verificacao previa dos filtros globais falhou:
+  Filtro Todos usuarios nao confirmado de forma unica e visivel
+  (correspondencias=0);
+- Nenhum XLSX foi baixado, nenhum dado foi enviado à Luce e
+  nenhuma tarefa foi alterada.
+
+Não supor que "Todos usuarios" esteja desmarcado: o getByText() nao
+encontrou o rótulo, que pode estar em atributo, input, ou controle
+dinamico. Manter fail-closed. Nao remover a guarda nem exportar
+sem conferir o estado.
+
+Novo diagnostico SEGURO, sem clique em exportar:
+  cd "$HOME\Luce\plataformaaxio"
+  git pull --ff-only
+  cd gestta-worker
+  npm run diagnose:global-filters
+
+Esse comando usa a sessao local, abre a lista de tarefas e confirma
+3/3 E-BEF. Depois somente le a barra superior com:
+- contagens do getByText() nos filtros Todos clientes, Todos usuarios,
+  Data Meta;
+- identificadores gestta-multiselect-dropdown-N-p (sem valores);
+- classes estruturais, posicoes aproximadas e contagens de controles;
+- flags booleanas que reconhecem APENAS as expressões conhecidas
+  Todos clientes, Todos usuarios e Data Meta, inclusive em atributos.
+
+Não inclui nomes de clientes/usuarios, emails, valores desconhecidos,
+HTML da pagina, URL com tokens ou cookies no log. Não aciona Filtrar,
+Exportar, download ou sync. Três testes simulados passaram.
+Aguarda-se a saída GLOBAL_FILTERS para calibrar a verificação do
+estado do usuário SEM inferir a partir da ordem dos dropdowns.
