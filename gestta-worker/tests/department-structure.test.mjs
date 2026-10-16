@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { REQUIRED_DEPARTMENTS } from '../src/advanced-filter-config.mjs';
 import {
   inspectDepartmentStructure, normalizeDepartmentLabel, departmentRowCandidates,
+  summarizeDepartmentSnapshots,
 } from '../src/department-structure.mjs';
 
 const snapshot = (label, state='indeterminado')=>({
@@ -14,9 +15,7 @@ const snapshot = (label, state='indeterminado')=>({
   ariaChecked:null,dataState:'',
 });
 function fakeDepartmentList(list) {
-  const rows={count:async()=>list.length,nth:index=>({
-    evaluate:async()=>list[index],
-  })};
+  const rows={count:async()=>list.length,evaluateAll:async()=>list};
   const page={locator:css=>{
     assert.equal(css,'li:has(> .gestta-multiselect-dropdown__item-toggle > .checkbox-item)');
     return rows;
@@ -55,6 +54,14 @@ test('não considera completa uma lista truncada ou duplicada',async()=>{
   const second=await inspectDepartmentStructure(fakeDepartmentList(dupes).page);
   assert.equal(second.recognizedUnique,20);
   assert.equal(second.allExpectedPresent,false);
+});
+
+test('snapshot único produz mesmo resumo sem esperar 21 avaliações independentes',async()=>{
+  const snapshots=REQUIRED_DEPARTMENTS.map(name=>snapshot(name,'marcado'));
+  const summary=summarizeDepartmentSnapshots(snapshots);
+  assert.equal(summary.rowCount,21);
+  assert.equal(summary.stateCounts.marcado,21);
+  assert.equal(summary.allExpectedPresent,true);
 });
 
 test('não divulga nomes de itens estranhos aos 21 departamentos',async()=>{
