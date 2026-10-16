@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { REQUIRED_DEPARTMENTS } from '../src/advanced-filter-config.mjs';
 import {
   inspectDepartmentStructure, normalizeDepartmentLabel, departmentRowCandidates,
-  summarizeDepartmentSnapshots,
+  summarizeDepartmentSnapshots, inspectDepartmentCounts,
 } from '../src/department-structure.mjs';
 
 const snapshot = (label, state='indeterminado')=>({
@@ -15,13 +15,29 @@ const snapshot = (label, state='indeterminado')=>({
   ariaChecked:null,dataState:'',
 });
 function fakeDepartmentList(list) {
-  const rows={count:async()=>list.length,evaluateAll:async()=>list};
-  const page={locator:css=>{
-    assert.equal(css,'li:has(> .gestta-multiselect-dropdown__item-toggle > .checkbox-item)');
-    return rows;
-  }};
-  return {page,rows};
+  let reads=0;
+  const rows={count:async()=>list.length};
+  const page={
+    locator:css=>{
+      assert.equal(css,'li:has(> .gestta-multiselect-dropdown__item-toggle > .checkbox-item)');
+      return rows;
+    },
+    evaluate:async fn=>{
+      reads++;
+      assert.match(fn.toString(),/document.querySelectorAll/);
+      return list;
+    },
+  };
+  return {page,rows,reads:()=>reads};
 }
+
+test('não espera nem consulta locator.evaluateAll quando DOM está vazio',async()=>{
+  const f=fakeDepartmentList([]);
+  const summary=await inspectDepartmentStructure(f.page);
+  assert.equal(summary.rowCount,0);
+  assert.equal(summary.allExpectedPresent,false);
+  assert.equal(f.reads(),1);
+});
 
 test('normaliza acentos e espaços dos nomes esperados',()=>{
   assert.equal(normalizeDepartmentLabel('  Contábil  '),'CONTABIL');
