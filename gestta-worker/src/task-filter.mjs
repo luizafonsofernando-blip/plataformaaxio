@@ -50,47 +50,87 @@ export function validateEbefOptionNames(names) {
   return true;
 }
 
-export async function selectEbefTasks(page, { searchCss, rowCss, checkboxCss } = {}) {
-  if (![searchCss,rowCss,checkboxCss].every(v => typeof v === 'string' && v.trim())) {
-    throw new Error('Calibrar GESTTA_TASK_SEARCH_SELECTOR, GESTTA_TASK_RESULT_ROW_SELECTOR e ' +
-      'GESTTA_TASK_ROW_CHECKBOX_SELECTOR antes de selecionar tarefas automaticamente.');
-  }
+// Playwright Inspector confirmou o input e os menuitems em 16/10/2026.
+// Em vez de arrastar a scrollbar por pixels, scrollIntoViewIfNeeded() rola
+// SOMENTE o suficiente para revelar a opção alvo (se existir no DOM).
+export function taskSearchLocator(page, css) {
+  return css?.trim()
+    ? page.locator(css.trim())
+    : page.getByRole('textbox', { name: 'Buscar por tarefa', exact: true });
+}
 
-  // Sem evidência de um comando para limpar seleções previas, não presumir que
-  // "bef" exclui escolhas anteriores ao filtro de busca.
+export function ebefMenuItemsLocator(page, css) {
+  return css?.trim()
+    ? page.locator(css.trim())
+    : page.getByRole('menuitem', { name: /EBEF/i });
+}
+
+export function menuItemCheckbox(item, css) {
+  return css?.trim()
+    ? item.locator(css.trim())
+    : item.getByRole('checkbox');
+}
+
+export async function selectEbefTasks(page, { searchCss, rowCss, checkboxCss } = {}) {
+  // Antes de pesquisar é importante não haver seleção prévia de outras
+  // tarefas. O texto inicial "Todas as tarefas" foi confirmado no Inspector.
   const trigger = await verifyTaskFilterTrigger(page);
   await trigger.click({ timeout: 10000 });
 
-  const search = page.locator(searchCss);
+  const search = taskSearchLocator(page, searchCss);
   if (await search.count() !== 1 || !(await search.isVisible())) {
-    throw new Error('Campo de pesquisa do filtro Tarefas nao localizado unicamente.');
+    throw new Error('Campo Buscar por tarefa nao localizado de forma unica.');
   }
-  await search.fill(EBEF_SEARCH_TERM, {timeout:10000});
-  if ((await search.inputValue()).toLowerCase().trim() !== EBEF_SEARCH_TERM) {
-    throw new Error('Gestta nao confirmou texto bef na busca de tarefas.');
+  await search.fill(EBEF_SEARCH_TERM, { timeout: 10000 });
+  if ((await search.inputValue()).trim().toLowerCase() !== EBEF_SEARCH_TERM) {
+    throw new Error('Busca do Gestta nao confirmou o texto bef.');
   }
-  const rows = page.locator(rowCss);
-  // Aguarda a renderizacao dos tres resultados, sem depender de um timeout fixo.
-  try { await rows.nth(2).waitFor({state:'visible',timeout:15000}); }
-  catch { throw new Error('Busca bef nao apresentou tres opcoes E-BEF em 15s.'); }
-  const count = await rows.count();
-  if (count !== 3) throw new Error('Busca bef retornou ' + count + ' opcoes, esperado exatamente tres.');
+
+  const rows = ebefMenuItemsLocator(page, rowCss);
+  // Se o Gestta renderizar os itens fora da área visível, o Playwright faz
+  // a rolagem interna quando necessário. Se a lista for virtualizada
+  // (ainda não houver 3 elementos no DOM), falhar com diagnóstico.
+  try {
+    await rows.nth(2).waitFor({ state: 'attached', timeout: 15000 });
+  } catch {
+    throw new Error('A busca bef nao carregou tres itens no DOM. ' +
+      'Inspecione a rolagem ou a lista virtualizada antes de automatizar.');
+  }
+  const total = await rows.count();
+  if (total !== 3) {
+    throw new Error('A busca bef localizou ' + total +
+      ' menuitems E-BEF; esperado exatamente tres.');
+  }
+
   const names = [];
   const boxes = [];
-  for (let i=0;i<3;i++) {
+  for (let i = 0; i < total; i++) {
     const row = rows.nth(i);
-    if (!(await row.isVisible())) throw new Error('Opcao E-BEF oculta no resultado da pesquisa.');
+    try {
+      await row.scrollIntoViewIfNeeded({ timeout: 10000 });
+    } catch {
+      throw new Error('Nao foi possivel rolar a lista ate a opcao E-BEF ' +
+        (i + 1) + '. Inspecione o contêiner da barra de rolagem.');
+    }
+    if (!(await row.isVisible())) {
+      throw new Error('A opcao E-BEF ' + (i + 1) + ' continua invisivel.');
+    }
     names.push((await row.innerText()).trim());
-    const checkbox=row.locator(checkboxCss);
-    if (await checkbox.count() !== 1) throw new Error('Opcao ' + (i+1) + ' sem checkbox unico.');
+    const checkbox = menuItemCheckbox(row, checkboxCss);
+    if (await checkbox.count() !== 1) {
+      throw new Error('A opcao E-BEF ' + (i + 1) + ' nao possui checkbox unico.');
+    }
     boxes.push(checkbox);
   }
-  validateEbefOptionNames(names);
+  validateEbefOptionNames(names); // Falhar ANTES de marcar qualquer checkbox.
   for (const box of boxes) {
-    if (!(await box.isChecked())) await box.check({timeout:10000});
+    await box.scrollIntoViewIfNeeded({ timeout: 10000 });
+    if (!(await box.isChecked())) await box.check({ timeout: 10000 });
   }
   for (const box of boxes) {
-    if (!(await box.isChecked())) throw new Error('Uma das tarefas E-BEF nao permaneceu selecionada.');
+    if (!(await box.isChecked())) {
+      throw new Error('Uma tarefa E-BEF nao permaneceu selecionada.');
+    }
   }
-  return {selected:3};
+  return { selected: 3 };
 }
