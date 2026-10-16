@@ -1028,3 +1028,35 @@ Para repetir com Chromium headless e sem Inspector:
 Enviar ANTES, DEPOIS, ESTRUTURA ou eventual FALHA que aparecer.
 Não rodar exportações ou sincronização enquanto departamentos e
 checkboxes não forem homologados.
+
+
+## Leitura de Departamentos excedeu 20 segundos (16/10/2026)
+
+O teste real abriu Tarefas E-BEF (3/3), funil e dropdown Departamento,
+mas a linha ANTES nao retornou em 20 segundos. Isso NAO comprova que
+os departamentos estejam ausentes ou desmarcados.
+
+Possivel causa: consulta Playwright com locator.evaluateAll() sobre
+um seletor com :has() sem correspondencia, sujeita a esperar pela lista.
+A causa exata ainda depende do novo diagnostico.
+
+Mudanca aplicada:
+- inspectDepartmentStructure() agora faz UMA consulta page.evaluate()
+  com querySelectorAll('.gestta-multiselect-dropdown__item-toggle');
+- usa textContent sem calculo de layout de innerText e filtra pela lista
+  conhecida de 21 nomes; nao registra nomes de clientes;
+- a leitura termina imediatamente quando nao ha linhas correspondentes;
+- novo teste basico de responsividade antes da leitura:
+      DEPARTAMENTOS: renderer_respondeu=complete
+- se nao encontrar todos os departamentos, informa ESTRUTURA com contagens
+  e nao clica em Selecionar todos;
+- mantém tempo limite e falha sem exportacao ou sincronizacao.
+
+Repetir apos fechar instancias anteriores de teste:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:departments
+
+Enviar as linhas renderer_respondeu, ANTES, ESTRUTURA, DEPOIS (se houver)
+e eventuais mensagens de erro. A homologacao dos 21 checkboxes segue pendente.
