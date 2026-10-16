@@ -497,3 +497,30 @@ Para conferir:
 Se obtiver a mensagem "TAREFAS E-BEF SELECIONADAS E VERIFICADAS: 3/3",
 a etapa foi concluida. Se falhar, envie somente o texto da nova falha
 incluindo as contagens. O teste nao baixa relatórios nem sincroniza.
+
+
+## Resolvido no codigo: carregamento tardio do texto Todas as tarefas (16/10/2026)
+
+O print posterior comprovou que Todas as tarefas aparece normalmente
+no Gestta quando a tela termina de carregar. O erro com contagem 0 foi
+provavelmente causado por uma consulta prematura usando locator.count().
+A hipotese anterior de filtro persistente nao foi comprovada.
+
+Nova rotina de selecao em src/task-filter.mjs:
+- Aguarda 5 segundos depois de abrir a visao de Tarefas.
+- Espera ate 30 segundos pelo texto exato Todas as tarefas ficar visivel.
+- Somente depois conta os elementos e clica se houver exatamente um.
+- Se nao houver, falha com contagem, sem clicar em X, limpar filtros,
+  alterar tarefas, exportar relatórios ou transmitir dados à Luce.
+
+Para retestar, apos fechar Chromium/Inspector anterior:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:tasks
+
+Mensagem esperada antes da busca:
+    Tela de tarefas aberta. Aguardando 5 segundos para carregar os filtros...
+
+O teste continua limitado a selecao visual das tres tarefas E-BEF.
