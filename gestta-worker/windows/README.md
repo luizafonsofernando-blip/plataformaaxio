@@ -965,3 +965,35 @@ Se o estado do checkbox não for inferível a partir de input/aria-checked,
 ele será indicado como indeterminado — não concluir falsamente 21/21.
 Os seletores de departamentos ainda precisam de validação no ambiente real.
 Não executar npm run sync -- --auto nesta etapa.
+
+
+## Diagnóstico de departamentos parou após "menu Departamento aberto" (16/10/2026)
+
+O usuário mostrou o terminal com:
+- TAREFAS E-BEF SELECIONADAS E VERIFICADAS: 3/3
+- DEPARTAMENTOS: funil aberto pelo icone glyphicon-filter.
+- DEPARTAMENTOS: menu Departamento aberto.
+
+Ainda não havia linha ANTES na captura; não é possível concluir se a
+execução apenas estava lendo o menu ou estava travada. A implementação
+anterior fazia 1 locator.evaluate() por linha, e cada operação poderia
+aguardar se a lista do Gestta fosse renderizada novamente.
+
+Foi substituída por uma única chamada evaluateAll() com leitura de todos
+os elementos no mesmo snapshot, sem nth nem espera individual.
+O comando também registra:
+    DEPARTAMENTOS: iniciando leitura ANTES do menu...
+e interrompe a leitura se não responder em até 20 segundos. O contexto
+Chromium tem limite de espera ao encerrar.
+
+Se a execução anterior terminar normalmente e imprimir ANTES/DEPOIS,
+aproveitar essa saída. Se ficar sem atualização por mais de 30 segundos,
+interromper com Ctrl+C e instalar o ajuste:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:departments
+
+Não há download, alteração de tarefas ou envio de dados à Luce.
+Não concluir seleção 21/21 se o estado permanecer indeterminado.
