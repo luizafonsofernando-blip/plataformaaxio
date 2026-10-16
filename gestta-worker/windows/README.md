@@ -472,3 +472,28 @@ Para inspecionar sem alterar tarefas:
 No navegador: abrir `Todas as tarefas`, pesquisar `bef`, ativar
 Pick Locator no input de busca e depois no checkbox da primeira
 opcao; enviar os dois localizadores sem dados de clientes.
+
+
+## Diagnostico do campo Buscar por tarefa (16/10/2026)
+
+O teste npm run test:tasks confirmou a navegacao Dashboard -> Tarefas, mas
+retornou "Campo Buscar por tarefa nao localizado de forma unica" antes
+de pesquisar bef. O problema esta no input do dropdown, nao no calendario.
+
+A busca foi corrigida para esperar ate 15 segundos pelo textbox visivel,
+utilizando o nome acessivel /Buscar\s+por\s+tarefa/i sem exigir igualdade
+literal. Caso falhe, o terminal imprime apenas contagens seguras:
+correspondencias, visivel, total_textboxes, total_menuitems e
+acao_selecionar_todas. Nenhum nome de cliente, URL privada ou dado de
+tarefa e registrado no diagnostico.
+
+Para conferir:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:tasks
+
+Se obtiver a mensagem "TAREFAS E-BEF SELECIONADAS E VERIFICADAS: 3/3",
+a etapa foi concluida. Se falhar, envie somente o texto da nova falha
+incluindo as contagens. O teste nao baixa relatórios nem sincroniza.
