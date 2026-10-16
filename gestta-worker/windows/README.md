@@ -652,3 +652,29 @@ Próxima fase com Inspector JÁ aberto: inspecionar o dropdown
 "Departamento" e sua ação "Selecionar todos" dentro de Filtros avançados.
 Não abrir nem executar exportação. Enviar somente os localizadores desses
 dois controles para planejar a validação dos 21 departamentos.
+
+
+## Filtro Departamento: dropdown e Selecionar todos identificados (16/10/2026)
+
+O Inspector confirmou, em Filtros avançados:
+- Campo: getByText('Todos departamentos')
+- Selecionar todos: getByRole('menuitem', { name: 'Selecionar todos' }).locator('a')
+
+O worker usa estes locators de forma padrao, exigindo que ambos
+sejam únicos e visíveis antes de cada clique. Os dois seletores CSS
+de ambiente (GESTTA_ADVANCED_DEPARTMENT_SELECTOR e
+GESTTA_ADVANCED_DEPARTMENT_SELECT_ALL_SELECTOR) ficaram OPCIONAIS.
+
+IMPORTANTE: clicar em "Selecionar todos" NÃO comprova que todos os
+21 departamentos ficaram selecionados! O exportador mantém a verificação
+obrigatória dos nomes e checkboxes de cada departamento; ainda faltam
+identificar via Inspector o DOM das linhas e seus checkboxes.
+As operações de exportação e sincronização continuam não homologadas.
+
+Próximo passo na MESMA janela Inspector, sem reiniciar:
+- Com o dropdown Departamento aberto, use Pick Locator sobre o checkbox
+  do departamento Administrativo e envie o texto obtido.
+- Se possível, faça o mesmo com Arquivo (outro departamento).
+- Os locators servirão para descobrir se cada opção é uma linha com
+  checkbox nativo e se a lista virtualiza itens fora da rolagem.
+Não clicar em concluir tarefas nem exportar relatórios.
