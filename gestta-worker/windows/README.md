@@ -1804,3 +1804,42 @@ comprova, isoladamente, que TODOS usuários estejam incluídos.
 
 Cinco testes simulados passaram. A homologação real do campo Usuários,
 do XLSX e da sincronização permanece PENDENTE.
+
+
+## Menu Usuarios nao encontrado apos clique seguro (16/10/2026)
+
+O usuario executou npm run diagnose:users-filter no Windows. Resultado real:
+- tarefas E-BEF 3/3;
+- USERS_TRIGGER: clients=1, candidates=1, dateVisible=true,
+  topDropdowns=3, userId=gestta-multiselect-dropdown-4-p;
+- labelKind=resumo_com_quantidade; topologyConfirmed=true;
+- USERS_POPUP: found=false, reason=menu_inexistente_ou_ambiguo, count=0;
+- nenhum checkbox alterado, nenhuma exportacao ou sincronizacao.
+
+Isso significa que o seletor superior foi identificado e clicado sem
+erro, mas a rotina que procurava o menu somente nos primeiros 5
+ancestrais nao encontrou o painel. Pode ser renderizacao tardia,
+menu em portal fora da hierarquia, classe diferente ou falta de abertura.
+NAO inferir que TODOS usuarios estejam selecionados.
+
+Foi aprimorado npm run diagnose:users-filter:
+- aguarda ate 5 segundos pela lista apos o clique original;
+- se nao aparecer, emite USERS_STRUCTURE, com contagem e classes
+  controladas de menus visiveis geometricamente proximos ao gatilho,
+  estados aria-expanded/open e contagens de li/checkboxes;
+- nenhum texto de usuario/cliente, dados de sessao, HTML ou URL exposto;
+- nenhum segundo clique no campo, nenhum checkbox alterado;
+- continua SEM Filtrar, download XLSX e sincronizacao Luce.
+
+Três novos testes simulados passaram, incluindo painel em portal,
+menu ausente e identificador invalido. Homologacao real pendente.
+
+Com Chromium/Inspector anteriores fechados, execute:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:users-filter
+
+Enviar USERS_TRIGGER, USERS_POPUP e, se existir, USERS_STRUCTURE.
+Nao executar test:export-one ate confirmar a selecao abrangente de
+usuarios no Gestta e a semantica do menu.
