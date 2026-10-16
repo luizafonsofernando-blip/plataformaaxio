@@ -1452,3 +1452,33 @@ logs PERIODO:, sem screenshots de dados internos ou credenciais.
 NAO rodar sincronizacao automatica ainda. A aprovacao da mudanca
 visual nao substitui a verificacao de janelas, status, exportacao XLSX,
 reconciliacao de IDs e transmissao autorizada para Luce.
+
+
+## Primeira janela mensal homologada no Gestta real (16/10/2026)
+
+O usuário executou no Windows, com o mesmo perfil local autenticado:
+    npm run test:period -- --start=2026-10-01 --end=2026-10-30
+
+Resultado exibido no PowerShell:
+- PERIODO: solicitado=01/10/2026 - 30/10/2026
+- PERIODO: tarefas E-BEF=3/3
+- PERIODO: antes=01/10/2026 - 31/10/2026
+- PERIODO: configurando datas no calendario...
+- PERIODO: depois=01/10/2026 - 30/10/2026
+- PERIODO: SUCESSO SEM FILTRAR, SEM DOWNLOAD, SEM XLSX E SEM SINCRONIZACAO.
+
+Homologada a alteração do filtro de calendário da primeira janela de
+outubro, com confirmação do texto no controle após clicar Aplicar.
+Não foi comprovado ainda o resultado do relatório exportado.
+
+PRÓXIMO TESTE: segunda janela complementar do mesmo mês de 31 dias.
+Executar somente após encerrar instâncias anteriores de Chromium:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:period -- --start=2026-10-02 --end=2026-10-31
+
+Objetivo: preservar a consulta mensal em intervalos de até 30 dias,
+combinando posteriormente 01-30 e 02-31 e removendo duplicidades
+pelo identificador estável do Gestta, quando os arquivos XLSX forem
+efetivamente homologados. O teste continua SEM Filtrar, XLSX e sync.
