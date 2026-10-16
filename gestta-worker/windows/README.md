@@ -1247,3 +1247,47 @@ Esse teste em headless:
 Se falhar, enviar o log a partir de APLICAR: ou
 FALHA NO TESTE DE APLICACAO:. Não executar npm run sync -- --auto.
 A aprovação desse teste não substitui a homologação das datas e do XLSX.
+
+
+## Filtrar ainda não clicou: rótulo "Todos departamentos" desapareceu (16/10/2026)
+
+Após sucesso do teste integrado (tarefas 3/3, status 4/4, tipos 3/3,
+departamentos 21/21), o Windows executou npm run test:apply. O teste:
+- confirmou tarefas=3/3;
+- leu e preservou a referência do período 01/10/2026 - 31/10/2026;
+- confirmou status=4/4 e tipos=3/3;
+- PAROU antes de abrir Departamento:
+  "Campo Todos departamentos ... correspondencias=0".
+
+Causa provável: o Gestta mantém os departamentos selecionados entre
+consultas e altera o texto do campo (ex.: "Contábil +16"). Assim, o
+localizador getByText('Todos departamentos') não serve como único modo
+de abrir o menu depois da primeira execução.
+
+Correção:
+- src/department-trigger-discovery.mjs tenta encontrar o título exato
+  "Departamento" e o ID estrutural de um único dropdown associado
+  ao título, sem usar posição, texto de cliente ou botão X;
+- src/department-controls.mjs mantém o seletor inicial, usando o novo
+  mecanismo somente quando "Todos departamentos" não aparece;
+- se existir mais de um candidato, título ambíguo ou controle oculto,
+  aborta sem clicar, exportar ou sincronizar;
+- após abrir o menu, as rotinas ainda exigem o escopo 21/21 validado.
+- Doze testes simulados de seleção inicial, seleção persistente,
+  ausência e ambiguidade passaram. Falta testar essa descoberta no Gestta real.
+
+Próximo teste em Chromium headless, sem download:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:apply
+
+No resultado, procurar:
+    DEPARTAMENTOS: selecao anterior detectada; campo encontrado pelo titulo Departamento.
+    APLICAR: departamentos=21/21
+    APLICAR: botao Filtrar unico e visivel; aplicando filtros visuais.
+    APLICAR: SUCESSO SEM DOWNLOAD, SEM EXPORTACAO E SEM SINCRONIZACAO.
+
+Se falhar na descoberta, NÃO escolher qualquer outro dropdown
+manualmente ou via índice; enviar somente a mensagem de erro
+FALHA NO TESTE DE APLICACAO, sem dados de clientes.
