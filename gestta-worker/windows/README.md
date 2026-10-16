@@ -678,3 +678,41 @@ Próximo passo na MESMA janela Inspector, sem reiniciar:
 - Os locators servirão para descobrir se cada opção é uma linha com
   checkbox nativo e se a lista virtualiza itens fora da rolagem.
 Não clicar em concluir tarefas nem exportar relatórios.
+
+
+## Estrutura dos checkboxes de departamentos - duas amostras (16/10/2026)
+
+O Inspector revelou:
+- Administrativo: locator('.checkbox-item').first()
+- Arquivo: locator('li:nth-child(5) > .gestta-multiselect-dropdown__item-toggle > .checkbox-item').first()
+
+A interface utiliza as classes .gestta-multiselect-dropdown__item-toggle
+e .checkbox-item. O uso de first()/nth-child(5) NÃO é robusto: esses
+seletors identificam posicoes, nao nomes de departamentos. Ainda nao foi
+comprovado se .checkbox-item e input checkbox nativo, tem role checkbox
+ou apenas um componente estilizado. Nao deve ser assumido isChecked().
+
+Adicionado diagnostico isolado SOMENTE-LEITURA:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:departments
+
+Feche Chromium/Inspector anteriores. O programa abre Gestta, seleciona
+as tres tarefas E-BEF ja homologadas e espera intervencao manual:
+1. No Chromium, abrir funil > Departamento e deixar a lista expandida.
+   Pressionar Enter no PowerShell para diagnostico ANTES.
+2. Se estiver disponivel Selecionar todos, clicar manualmente e manter
+   a lista aberta. Pressionar Enter para diagnostico DEPOIS.
+   Caso nao esteja, nao clicar em nenhuma outra opcao.
+
+Copiar para esta conversa SOMENTE linhas ANTES e DEPOIS do PowerShell.
+O log compara numero de linhas detectadas, nomes que pertencem ao grupo
+conhecido de 21 departamentos e informacoes limitadas dos checkboxes de
+Administrativo/Arquivo. Nao salva HTML, nomes inesperados, dados de clientes,
+URLs ou cookies. O script nao altera tarefas, nao faz download e nao
+transmite dados à Luce.
+
+A implementacao de producao continua travada: somente sera permitido
+concluir que TODOS os departamentos estao selecionados se 21 nomes
+distintos forem identificados e o estado de cada checkbox for comprovado.
