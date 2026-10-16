@@ -1,3 +1,5 @@
+import { fillDateFields } from './calendar-field-entry.mjs';
+
 // Interface do calendário Gestta, inspecionada localmente em 15/10/2026.
 // Somente aplica filtros visuais de data; nunca altera tarefas ou envia dados.
 export const DATE_SELECTORS = Object.freeze({
@@ -53,20 +55,17 @@ export async function applyDateWindow(page, window) {
 
   const initial = page.locator(startCss);
   const final = page.locator(endCss);
-  if (await initial.count() !== 1 || await final.count() !== 1) {
-    throw new Error('Campos de data inicial/final nao identificados. Recalibre os seletores.');
-  }
-  try {
-    await initial.fill(formatDateBR(window.start), { timeout: 10000 });
-    await final.fill(formatDateBR(window.end), { timeout: 10000 });
-  } catch (_) {
-    throw new Error('O datepicker nao permite preencher os inputs diretamente. Sera necessario adaptar a interacao.');
-  }
+  // Ao trocar de setembro para outubro, digitar início primeiro deixa
+  // momentaneamente início > fim antigo. O plugin pode reverter as datas.
+  // Decidir a ordem olhando os campos atuais, esperar rerender e não
+  // clicar Aplicar se as duas datas não permanecerem corretas.
+  await fillDateFields(page,{
+    initial,final,
+    start:formatDateBR(window.start),
+    end:formatDateBR(window.end),
+  });
   const noWhitespace = x => String(x).replace(/\s/g, '');
-  if (noWhitespace(await initial.inputValue()) !== noWhitespace(formatDateBR(window.start)) ||
-      noWhitespace(await final.inputValue()) !== noWhitespace(formatDateBR(window.end))) {
-    throw new Error('As datas digitadas nao permaneceram nos campos do Gestta.');
-  }
+
   const apply = applyCss ? page.locator(applyCss) :
     page.getByRole('button', { name: 'Aplicar', exact: true });
   if (await apply.count() !== 1) throw new Error('Botao Aplicar nao identificado de forma unica.');
