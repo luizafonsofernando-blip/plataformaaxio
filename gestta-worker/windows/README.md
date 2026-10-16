@@ -438,3 +438,37 @@ Proximo passo em npm run inspect:filters:
   de selecao.
 - Nao ativar --auto: a selecao e a validacao das tres tarefas ainda nao
   foram homologadas. O Inspector apenas observa a interface.
+
+
+## Busca das tres tarefas E-BEF pelo termo "bef" (16/10/2026)
+
+O usuario confirmou o comportamento real do dropdown: abrir "Todas as tarefas",
+DIGITAR `bef` no campo de pesquisa e marcar as tres opcoes retornadas:
+uma `DECLARAÇÃO DE EBEF | TÉCNICO` e duas iniciadas por
+`VERIFICAR NECESSIDADE DE EBEF | ...`. Os dois textos aparecem
+truncados no print: precisamos dos atributos HTML para diferenciá-los.
+
+O codigo src/task-filter.mjs ja incorpora a sequencia prevista e valida
+a busca, a quantidade de tres resultados e o padrao de nomes, mas somente
+sera executado em --auto depois que estes seletores forem obtidos:
+- GESTTA_TASK_SEARCH_SELECTOR: input que recebe `bef`
+- GESTTA_TASK_RESULT_ROW_SELECTOR: linhas visiveis filtradas (tres)
+- GESTTA_TASK_ROW_CHECKBOX_SELECTOR: checkbox relativo a cada linha
+
+A rotina exige no inicio o rotulo `Todas as tarefas` para evitar carregar
+outras selecoes previas. **Ainda nao existe rotina homologada para limpar
+uma selecao anterior**; portanto o RPA devera parar ao encontrar outro
+estado. A lista de opcoes deve ser verificada em todas as janelas antes
+de permitir a automacao mensal. Esta limitacao impede por enquanto a
+carga historica automatica sem nova calibracao.
+
+Nao clicar em `Selecionar todas ativas`: esta acao pode incluir tarefas
+fora do E-BEF. Enquanto os seletores do input/checkbox nao estiverem
+confirmados pelo Inspector, nao utilizar --auto.
+
+Para inspecionar sem alterar tarefas:
+    npm run inspect:filters
+
+No navegador: abrir `Todas as tarefas`, pesquisar `bef`, ativar
+Pick Locator no input de busca e depois no checkbox da primeira
+opcao; enviar os dois localizadores sem dados de clientes.
