@@ -1366,3 +1366,44 @@ Com instancias anteriores do Chromium/Inspector fechadas:
 Enviar log a partir de APLICAR:, DEPARTAMENTOS: ou
 FALHA NO TESTE DE APLICACAO. O teste aplica apenas filtros visuais,
 sem baixar arquivos ou transmitir dados a Luce.
+
+
+## Falha no menu Tarefas antes dos filtros (16/10/2026)
+
+No teste real npm run test:apply o Chromium iniciou, mas parou em:
+  Falha ao abrir menu lateral Tarefas:
+  locator.waitFor: Timeout 60000ms exceeded.
+  waiting for getByText('Tarefas', { exact: true }).first() to be visible
+
+Nenhuma tarefa, status ou Departamento foi selecionado nessa tentativa.
+O problema atual é ANTERIOR ao seletor de Departamento corrigido.
+Possíveis causas: sessão expirada, retorno à tela de login,
+Dashboard ainda não renderizada ou alterações no menu lateral.
+Não alterar o seletor para algo genérico nem limpar o perfil local.
+
+Novo diagnóstico sem Inspector, sem clique e sem espera de 60 segundos:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:entry
+
+O script abre o Chromium headless com o perfil existente, espera
+8 segundos e registra ENTRADA_8S. Se o estado continuar ambíguo,
+registra ENTRADA_14S após mais 6 segundos. Mostra APENAS categoria de
+rota (Dashboard, tarefas, login possível ou outra), estado de
+carregamento, número de correspondências do mesmo localizador
+getByText('Tarefas', exact=true), presença de calendário e de campo de
+senha. Não registra URLs completas, HTML, usuário, token ou cookie.
+
+Se diagnostico indicar autenticacao_possivelmente_necessaria,
+renovar sessão apenas pelo procedimento autorizado npm run login,
+com MFA manual. Não contornar login nem copiar tokens.
+
+Se indicar dashboard_sem_menu_tarefas, investigar mudança de DOM,
+menu recolhido e carregamento antes de alterar códigos existentes.
+Se indicar menu_tarefas_disponivel, pode ter sido falha transitória;
+validar uma nova execução de test:apply após confirmar que o perfil
+foi encerrado e não está aberto em outro Chromium.
+
+A PR continua DRAFT: aplicar Filtrar, exportar XLSX, validar janelas
+mensais e sincronizar ainda NÃO estão homologados.
