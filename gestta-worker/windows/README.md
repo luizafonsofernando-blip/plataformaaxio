@@ -1291,3 +1291,40 @@ No resultado, procurar:
 Se falhar na descoberta, NÃO escolher qualquer outro dropdown
 manualmente ou via índice; enviar somente a mensagem de erro
 FALHA NO TESTE DE APLICACAO, sem dados de clientes.
+
+
+## Diagnóstico do campo Departamento já selecionado (16/10/2026)
+
+O usuário repetiu npm run test:apply em modo headless. A execução:
+- confirmou tarefas E-BEF 3/3;
+- confirmou período 01/10/2026 - 31/10/2026;
+- confirmou 4/4 status e 3/3 tipos;
+- falhou ANTES de clicar em Filtrar, quando o fallback tentou
+  localizar um texto "Departamento" como nó de texto simples:
+  "titulos=0; candidatos=0; profundidade=0".
+
+Isso indica que o seletor por título NÃO foi encontrado no DOM do Gestta,
+embora a aparência visual anterior apresente o campo Departamento.
+Não é seguro atribuir o problema definitivamente à persistência do
+filtro, nem clicar por índice, usar o primeiro campo ou limpar todos.
+
+Próxima etapa é diagnóstico SOMENTE-LEITURA, sem tentar abrir Departamento:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:department-trigger
+
+O novo comando:
+- acessa o Gestta em Chromium headless;
+- seleciona as três tarefas E-BEF, status e tipos já homologados;
+- procura os 21 nomes de departamentos conhecidos na estrutura DOM,
+  mesmo que o título "Departamento" esteja ausente;
+- imprime exclusivamente DEPT_TRIGGER com contagens, IDs do componente
+  gestta-multiselect-dropdown-...-p e classes estruturais dos ancestrais;
+- não imprime nomes de clientes, outros nomes, HTML, URLs ou segredos;
+- NÃO abre/clica no campo Departamento, NÃO clica em Filtrar,
+  NÃO exporta, NÃO sincroniza.
+
+Usar a linha DEPT_TRIGGER para determinar um seletor que identifique o
+dropdown de maneira unica na interface real. Ainda NÃO modificar
+automaticamente o seletor de produção nem liberar exportação.
