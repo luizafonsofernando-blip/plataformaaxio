@@ -609,3 +609,23 @@ o botão Filtrar para aplicar, tipos, departamentos e demais controles.
 Próximo passo com Inspector JÁ aberto: inspecionar o botão Filtrar
 na parte inferior do painel Filtros avançados. Enviar apenas o
 localizador. Não é necessário executar outro comando neste momento.
+
+
+## Botão Filtrar confirmado no Inspector (16/10/2026)
+
+O botão laranja que aplica os Filtros avançados foi localizado pelo Inspector:
+    getByRole('button', { name: 'Filtrar' })
+
+Novo módulo src/advanced-action-locators.mjs utiliza:
+    getByRole('button', { name: 'Filtrar', exact: true })
+
+Verifica que há EXATAMENTE um botão visível antes de clicar; caso contrário,
+interrompe sem alterar filtros. O exportador utiliza esse localizador e
+GESTTA_ADVANCED_APPLY_SELECTOR passou a ser apenas um ajuste opcional.
+Isso NÃO habilita a exportação: o controle de abrir o painel, tipos,
+departamentos, clientes/usuários e XLSX ainda precisam de homologação.
+
+Próximo passo com Inspector atual aberto: inspecionar, um de cada vez, os
+checkboxes Fluxo de tarefas, Solicitação de serviço e Recorrente
+na parte superior do painel Filtros avançados. Enviar somente os três
+localizadores. Não é necessário clicar em Filtrar nem reiniciar o Inspector.
