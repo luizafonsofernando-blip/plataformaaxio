@@ -135,7 +135,7 @@ export async function inspectUsersPopup(page,id) {
       found:true,depth,optionsInDom:options.length,
       selectionControls:extras.length,
       selectedCount,uncheckedCount,unknownCount,
-      allOptionsCheckedProven:options.length>0&&unknownCount===0&&
+      allVisibleOptionsChecked:options.length>0&&unknownCount===0&&
         uncheckedCount===0,
       // Menu pode virtualizar usuários. Isso ainda NÃO comprova Todos
       // usuários selecionado; precisaremos validar escopo e total real.
