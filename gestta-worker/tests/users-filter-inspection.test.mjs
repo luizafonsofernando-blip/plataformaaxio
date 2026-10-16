@@ -61,15 +61,24 @@ test('somente nome codificado e contagens podem sair do diagnóstico',async()=>{
   assert.equal(JSON.stringify(result).includes('Abigail'),false);
 });
 
-test('inspeção do popup não clica em itens e exige ID validado',async()=>{
+test('inspeção do popup vincula o portal ao ID e nunca declara todos usuarios comprovados',async()=>{
   let calls=0;
-  const page={evaluate:async(fn,id)=>{
-    calls++;assert.equal(id,valid().userId);
-    return {found:true,optionsInDom:596,selectedCount:596,
-      uncheckedCount:0,unknownCount:0,allVisibleOptionsChecked:true};
+  const page={evaluate:async(fn,args)=>{
+    calls++;
+    assert.deepEqual(args,{
+      id:valid().userId,
+      portalClass:'data-uuid-gestta-multiselect-dropdown-4',
+    });
+    return {found:true,menuAssociation:'data_uuid_trigger',liCount:603,
+      inputStates:[true,false,true],disabledInputCount:0,
+      toggleCount:6,controlCount:1};
   }};
   const info=await inspectUsersPopup(page,valid().userId);
-  assert.equal(info.selectedCount,596);
+  assert.equal(info.inputCheckboxCount,3);
+  assert.equal(info.checkedCount,2);
+  assert.equal(info.uncheckedCount,1);
+  assert.equal(info.allUsersProven,false);
+  assert.equal(JSON.stringify(info).includes('inputStates'),false);
   assert.equal(calls,1);
-  await assert.rejects(()=>inspectUsersPopup(page,'#something'),/ID invalido/);
+  await assert.rejects(()=>inspectUsersPopup(page,'#something'),/invalido/);
 });
