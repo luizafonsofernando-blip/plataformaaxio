@@ -48,7 +48,8 @@ test('diagnóstico real do portal lê estado do checkbox sem devolver nomes',asy
   let requestedSelector='';
   const menu={
     tagName:'UL',
-    getBoundingClientRect:()=>({width:280,height:250}),
+    getBoundingClientRect:()=>({left:660,right:940,top:48,bottom:298,width:280,height:250}),
+    classList:{contains:token=>token==='data-uuid-gestta-multiselect-dropdown-4'},
     querySelectorAll:selector=>{
       if(selector==='li')return new Array(603).fill({});
       if(selector==='.gestta-multiselect-dropdown__item-toggle'){
@@ -66,11 +67,11 @@ test('diagnóstico real do portal lê estado do checkbox sem devolver nomes',asy
   const originalStyle=globalThis.getComputedStyle;
   const fakeDocument={
     getElementById:id=>id==='gestta-multiselect-dropdown-4-p'
-      ?{getAttribute:key=>key==='aria-expanded'?'true':null}:null,
+      ?{getAttribute:key=>key==='aria-expanded'?'true':null,
+        getBoundingClientRect:()=>({left:660,right:940,top:10,bottom:43})}:null,
     querySelectorAll:selector=>{
       requestedSelector=selector;
-      return selector==='.gestta-multiselect-dropdown__menu.data-uuid-gestta-multiselect-dropdown-4'
-        ?[menu]:[];
+      return selector==='.gestta-multiselect-dropdown__menu'?[menu]:[];
     },
   };
   const page={
@@ -87,8 +88,8 @@ test('diagnóstico real do portal lê estado do checkbox sem devolver nomes',asy
     }
   };
   const result=await inspectUsersPopup(page,'gestta-multiselect-dropdown-4-p');
-  assert.equal(requestedSelector,
-    '.gestta-multiselect-dropdown__menu.data-uuid-gestta-multiselect-dropdown-4');
+  assert.equal(requestedSelector,'.gestta-multiselect-dropdown__menu');
+  assert.equal(result.menuAssociation,'uuid_class_confirmed');
   assert.equal(result.found,true);
   assert.equal(result.liCount,603);
   assert.equal(result.inputCheckboxCount,596);
@@ -97,4 +98,73 @@ test('diagnóstico real do portal lê estado do checkbox sem devolver nomes',asy
   assert.equal(result.controlCount,1);
   assert.equal(result.allUsersProven,false);
   assert.equal(JSON.stringify(result).includes('Nome secreto'),false);
+});
+
+
+test('localiza um unico menu proximo quando classe uuid nao e reconhecida, somente diagnostico',async()=>{
+  const originalDocument=globalThis.document;
+  const originalStyle=globalThis.getComputedStyle;
+  const trigger={
+    getAttribute:k=>k==='aria-expanded'?'true':null,
+    getBoundingClientRect:()=>({left:660,right:940,top:10,bottom:45}),
+  };
+  const menu={
+    classList:{contains:()=>false},
+    getBoundingClientRect:()=>({left:660,right:940,top:50,bottom:300,width:280,height:250}),
+    querySelectorAll:q=>{
+      if(q==='input[type="checkbox"]')return [{checked:false,disabled:false}];
+      if(q==='.gestta-multiselect-dropdown__item-toggle')
+        return [{closest:()=>({textContent:'Operador fictício'})}];
+      if(q==='li')return [{}];
+      throw Error('Unexpected selector '+q);
+    },
+  };
+  const page={evaluate:async(fn,args)=>{
+    globalThis.document={
+      getElementById:()=>trigger,
+      querySelectorAll:()=>[menu],
+    };
+    globalThis.getComputedStyle=()=>({display:'block',visibility:'visible'});
+    try{return fn(args);}finally{
+      if(originalDocument===undefined)delete globalThis.document;
+      else globalThis.document=originalDocument;
+      if(originalStyle===undefined)delete globalThis.getComputedStyle;
+      else globalThis.getComputedStyle=originalStyle;
+    }
+  }};
+  const result=await inspectUsersPopup(page,'gestta-multiselect-dropdown-4-p');
+  assert.equal(result.found,true);
+  assert.equal(result.menuAssociation,'geometric_provisional');
+  assert.equal(result.checkedCount,0);
+  assert.equal(result.uncheckedCount,1);
+  assert.equal(result.allUsersProven,false);
+});
+
+test('nao associa painel por proximidade quando existirem dois menus proximos',async()=>{
+  const originalDoc=globalThis.document;
+  const originalStyle=globalThis.getComputedStyle;
+  const trigger={
+    getAttribute:k=>k==='aria-expanded'?'true':null,
+    getBoundingClientRect:()=>({left:660,right:940,top:10,bottom:45}),
+  };
+  const candidate={
+    classList:{contains:()=>false},
+    getBoundingClientRect:()=>({left:660,right:940,top:50,bottom:300,width:280,height:250}),
+  };
+  const page={evaluate:async(fn,args)=>{
+    globalThis.document={
+      getElementById:()=>trigger,
+      querySelectorAll:()=>[candidate,candidate],
+    };
+    globalThis.getComputedStyle=()=>({display:'block',visibility:'visible'});
+    try{return fn(args);}finally{
+      if(originalDoc===undefined)delete globalThis.document;
+      else globalThis.document=originalDoc;
+      if(originalStyle===undefined)delete globalThis.getComputedStyle;
+      else globalThis.getComputedStyle=originalStyle;
+    }
+  }};
+  const result=await inspectUsersPopup(page,'gestta-multiselect-dropdown-4-p');
+  assert.equal(result.found,false);
+  assert.equal(result.reason,'menus_ambiguos');
 });
