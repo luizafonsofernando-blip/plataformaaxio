@@ -548,3 +548,25 @@ inspecione os quatro status: Aberta, Concluida, Impedimento e
 Desconsiderada. Ainda faltam homologar esses filtros, os tipos, todos os
 21 departamentos, a exportacao mensal XLSX e a sincronizacao para a Luce.
 Nao habilitar operacao automatica antes dessas validacoes.
+
+
+## Funil de filtros avançados: quinto botão no Inspector (16/10/2026)
+
+O Playwright Inspector identificou o botão do funil como:
+    locator('button').nth(4)
+
+Esse é o quinto botão do DOM e NÃO deve ser fixado no fluxo produtivo,
+pois pode mudar quando o Gestta renderizar outros componentes.
+
+A rotina npm run inspect:advanced agora faz diagnóstico apenas de leitura:
+depois de selecionar as três tarefas E-BEF, registra total_de_botoes,
+visibilidade do quinto e atributos limitados ao id, title, aria-label,
+data-testid, nome e propriedades do SVG/elemento pai. NÃO clica no botão
+automaticamente; tampouco registra nomes de clientes, URL ou conteúdo do DOM.
+
+Após atualizar o repositório, inicie npm run inspect:advanced, localize
+a linha "DIAGNOSTICO FUNIL" no terminal e depois, com o Inspector pausado,
+desative Pick Locator, clique manualmente no funil e reative Pick Locator
+sobre o checkbox "Concluída" dentro do painel. Envie somente os atributos
+de diagnóstico e o localizador de Concluída para calibrar o status.
+Ainda não exportar nem sincronizar até homologar os filtros.
