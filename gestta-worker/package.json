@@ -1,0 +1,40 @@
+{
+  "name": "luce-gestta-ebef-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "login": "node src/cli.mjs login",
+    "sync": "node src/cli.mjs sync",
+    "test": "node --test",
+    "inspect": "node src/inspect.mjs",
+    "test:calendar": "node src/test-calendar.mjs",
+    "diagnose:navigation": "node src/diagnose-navigation.mjs",
+    "inspect:filters": "node src/inspect-filters.mjs",
+    "test:tasks": "node src/test-task-filter.mjs",
+    "inspect:advanced": "node src/inspect-advanced.mjs",
+    "diagnose:departments": "node src/diagnose-departments.mjs",
+    "diagnose:browser": "node src/diagnose-browser.mjs",
+    "diagnose:funnel": "node src/diagnose-funnel.mjs",
+    "test:advanced": "node src/test-advanced-filters.mjs",
+    "test:apply": "node src/test-apply-filters.mjs",
+    "diagnose:department-trigger": "node src/diagnose-department-trigger.mjs",
+    "diagnose:entry": "node src/diagnose-entry.mjs",
+    "test:period": "node src/test-period.mjs",
+    "plan:months": "node src/plan-months.mjs",
+    "test:sequence": "node src/test-sequence.mjs",
+    "diagnose:export": "node src/diagnose-export-control.mjs",
+    "test:export-one": "node src/test-export-one.mjs",
+    "diagnose:global-filters": "node src/diagnose-global-filters.mjs",
+    "diagnose:users-filter": "node src/diagnose-users-filter.mjs",
+    "test:users-select-all": "node src/test-users-select-all.mjs"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "playwright": "^1.55.0"
+  }
+}
