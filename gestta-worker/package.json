@@ -21,7 +21,8 @@
     "diagnose:funnel": "node src/diagnose-funnel.mjs",
     "test:advanced": "node src/test-advanced-filters.mjs",
     "test:apply": "node src/test-apply-filters.mjs",
-    "diagnose:department-trigger": "node src/diagnose-department-trigger.mjs"
+    "diagnose:department-trigger": "node src/diagnose-department-trigger.mjs",
+    "diagnose:entry": "node src/diagnose-entry.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
