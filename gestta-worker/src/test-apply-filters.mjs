@@ -14,6 +14,7 @@ import { inspectTaskTypes, ensureAllTaskTypes } from './advanced-task-type-locat
 import { openDepartmentPicker, clickDepartmentSelectAll } from './department-controls.mjs';
 import { inspectScopedDepartments } from './department-scope.mjs';
 import { REQUIRED_DEPARTMENTS } from './advanced-filter-config.mjs';
+import { assertDepartmentSelection, assertSelectedStatusesAndTypes } from './apply-test-guards.mjs';
 import { clickAdvancedApplyButton, verifyAdvancedApplyButton } from './advanced-action-locators.mjs';
 import { readControlText, DATE_SELECTORS } from './date-picker.mjs';
 import { withDeadline } from './timeout-utils.mjs';
@@ -25,24 +26,6 @@ if(target.protocol!=='https:'||target.hostname!=='app.gestta.com.br'){
 const profile=resolve(process.cwd(),'.gestta-profile');
 await mkdir(profile,{recursive:true,mode:0o700});
 
-export function assertDepartmentSelection(info) {
-  const n=REQUIRED_DEPARTMENTS.length;
-  if(!info.found || info.candidateScopes!==1 || info.rowCount!==n ||
-     info.recognizedUnique!==n || !info.allExpectedPresent ||
-     info.unknownCount!==0 || info.stateCounts.indeterminado!==0 ||
-     info.stateCounts.marcado!==n || info.stateCounts.desmarcado!==0){
-    throw new Error('Selecao dos 21 departamentos nao foi comprovada. '+
-      'Nao acionar Filtrar.');
-  }
-}
-
-export function assertSelectedStatusesAndTypes(statuses,types) {
-  if(Object.keys(statuses).length!==4 || Object.values(statuses).some(item=>!item.checked) ||
-     Object.keys(types).length!==3 || Object.values(types).some(item=>!item.checked)){
-    throw new Error('Um status ou tipo de tarefa nao permaneceu selecionado; '+
-      'nao acionar Filtrar.');
-  }
-}
 
 let context;
 try{
