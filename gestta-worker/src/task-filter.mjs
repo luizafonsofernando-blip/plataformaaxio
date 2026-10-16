@@ -7,53 +7,31 @@ export function taskFilterTrigger(page) {
   return page.getByText(TASK_FILTER_DEFAULT_LABEL, { exact: true });
 }
 
+// O Gestta renderiza os controles da lista de tarefas de modo assincrono.
+// count() nao aguarda elementos; antes ele retornava zero prematuramente.
 export async function verifyTaskFilterTrigger(page) {
   const trigger = taskFilterTrigger(page);
+  try {
+    await trigger.first().waitFor({ state: 'visible', timeout: 30000 });
+  } catch {
+    // Continua para diagnosticar quantidade e visibilidade sem registrar dados privados.
+  }
   const count = await trigger.count();
   if (count !== 1) {
-    throw new Error('Filtro principal "Todas as tarefas" nao localizado de forma unica (' +
-      count + ' correspondencias). Inspecione a caixa superior ou calibre o seletor.');
+    throw new Error('Filtro principal "Todas as tarefas" nao localizado de forma unica ' +
+      'apos aguardar ate 30 segundos (correspondencias=' + count + '). ' +
+      'Verifique o carregamento da tela. Nenhum filtro foi limpo.');
   }
   if (!(await trigger.isVisible())) {
-    throw new Error('Filtro principal de tarefas ainda nao esta visivel.');
+    throw new Error('Filtro principal "Todas as tarefas" ainda esta invisivel.');
   }
   return trigger;
 }
 
-
-// Não pressupor que a seleção inicial persista vazia entre execuções.
-// O seletor do X de limpeza precisa ser capturado do próprio Gestta:
-// jamais clicar genericamente em todos os botões X da página.
-export async function ensureUnfilteredTaskPicker(page, clearCss = process.env.GESTTA_TASK_FILTER_CLEAR_SELECTOR) {
-  const trigger = taskFilterTrigger(page);
-  const initialCount = await trigger.count();
-  if (initialCount === 1 && await trigger.isVisible()) return trigger;
-  if (initialCount > 1) {
-    throw new Error('Campo Todas as tarefas ambiguo (' + initialCount +
-      ' elementos). Inspecione o filtro superior antes de continuar.');
-  }
-  if (!clearCss?.trim()) {
-    throw new Error('Filtro principal Todas as tarefas ausente (0 correspondencias). ' +
-      'O Gestta pode ter preservado uma selecao anterior. ' +
-      'Abra o Inspector e capture o X de LIMPAR SOMENTE o filtro de tarefas. ' +
-      'Nao usar --auto nem clicar no X de outros filtros.');
-  }
-
-  const clear = page.locator(clearCss.trim());
-  if (await clear.count() !== 1 || !(await clear.isVisible())) {
-    throw new Error('Controle de limpeza do filtro de tarefas nao identificado ' +
-      'de forma unica e visivel. Cancelando sem alterar filtros.');
-  }
-  await clear.click({timeout:10000});
-  try {
-    await trigger.first().waitFor({state:'visible',timeout:15000});
-  } catch {
-    throw new Error('Filtro de tarefas nao voltou a Todas as tarefas apos limpeza.');
-  }
-  if (await trigger.count() !== 1 || !(await trigger.isVisible())) {
-    throw new Error('Nao foi possivel confirmar filtro inicial apos limpeza.');
-  }
-  return trigger;
+// Ausencia temporaria de texto nao comprova filtro persistente. Nunca clicar no
+// X ou limpar selecoes sem ter confirmado o estado real do dropdown.
+export async function ensureUnfilteredTaskPicker(page) {
+  return verifyTaskFilterTrigger(page);
 }
 
 export const EBEF_SEARCH_TERM = 'bef';
@@ -108,10 +86,12 @@ export function menuItemCheckbox(item, css) {
     : item.getByRole('checkbox');
 }
 
-export async function selectEbefTasks(page, { searchCss, rowCss, checkboxCss, clearCss } = {}) {
+export async function selectEbefTasks(page, { searchCss, rowCss, checkboxCss } = {}) {
   // Antes de pesquisar é importante não haver seleção prévia de outras
   // tarefas. O texto inicial "Todas as tarefas" foi confirmado no Inspector.
-  const trigger = await ensureUnfilteredTaskPicker(page, clearCss);
+  console.log('Tela de tarefas aberta. Aguardando 5 segundos para carregar os filtros...');
+  await page.waitForTimeout(5000);
+  const trigger = await ensureUnfilteredTaskPicker(page);
   await trigger.click({ timeout: 10000 });
 
   const search = taskSearchLocator(page, searchCss);
