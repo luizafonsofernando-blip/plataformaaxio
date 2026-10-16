@@ -1177,3 +1177,37 @@ EXPORTACAO, SEM FILTRAR E SEM SINCRONIZACAO.
 
 Se falhar, enviar a mensagem começando em FALHA NO TESTE INTEGRADO;
 não executar o comando sync nem habilitar automação agendada.
+
+
+## Falha no teste integrado: checkbox Concluída após leitura inicial (16/10/2026)
+
+No Windows, npm run test:advanced confirmou 3/3 tarefas E-BEF e encontrou
+4/4 checkboxes de status. Durante a seleção, falhou com:
+  Filtro avançado CONCLUIDA não localizado de forma única e visível
+  (correspondências=0).
+
+Isso não comprova que o status está ausente; pode indicar nome acessível
+com glifo adicional após rerender, ou desaparecimento do controle após
+interagir com outro checkbox. As duas hipóteses precisam de teste real.
+
+Correção incremental:
+- Todos os quatro status agora usam getByRole('checkbox') com regex
+  ancorada no nome, permitindo glifos/ícones após o rótulo.
+- Cada status só é marcado se for único e visível.
+- Ao selecionar, verifica imediatamente isChecked(), depois lê todos
+  os quatro novamente.
+- Loga STATUS: encontrados=4/4 e cada STATUS: <chave>=marcado.
+- Em caso de desaparecimento/ambiguidade, informa número de matches
+  e presença do botão Filtrar, sem clicar em nenhum outro status.
+- Se falhar, NÃO aplica Filtrar, NÃO exporta, NÃO transmite à Luce.
+
+Testes simulados: 6/6 passaram; a homologação real ainda é necessária.
+Executar:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:advanced
+
+Copiar o bloco desde STATUS: ou FALHA NO TESTE INTEGRADO.
+Se aparecer erro com botoes_Filtrar=0, possivelmente o painel fechou;
+não tentar corrigir clicando botões globais sem investigação.
