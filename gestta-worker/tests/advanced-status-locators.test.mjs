@@ -16,9 +16,9 @@ function fakeStatuses({
   }
   const printedNames = {
     ABERTA:'Aberta \uF020',
-    CONCLUIDA:'Concluída',
+    CONCLUIDA:'Concluída \uF020',
     IMPEDIMENTO:'Impedimento \uF020',
-    DESCONSIDERADA:'Desconsiderada',
+    DESCONSIDERADA:'Desconsiderada \uF020',
   };
   const mockFor=key=>{
     const item={
@@ -33,12 +33,14 @@ function fakeStatuses({
   };
   const page={
     getByRole:(role,options)=>{
+      if (role==='button') {
+        assert.deepEqual(options,{name:'Filtrar',exact:true});
+        return {count:async()=>1};
+      }
       assert.equal(role,'checkbox');
-      assert.equal(typeof options.name==='string' || options.name instanceof RegExp, true);
+      assert.equal(options.name instanceof RegExp, true);
       const key=Object.keys(VERIFIED_STATUS_LABELS).find(k =>
-        typeof options.name==='string'
-          ? options.name===printedNames[k] && options.exact===true
-          : options.name.test(printedNames[k]));
+        options.name.test(printedNames[k]));
       assert(key,'localizador nome inesperado');
       return mockFor(key);
     },
@@ -46,7 +48,7 @@ function fakeStatuses({
   return {page,state,calls};
 }
 
-test('todos os status identificados, inclusive Aberta e Impedimento com glifo', async()=>{
+test('todos os status identificados com nomes acessíveis contendo glifos', async()=>{
   const f=fakeStatuses();
   const states=await inspectAdvancedStatuses(f.page);
   assert.deepEqual(Object.keys(states),['ABERTA','CONCLUIDA','IMPEDIMENTO','DESCONSIDERADA']);
@@ -72,4 +74,45 @@ test('não marca nada se algum checkbox de status não existir',async()=>{
 
 test('bloqueia status desconhecido',()=>{
   assert.throws(()=>statusCheckbox(fakeStatuses().page,'ARQUIVADA'),/não reconhecido/);
+});
+
+
+test('Concluída e Desconsiderada aceitam nomes simples ou com sufixo',()=>{
+  const matching=['Concluída','Concluída \uF020','Desconsiderada','Desconsiderada \uF020'];
+  const f=fakeStatuses();
+  const a=statusCheckbox(f.page,'CONCLUIDA');
+  const b=statusCheckbox(f.page,'DESCONSIDERADA');
+  assert.equal(a!==undefined,true);
+  assert.equal(b!==undefined,true);
+  // Demonstrar a ancoragem sem usar igualdade exata.
+  assert.match('Concluída \uF020',/^Concluída\b/i);
+  assert.match('Desconsiderada \uF020',/^Desconsiderada\b/i);
+  assert.doesNotMatch('Não concluída',/^Concluída\b/i);
+});
+
+test('interrompe após checkbox desaparecer durante seleções, sem avançar',async()=>{
+  let selected=false;
+  const keys=['ABERTA','CONCLUIDA','IMPEDIMENTO','DESCONSIDERADA'];
+  const labels=['Aberta','Concluída','Impedimento','Desconsiderada'];
+  const state=[false,false,false,false];
+  let clicks=0;
+  const page={
+    getByRole:(role,opts)=>{
+      if(role==='button') return {count:async()=>1};
+      const i=labels.findIndex(label=>opts.name.test(label));
+      assert.notEqual(i,-1);
+      const el={
+        first:()=>el,
+        waitFor:async()=>{},
+        count:async()=>i===1 && selected?0:1,
+        isVisible:async()=>true,
+        isChecked:async()=>state[i],
+        check:async()=>{clicks++;state[i]=true;if(i===0)selected=true;},
+      };
+      return el;
+    },
+  };
+  await assert.rejects(()=>ensureAllAdvancedStatuses(page),/CONCLUIDA desapareceu/);
+  assert.equal(clicks,1);
+  assert.deepEqual(state,[true,false,false,false]);
 });
