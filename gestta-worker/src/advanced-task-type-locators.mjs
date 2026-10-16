@@ -5,7 +5,7 @@
 // Alterar estes checkboxes ajusta somente os filtros de leitura do Gestta.
 export const VERIFIED_TASK_TYPES = Object.freeze({
   'FLUXO DE TAREFAS': 'Fluxo de tarefas',
-  'SOLICITACO DE SERVICO': 'Solicitação de serviço',
+  'SOLICITACAO DE SERVICO': 'Solicitação de serviço',
   'RECORRENTE': 'Recorrente',
 });
 
