@@ -1100,3 +1100,41 @@ Selecionar todos, mesmo que a leitura global mostre os 21 nomes;
 enviar ESCOPO_ANTES, ANTES e ESTRUTURA para calibração.
 Se found=true, validar rowCount=21, unknownCount=0 e DEPOIS 21/21.
 Não habilitar sincronização antes do teste conjunto dos filtros.
+
+
+## ESCOPO_ANTES falhou com 22 toggles próximos (16/10/2026)
+
+No teste real, o Gestta abriu o menu Departamento e informou:
+    ESCOPO_ANTES: found=false, candidateScopes=0,
+      visibleSelectAllCandidates=2, nearbyToggleCounts=[1,22,64]
+A consulta global confirmou 21 nomes dos departamentos da ORTECONTE,
+todos desmarcados antes de qualquer ação. A rotina corretamente NÃO
+clicou em Selecionar todos, pois o escopo local exigia exatamente 21
+toggles e o contêiner menor próximo ao controle apresentava 22.
+
+A nova regra aceita dois formatos de contêiner, SOMENTE quando válidos:
+1) exatamente 21 toggles correspondendo a cada um dos 21 nomes esperados;
+2) exatamente 22 toggles: 21 nomes esperados distintos + 1 controle
+   de nome EXATAMENTE "Selecionar todos" ou "Desselecionar todos".
+Não aceita nenhum outro 22º nome e não imprime nomes estranhos ao escopo.
+Se a classificação falhar, o script para sem clicar, registrando apenas
+nearbyCandidateProfiles (contagens, nenhuma informação do cliente).
+Se ocorrerem dois contêineres igualmente válidos, aborta por ambiguidade.
+
+src/department-scope.mjs implementa essa identificação; os diagnósticos
+e o exportador ainda exigem 21/21 nomes e checkboxes marcados e sempre
+falham sem exportar quando o menu correto não estiver confirmado.
+
+Teste local de estrutura DOM sintética reproduziu um menu 22 controles
+(21 departamentos + Selecionar todos) e também um 22º item inesperado.
+O primeiro foi reconhecido, o segundo bloqueado. Nove testes simulados
+da rotina de escopo passaram. A validação REAL no Gestta segue pendente.
+
+Próximo teste em Chromium headless, sem exportar:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:departments
+
+Solicitar o resultado ESCOPO_ANTES, ANTES, ESCOPO_DEPOIS e DEPOIS.
+Se found=false, observar nearbyCandidateProfiles e não assumir sucesso.
