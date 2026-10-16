@@ -1629,3 +1629,41 @@ A PR continua DRAFT. A proxima fase deve primeiro identificar
 seletor do controle de exportacao de forma somente-leitura e valida-lo
 contra o menu de tarefas antes de baixar um unico XLSX.
 
+
+
+## Sequencia mensal aprovada, inicio da homologacao de exportacao (16/10/2026)
+
+Depois da correcao direcional, o usuario confirmou no Gestta real:
+- 1/3 CONFIRMADA 01/09/2026 - 30/09/2026;
+- 2/3 CONFIRMADA 01/10/2026 - 30/10/2026;
+- 3/3 CONFIRMADA 02/10/2026 - 31/10/2026;
+- preenchimento setembro -> outubro na ordem end->start, uma passagem;
+- preenchimento de janelas sobrepostas na ordem start->end, uma passagem;
+- nenhum clique Filtrar, nenhum XLSX, nenhum download, nenhuma sync.
+
+As 3 janelas numa mesma sessao estao homologadas no Windows.
+A exportacao XLSX ainda NAO esta homologada. O exportador principal
+usa atualmente GESTTA_EXPORT_SELECTOR e exige verificacoes adicionais
+de Todos os clientes, Todos os usuarios e Data Meta. NAO executar
+npm run sync -- --backfill --auto por enquanto.
+
+Novo diagnostico SOMENTE DE LEITURA para identificar o botao correto
+de exportacao na barra de tarefas:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:export
+
+O comando navega para Tarefas em Chromium headless, sem selecionar
+tarefas, sem Filtrar, sem clicar em Exportar e com downloads desativados.
+Consulta somente a estrutura do controle ao lado do funil, exigindo
+um icone de download, classe de exportacao explicita e um unico
+escopo .mixed-topfilter__actions. Registra EXPORT_CONTROL com
+contagens e classes CSS restritas, sem HTML, dados de clientes,
+cookies ou URLs com tokens. Se nao puder identificar, apenas
+diagnostica. Seis testes simulados passaram; o Gestta real continua
+pendente de homologacao dessa etapa.
+
+Apos o diagnostico, enviar a linha EXPORT_CONTROL. O proximo passo
+sera um teste de exportacao de UMA janela, sem envio a Luce,
+validando formato XLSX, colunas, Data Meta e IDs das tarefas.
