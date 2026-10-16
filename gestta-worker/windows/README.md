@@ -788,3 +788,31 @@ O teste modifica SOMENTE os filtros visuais, não tarefas ou dados do Gestta.
 Nenhum arquivo é exportado e nenhuma informação é transmitida à Luce.
 Atenção: o ID #gestta-multiselect-dropdown-5-p foi observado na interface
 atual e ainda exige confirmação na repetição real do Windows.
+
+
+## Homologação real do reuso do filtro de tarefas (16/10/2026)
+
+Duas execuções consecutivas de \`npm run test:tasks\` foram concluídas no
+Windows, ambas com "TAREFAS E-BEF SELECIONADAS E VERIFICADAS: 3/3".
+Na PRIMEIRA execução, o PowerShell também confirmou:
+"Selecao anterior de tarefas limpa; Todas as tarefas confirmado."
+Na SEGUNDA, a limpeza não precisou ser registrada e a seleção 3/3
+também funcionou. Assim, os dois estados de entrada observados
+foram exercitados (filtro com seleção persistida e filtro já inicial).
+Não ocorreu download, transmissão à Luce nem alteração das tarefas.
+
+Escopo homologado: abrir Tarefas, esperar renderização, reconhecer a caixa
+de filtro, limpar uma seleção E-BEF anterior quando necessário, pesquisar
+"bef", rolar e confirmar as três tarefas.
+Ainda faltam homologar a verificação dos 21 departamentos, a aplicação
+integrada dos filtros, a exportação mensal e a sincronização com a Luce.
+
+Próximo diagnóstico seguro:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:departments
+
+O diagnóstico pausa para abrir manualmente o funil > Departamento, lê a
+lista, e solicita um segundo Enter após a seleção manual de
+"Selecionar todos". Nenhum arquivo será baixado ou enviado.
