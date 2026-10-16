@@ -24,7 +24,8 @@
     "diagnose:department-trigger": "node src/diagnose-department-trigger.mjs",
     "diagnose:entry": "node src/diagnose-entry.mjs",
     "test:period": "node src/test-period.mjs",
-    "plan:months": "node src/plan-months.mjs"
+    "plan:months": "node src/plan-months.mjs",
+    "test:sequence": "node src/test-sequence.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
