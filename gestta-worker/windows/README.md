@@ -816,3 +816,45 @@ Próximo diagnóstico seguro:
 O diagnóstico pausa para abrir manualmente o funil > Departamento, lê a
 lista, e solicita um segundo Enter após a seleção manual de
 "Selecionar todos". Nenhum arquivo será baixado ou enviado.
+
+
+## Chromium congelou durante diagnóstico de departamentos (16/10/2026)
+
+O teste diagnose:departments chegou a "TAREFAS E-BEF SELECIONADAS E
+VERIFICADAS: 3/3" e parou na pergunta para abrir o funil manualmente,
+mas o usuário relatou que somente a JANELA do Chromium parou de responder;
+o PowerShell permanecia normal. Ainda NÃO há causa identificada: aguardar
+resposta do PowerShell (readline) normalmente não congela o navegador.
+Não presumir que a pausa por ENTER seja a origem do problema.
+
+Em primeiro lugar, pressionar Ctrl+C no PowerShell e fechar SOMENTE o
+Chromium de teste. Não encerrar todo Google Chrome indiscriminadamente.
+
+Foi criado diagnose:browser para separar indisponibilidade do renderizador
+de problemas de foco/interface. O comando NÃO aguarda ENTER nem pede
+interação manual. Após entrar na lista e confirmar E-BEF 3/3,
+traz o Chromium para frente, executa duas leituras leves de DOM separadas
+por 8 segundos e imprime:
+- BROWSER_ANTES: readyState, visibility, hasFocus, calendarElements, elapsedMs;
+- BROWSER_DEPOIS_8S: mesmos campos.
+Se o renderizador não responder em 6,5 segundos, anota erro de timeout.
+Não lê nomes de clientes, não tira screenshots, não exporta nem transmite.
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:browser
+
+Depois de terminar, enviar APENAS as linhas BROWSER_ANTES,
+BROWSER_DEPOIS_8S e eventualmente DIAGNOSTICO CHROMIUM.
+Se houver congelamento/erro gráfico, podemos testar separadamente
+com aceleração de GPU desligada (apenas na sessão atual):
+
+    $env:GESTTA_DISABLE_GPU="1"
+    npm run diagnose:browser
+    Remove-Item Env:GESTTA_DISABLE_GPU
+
+Esse teste adicional é opcional e não deve ser feito antes de analisar
+o resultado no modo normal. Se até o teste sem interação congelar,
+avaliar consumo de memória/CPU e processos do Chromium antes de prosseguir.
+Nenhum comando de sincronização ou exportação deve ser usado aqui.
