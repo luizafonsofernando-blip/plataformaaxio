@@ -1928,3 +1928,52 @@ A exportação continua BLOQUEADA. Para novo diagnóstico:
 
 Enviar apenas USERS_POPUP e, caso ainda falhe, USERS_STRUCTURE.
 NÃO rodar test:export-one nem sync até confirmação de todos usuários.
+
+
+## Usuarios: leitura real de 596 checkboxes, apenas 2 marcados (16/10/2026)
+
+O usuário executou npm run diagnose:users-filter depois da correção.
+Resultado do Gestta real:
+- tasks E-BEF 3/3;
+- gatilho do campo Usuários identificado como dropdown N-p,
+  por topologia "Clientes" / "Usuários" / calendário;
+- USERS_POPUP: found=true, menuAssociation=geometric_provisional,
+  totalGlobalMenus=3, nearbyMenus=1, uuidMatches=0;
+- liCount=603, toggleCount=599, controlCount=1;
+- inputCheckboxCount=596, checkedCount=2, uncheckedCount=594,
+  unknownInputCount=0, disabledInputCount=0;
+- allRenderedCheckboxesChecked=false; allUsersProven=false.
+
+Apenas 2 dos 596 inputs de checkbox encontrados estavam marcados.
+Ainda NÃO comprova o total de usuários reais devido à possível
+paginação/virtualização, nem a identidade da lista por data-uuid.
+Não permitir exportação com base nos dois usuários.
+
+Criado teste opt-in de seleção VISUAL de todos usuários:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:users-select-all -- --confirm-select-all
+
+Precauções do ensaio:
+- exige confirmação --confirm-select-all e aborta sem ela;
+- navega para Tarefas e confirma os 3 tipos E-BEF;
+- encontra campo superior Usuários pela topologia;
+- permite somente UM menu visível perto do gatilho EXPANDIDO;
+- obriga o gatilho a pertencer a mixed-topfilter__filter--user;
+- exige uma única ação "Selecionar todos" dentro do mesmo menu,
+  um link único e habilitado, nenhuma ambiguidade ou checkbox inválido;
+- reconfirma índice e contagens imediatamente antes do clique;
+- realiza NO MÁXIMO UM clique em "Selecionar todos";
+- espera e verifica se todos os inputs do DOM atual ficaram marcados;
+- nunca clica Filtrar, exporta XLSX, sincroniza, altera tarefas,
+  completa tarefas ou envia dados para Luce;
+- allUsersProven permanece false mesmo após sucesso, até homologar
+  o comportamento completo do Gestta e seus usuários efetivos;
+- pode modificar a seleção visual de usuários persistida na conta.
+  Execute somente se desejar aplicar Todos usuários.
+
+Sete testes simulados de segurança, confirmação e falha passaram.
+O teste REAL de 596 checkboxes ainda está PENDENTE de execução.
+Enviem apenas USERS SELECT: ou FALHA USERS SELECT:, sem nomes de clientes.
+A primeira exportação de XLSX permanece bloqueada neste estágio.
