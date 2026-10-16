@@ -1407,3 +1407,48 @@ foi encerrado e não está aberto em outro Chromium.
 
 A PR continua DRAFT: aplicar Filtrar, exportar XLSX, validar janelas
 mensais e sincronizar ainda NÃO estão homologados.
+
+
+## Botao Filtrar homologado no Windows (16/10/2026)
+
+O usuario executou npm run test:apply com o Gestta autenticado e obteve:
+- tarefas E-BEF=3/3;
+- periodo_antes=01/10/2026 - 31/10/2026;
+- quatro status e tres tipos de tarefa selecionados;
+- campo Departamento com selecao anterior identificado pelo grupo 21+1;
+- departamentos=21/21;
+- botao Filtrar unico, visivel e acionado;
+- periodo_depois=01/10/2026 - 31/10/2026;
+- SUCESSO SEM DOWNLOAD, SEM EXPORTACAO E SEM SINCRONIZACAO.
+
+Homologados: navegacao, tarefas, status, tipos, departamentos, Filtrar
+e preservacao do periodo atual nessa execucao real do Windows.
+Nao foram homologados ainda a ALTERACAO AUTOMATICA do calendario,
+a exportacao mensal XLSX nem a sincronizacao com a Luce.
+
+## Proximo teste isolado de calendario, sem exportar (16/10/2026)
+
+Foi criado npm run test:period para mudar apenas o FILTRO VISUAL
+de datas em Chromium headless. Recebe intervalo explicito, valida
+que as datas pertencem ao mesmo mes e tem no maximo 30 dias.
+Nao clica no botao Filtrar, nao faz download nem transmite dados.
+
+O Gestta permite periodos de ate 30 dias na exportacao; por isso
+outubro de 31 dias e coberto por duas janelas sobrepostas:
+01/10 - 30/10 e 02/10 - 31/10. A deduplicacao posterior devera ser
+pelo identificador estavel da tarefa, nao pelos textos.
+A primeira homologacao deve usar SOMENTE a primeira janela:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:period -- --start=2026-10-01 --end=2026-10-30
+
+O teste loga PERIODO: antes, solicitado, depois e mensagem de
+SUCESSO SEM FILTRAR, SEM DOWNLOAD, SEM XLSX E SEM SINCRONIZACAO.
+Se falhar no datepicker, enviar FALHA NO TESTE DE PERIODO e os
+logs PERIODO:, sem screenshots de dados internos ou credenciais.
+
+NAO rodar sincronizacao automatica ainda. A aprovacao da mudanca
+visual nao substitui a verificacao de janelas, status, exportacao XLSX,
+reconciliacao de IDs e transmissao autorizada para Luce.
