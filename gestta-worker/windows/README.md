@@ -1667,3 +1667,54 @@ pendente de homologacao dessa etapa.
 Apos o diagnostico, enviar a linha EXPORT_CONTROL. O proximo passo
 sera um teste de exportacao de UMA janela, sem envio a Luce,
 validando formato XLSX, colunas, Data Meta e IDs das tarefas.
+
+
+## Botao Exportar identificado no Gestta real (16/10/2026)
+
+O usuario executou npm run diagnose:export. Diagnostico real:
+- scopeCount=1 em .mixed-topfilter__actions;
+- actionsCount=3;
+- uma acao visivel e habilitada com classe
+  mixed-topfilter__action--export e icone fa-download;
+- visibleDownloadCandidates=1, uniqueExportCandidate=true;
+- exportClassAndIconConfirmed=true;
+- nenhum clique nem download.
+
+## Proximo passo: homologar UM XLSX local e descarta-lo
+
+O comando novo npm run test:export-one foi construido APENAS para
+01/10/2026 a 30/10/2026. Exige --confirm-download explicitamente.
+
+Com o Chromium/Inspector anterior fechado:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:export-one -- --start=2026-10-01 --end=2026-10-30 --confirm-download
+
+O procedimento:
+1. Navega para tarefas e confirma 3/3 tarefas E-BEF;
+2. Exige textos unicos e visiveis: Todos clientes,
+   Todos usuarios e Data Meta (SE falhar, nao exporta);
+3. Configura 01/10-30/10 por janela validada;
+4. Seleciona e verifica 4/4 status, 3/3 tipos e
+   21/21 departamentos com escopo unico;
+5. Clica Filtrar e reconfirma periodo, opcoes globais e E-BEF;
+6. Exige unica acao de exportacao habilitada e identificada
+   pela classe .mixed-topfilter__action--export e fa-download;
+7. Faz um download XLSX em diretorio temporario local;
+8. Le a planilha no proprio computador com parseGesttaXlsx,
+   validando formato, colunas, IDs e vencimento no intervalo;
+9. Registra somente contagens e categorias, nao clientes/CNPJ;
+10. Encerra Chromium e exclui o XLSX temporario mesmo se falhar.
+
+IMPORTANTES:
+- Este comando realiza UM download verdadeiro do Gestta. O usuario
+  precisa consentir ao executar --confirm-download.
+- NENHUM dado é transmitido à Luce. O teste NAO chama sync.
+- O arquivo XLSX nao sera enviado automaticamente ao chat ou GitHub.
+- Se falhar por falta de filtros globais ou incompatibilidade de XLSX,
+  nao usar seletores genericos nem habilitar backfill/sync.
+- Cinco testes simulados das guardas passaram. Homologacao REAL ainda
+  pendente.
+- Enviar apenas linhas XLSX UNICO: ou FALHA XLSX UNICO: do PowerShell,
+  nunca dados de clientes, extratos, planilha bruta, senha ou token.
