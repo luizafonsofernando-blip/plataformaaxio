@@ -50,7 +50,7 @@ export async function assertEbefSelectionPreserved(page) {
   // Um simples "inclui EBEF" aceita selecao parcial, por exemplo 1/3.
   // Este resumo e apenas uma verificacao de cobertura aparente: nao substitui
   // a leitura dos 3 checkboxes, que deve ser validada em homologacao no Gestta.
-  if (!/^DECLARACAO DE EBEF\\b[\\s\\S]*\\+\\s*2\\s*$/.test(text.trim())) {
+  if (!/^DECLARACAO DE EBEF\b[\s\S]*\+\s*2\s*$/.test(text.trim())) {
     throw new Error('Filtro superior de tarefas nao confirma resumo E-BEF 3/3; exportacao bloqueada.');
   }
   // Não exibir texto integral do componente.
