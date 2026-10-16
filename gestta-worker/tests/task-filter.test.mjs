@@ -47,6 +47,8 @@ function fakeDropdown({
     click:async()=>{opened=true;clicks++;},
   };
   const search={
+    first:()=>search,
+    waitFor:async()=>{if(!searchVisible || !opened) throw new Error('campo invisivel');},
     count:async()=>opened?1:0,
     isVisible:async()=>searchVisible,
     fill:async value=>{typed=value;},
@@ -77,17 +79,20 @@ function fakeDropdown({
   };
   const page={
     getByText:(label,opts)=>{
+      if (label === 'Selecionar todas ativas') return {count:async()=>0};
       assert.equal(label,'Todas as tarefas');
       assert.equal(opts.exact,true);
       return trigger;
     },
     getByRole:(role,opts)=>{
       if(role==='textbox'){
-        assert.equal(opts.name,'Buscar por tarefa');
-        assert.equal(opts.exact,true);
+        if (!opts) return {count:async()=>opened?1:0};
+        assert(opts.name instanceof RegExp);
+        assert(opts.name.test('Buscar por tarefa'));
         return search;
       }
       if(role==='menuitem'){
+        if (!opts) return {count:async()=>typed==='bef'?labels.length:0};
         assert(opts.name instanceof RegExp);
         assert(opts.name.test('DECLARAÇÃO DE EBEF | TÉCNICO'));
         return rows;
@@ -101,7 +106,7 @@ function fakeDropdown({
 test('mapeia input, menuitems e checkboxes por papeis acessiveis',()=>{
   const {page}=fakeDropdown();
   const row=ebefMenuItemsLocator(page).nth(0);
-  assert.equal(taskSearchLocator(page),page.getByRole('textbox',{name:'Buscar por tarefa',exact:true}));
+  assert.equal(taskSearchLocator(page),page.getByRole('textbox',{name:/Buscar por tarefa/i}));
   assert.equal(typeof row.scrollIntoViewIfNeeded,'function');
   assert.equal(typeof menuItemCheckbox(row).isChecked,'function');
 });
@@ -145,7 +150,7 @@ test('aborta quando a lista precisa de container de rolagem especial',async()=>{
 
 test('aborta se input de busca nao estiver visivel',async()=>{
   const f=fakeDropdown({searchVisible:false});
-  await assert.rejects(()=>selectEbefTasks(f.page),/Campo Buscar por tarefa/);
+  await assert.rejects(()=>selectEbefTasks(f.page),/correspondencias=1, visivel=false/);
   assert.deepEqual(f.selected(),[false,false,false]);
 });
 
