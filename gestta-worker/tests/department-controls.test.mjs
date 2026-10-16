@@ -24,6 +24,7 @@ function mockControls({
   const menuitem={locator:tag=>{assert.equal(tag,'a');return anchor;}};
   const page={
     getByText:name=>{assert.equal(name,'Todos departamentos');return trigger;},
+    evaluate:async()=>({labelCount:0,candidateCount:0,depth:0,candidateId:''}),
     getByRole:(role,opt)=>{
       assert.equal(role,'menuitem');
       assert.deepEqual(opt,{name:'Selecionar todos',exact:true});
@@ -53,7 +54,7 @@ test('nao clica em dropdown ausente, duplicado ou invisivel',async()=>{
     {triggerCount:0},{triggerCount:2},{triggerVisible:false},
   ]) {
     const m=mockControls(variation);
-    await assert.rejects(()=>openDepartmentPicker(m.page),/nao localizado de forma unica/);
+    await assert.rejects(()=>openDepartmentPicker(m.page),/Campo Departamento preenchido|nao localizado de forma unica/);
     assert.equal(m.triggerClicks(),0);
   }
 });
@@ -83,4 +84,43 @@ test('nao verifica estado dos 21 so pelo clique',async()=>{
   const m=mockControls();
   assert.equal(await clickDepartmentSelectAll(m.page),undefined);
   assert.equal(m.allClicks(),1);
+});
+
+
+test('abre departamento selecionado via ID próximo ao título sem limpar seleção',async()=>{
+  let clicked=0, selected=0;
+  const control={
+    count:async()=>1,isVisible:async()=>true,
+    click:async()=>{clicked++;},
+  };
+  const page={
+    getByText:()=>({count:async()=>0,isVisible:async()=>false}),
+    evaluate:async()=>({
+      labelCount:1,candidateCount:1,depth:2,
+      candidateId:'gestta-multiselect-dropdown-18-p',
+    }),
+    locator:css=>{
+      assert.equal(css,'#gestta-multiselect-dropdown-18-p');
+      return control;
+    },
+  };
+  await openDepartmentPicker(page);
+  assert.equal(clicked,1);
+  assert.equal(selected,0);
+});
+
+test('não clica em campo de cliente se título Departamento for ausente ou ambíguo',async()=>{
+  for(const labelCount of [0,2]){
+    let clicked=0;
+    const page={
+      getByText:()=>({count:async()=>0}),
+      evaluate:async()=>({
+        labelCount,candidateCount:1,depth:2,
+        candidateId:'gestta-multiselect-dropdown-5-p',
+      }),
+      locator:()=>({count:async()=>1,isVisible:async()=>true,click:async()=>{clicked++;}}),
+    };
+    await assert.rejects(()=>openDepartmentPicker(page),/contêiner não identificado/);
+    assert.equal(clicked,0);
+  }
 });
