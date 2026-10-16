@@ -119,9 +119,11 @@ async function applyAndVerifyWindow(page, window) {
   const clientSelector = requiredSelector('GESTTA_CLIENTS_ALL_SELECTOR');
   const userSelector = requiredSelector('GESTTA_USERS_ALL_SELECTOR');
   const dateModeSelector = requiredSelector('GESTTA_DATE_MODE_SELECTOR');
-  const searchCss = requiredSelector('GESTTA_TASK_SEARCH_SELECTOR');
-  const rowCss = requiredSelector('GESTTA_TASK_RESULT_ROW_SELECTOR');
-  const checkboxCss = requiredSelector('GESTTA_TASK_ROW_CHECKBOX_SELECTOR');
+  // Localizadores semanticos confirmados pelo Inspector; CSS opcional apenas
+  // para nova calibracao se a plataforma mudar.
+  const searchCss = process.env.GESTTA_TASK_SEARCH_SELECTOR?.trim();
+  const rowCss = process.env.GESTTA_TASK_RESULT_ROW_SELECTOR?.trim();
+  const checkboxCss = process.env.GESTTA_TASK_ROW_CHECKBOX_SELECTOR?.trim();
   await applyDateWindow(page, window);
   if (!/TODOS.*CLIENTES/.test(normalizedText(await page.locator(clientSelector).first().innerText()))) {
     throw new Error('Filtro de clientes não está em Todos os clientes.');
