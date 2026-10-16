@@ -1526,3 +1526,39 @@ desconhecidos). Ainda nao ha liberacao para executar as 16 consultas
 automaticamente. A proxima fase sera validar um teste sequencial
 supervisionado sem exportacao, antes de habilitar downloads e envio
 à Luce.
+
+
+## Plano janeiro-outubro confirmado pelo usuario; sequencia mensal controlada (16/10/2026)
+
+O usuario executou npm run plan:months no PowerShell e confirmou:
+- competencias=10, de 2026-01 a 2026-10;
+- janelas=16, sempre com no maximo 30 dias inclusivos;
+- as duas janelas de cada mes com 31 dias foram exibidas;
+- nenhum acesso ao Gestta, XLSX, exportacao ou sincronizacao nesse comando.
+
+Foi implementado o ensaio npm run test:sequence, com argumentos
+explicitamente restritos a 2 ou 3 janelas em pelo menos 2 meses distintos.
+O plano completo de 16 janelas e recusado por seguranca neste ensaio.
+
+Primeira validacao real proposta, com Windows/Chromium anteriores fechados:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:sequence -- --from=2026-09 --through=2026-10-16 --limit=3
+
+Este teste usa apenas uma instancia headless de Chromium:
+1. Selecao das tres tarefas E-BEF uma unica vez;
+2. Setembro, 01/09 - 30/09;
+3. Outubro, 01/10 - 30/10;
+4. Outubro, 02/10 - 31/10.
+Confirma o texto do periodo apos cada alteracao e encerra imediatamente
+se qualquer janela falhar. NAO clica em Filtrar, NAO baixa XLSX,
+NAO altera tarefas e NAO faz sincronizacao com Luce.
+
+Cinco testes simulados de planejador sequencial passaram, inclusive
+bloqueio de 16 janelas, parametros invalidos e sequencias sem troca
+de competencia. A navegacao sequencial REAL ainda precisa ser aprovada.
+
+Apos o teste, enviar as linhas SEQUENCIA: ou FALHA NO TESTE SEQUENCIAL.
+A proxima fase sera exportacao de um XLSX de forma supervisionada e
+validacao de colunas/identificadores antes de qualquer sincronizacao.
