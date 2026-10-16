@@ -927,3 +927,41 @@ FALHA NO DIAGNOSTICO DO FUNIL. Não executar novamente diagnose:departments
 ainda. Se o teste headless falhar por sessão/autenticação, interromper com
 segurança e considerar sessão compatível, sem tentar burlar autenticação.
 O filtro do funil e a validação dos 21 departamentos permanecem pendentes.
+
+
+## Funil identificado e diagnóstico 100% headless dos departamentos (16/10/2026)
+
+O usuário executou npm run diagnose:funnel sem janelas gráficas.
+Resultado real:
+- Tarefas E-BEF 3/3;
+- 10 botões no DOM;
+- candidato 4: class="btn btn-link", icon "glyphicon glyphicon-filter";
+  parent="mixed-topfilter__actions";
+- nenhum botão foi acionado naquele diagnóstico.
+
+O seletor estável agora é:
+    .mixed-topfilter__actions button.btn.btn-link:has(.glyphicon.glyphicon-filter)
+
+Ele é usado em src/advanced-open-locator.mjs, com contagem 1 e
+visibilidade obrigatórias antes do clique. Não se usa índice 4 em produção.
+
+O comando npm run diagnose:departments FOI SUBSTITUÍDO. Agora:
+- abre Chromium HEADLESS (sem janela de Gestta nem Inspector);
+- seleciona 3 tarefas E-BEF;
+- abre funil (pelo ícone) e campo Departamento (pelo texto);
+- imprime ANTES com contagens e estados de apenas os departamentos conhecidos;
+- somente se reconhecer os 21 nomes distintos, clica Selecionar todos
+  quando necessário e imprime DEPOIS;
+- não clica Filtrar, não baixa relatórios, não altera tarefas e não sincroniza.
+
+Executar com instâncias anteriores de Chromium/Inspector fechadas:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:departments
+
+Enviar ANTES, DEPOIS (se houver), ESTRUTURA e eventual FALHA.
+Se o estado do checkbox não for inferível a partir de input/aria-checked,
+ele será indicado como indeterminado — não concluir falsamente 21/21.
+Os seletores de departamentos ainda precisam de validação no ambiente real.
+Não executar npm run sync -- --auto nesta etapa.
