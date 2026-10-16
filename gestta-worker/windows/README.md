@@ -716,3 +716,40 @@ transmite dados à Luce.
 A implementacao de producao continua travada: somente sera permitido
 concluir que TODOS os departamentos estao selecionados se 21 nomes
 distintos forem identificados e o estado de cada checkbox for comprovado.
+
+
+## Ajuste de repeticao mensal: o filtro de tarefas guarda selecao (16/10/2026)
+
+O usuario confirmou com nova imagem do Gestta: apos selecionar as tarefas
+EBEF, o filtro superior passa a mostrar "DECLARAÇÃO DE EBEF | ..." e um
+X pequeno antes da seta. Clicando nesse X, volta o rotulo Todas as tarefas.
+
+O worker foi atualizado com dois estados:
+- **Inicial:** Todas as tarefas visivel -> abrir dropdown e buscar bef.
+- **Reutilizado:** nome de tarefa mostrado -> encontrar APENAS o X do filtro
+  superior de tarefas, clicar uma vez e verificar que Todas as tarefas voltou.
+  Somente entao abrir dropdown, buscar bef, e validar exatamente tres tarefas.
+
+SEGURANCA: por ora o X ainda não foi calibrado pelo Inspector. Nao foi
+inventado CSS do botao; GESTTA_TASK_FILTER_CLEAR_SELECTOR deve conter
+seletor unico e restrito à caixa superior de tarefas, confirmado ao apontar
+diretamente o X. Se a selecao anterior existir e esta variavel nao estiver
+definida, a automacao FALHA antes da exportacao. Nenhum X geral será clicado.
+O codigo jamais usa nth(4) nem limpa os filtros de clientes/usuarios.
+
+Para capturar o seletor de forma assistida, sem exportacoes:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run inspect:filters
+
+Com Inspector aberto, Pick Locator no X da caixa superior de tarefas
+(ao lado de seta). Enviar o locator encontrado, sem tokens ou dados de
+clientes. Se a caixa exibir Todas as tarefas, primeiro selecionar as
+tres tarefas pelo comando npm run test:tasks e entao abrir a inspecao;
+o Gestta costuma manter as selecoes. O comando inspect:filters apenas
+diagnostica e pausa no Inspector, nao remove selecao alguma.
+
+Depois que o seletor for homologado no Windows, executaremos test:tasks
+com o filtro previamente preenchido e repetiremos duas vezes para
+confirmar a idempotencia. Ainda sem liberar o --auto/exportacoes.
