@@ -896,3 +896,34 @@ Fluxo do novo teste:
 Se a janela Chromium continuar sem responder, não insistir em clicar.
 Fechar somente Chromium e Inspector de teste, interromper pelo terminal
 e compartilhar o erro ou a descrição. Não baixar nem transmitir dados.
+
+
+## Chromium não responde visualmente durante pausas, mesmo após Resume (16/10/2026)
+
+O usuário confirmou que o Chromium deixou de aceitar cliques nas tentativas
+de diagnosticar Departamento, tanto ao aguardar ENTER no terminal quanto
+após RESUME do Inspector. O teste diagnose:browser, por outro lado, indicou
+renderizador responsivo nas duas avaliações leves (7 ms e 4 ms).
+Esses fatos NÃO esclarecem a causa do congelamento da interface.
+
+Mudança: interromper o uso de page.pause, readline e cliques manuais nesse
+fluxo, até podermos resolver o problema. Foi introduzido diagnose:funnel:
+- Executa Chromium em headless:true, reutilizando o perfil persistente local.
+- Navega para Tarefas e seleciona visualmente os 3 filtros E-BEF.
+- Lê propriedades restritas de classes e SVGs dos botões.
+- Faz o índice 4 SOMENTE objeto do diagnóstico; nunca clica nele.
+- Não toca nos controles avançados, não baixa, não envia nem altera tarefas.
+- Não registra HTML, nomes de clientes, urls de sessão ou tokens.
+
+Feche Chromium e Inspector de testes anteriores e interrompa o worker
+anterior com Ctrl+C antes de usar:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run diagnose:funnel
+
+Enviar o bloco do PowerShell começando com FUNIL: e eventual mensagem
+FALHA NO DIAGNOSTICO DO FUNIL. Não executar novamente diagnose:departments
+ainda. Se o teste headless falhar por sessão/autenticação, interromper com
+segurança e considerar sessão compatível, sem tentar burlar autenticação.
+O filtro do funil e a validação dos 21 departamentos permanecem pendentes.
