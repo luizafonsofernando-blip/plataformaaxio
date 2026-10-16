@@ -6,7 +6,7 @@ export function summarizeExportCandidates(summary) {
     throw new Error('Diagnostico do controle de exportacao incompleto.');
   }
   const candidates=summary.candidates.filter(c=>c.visible && c.hasDownloadIcon);
-  const unique=candidates.length===1;
+  const unique=summary.scopeCount===1 && candidates.length===1 && !candidates[0].disabled;
   return {
     ...summary,
     visibleDownloadCandidates:candidates.length,
