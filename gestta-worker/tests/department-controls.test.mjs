@@ -54,7 +54,7 @@ test('nao clica em dropdown ausente, duplicado ou invisivel',async()=>{
     {triggerCount:0},{triggerCount:2},{triggerVisible:false},
   ]) {
     const m=mockControls(variation);
-    await assert.rejects(()=>openDepartmentPicker(m.page),/Campo Departamento preenchido|nao localizado de forma unica/);
+    await assert.rejects(()=>openDepartmentPicker(m.page),/Campo Departamento preenchido|nao localizado de forma unica|ambiguo/);
     assert.equal(m.triggerClicks(),0);
   }
 });
