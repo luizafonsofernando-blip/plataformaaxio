@@ -629,3 +629,26 @@ Próximo passo com Inspector atual aberto: inspecionar, um de cada vez, os
 checkboxes Fluxo de tarefas, Solicitação de serviço e Recorrente
 na parte superior do painel Filtros avançados. Enviar somente os três
 localizadores. Não é necessário clicar em Filtrar nem reiniciar o Inspector.
+
+
+## Três tipos de tarefa identificados (16/10/2026)
+
+O Inspector da ORTECONTE confirmou os controles:
+- getByRole('checkbox', {name:'Fluxo de tarefas' + glifo auxiliar})
+- getByRole('checkbox', {name:'Solicitação de serviço' + glifo auxiliar})
+- getByRole('checkbox', {name:'Recorrente' + glifo auxiliar})
+
+O módulo src/advanced-task-type-locators.mjs usa getByRole('checkbox')
+com expressões ancoradas nos textos, ignorando glifos decorativos.
+A rotina exige os três únicos/visíveis antes de marcar, marca somente
+os desmarcados e confere que os três permanecem selecionados. O exportador
+já usa essa função, mas a fase de produção permanece BLOQUEADA até os demais
+controles estarem homologados.
+
+Validação simulada: seleciona dois inicialmente desmarcados, deixa intacto
+o já marcado e não altera nenhum se houver opção ausente ou duplicada.
+
+Próxima fase com Inspector JÁ aberto: inspecionar o dropdown
+"Departamento" e sua ação "Selecionar todos" dentro de Filtros avançados.
+Não abrir nem executar exportação. Enviar somente os localizadores desses
+dois controles para planejar a validação dos 21 departamentos.
