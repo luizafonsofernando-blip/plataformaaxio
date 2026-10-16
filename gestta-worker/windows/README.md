@@ -1138,3 +1138,42 @@ Próximo teste em Chromium headless, sem exportar:
 
 Solicitar o resultado ESCOPO_ANTES, ANTES, ESCOPO_DEPOIS e DEPOIS.
 Se found=false, observar nearbyCandidateProfiles e não assumir sucesso.
+
+
+## Escopo dos 21 departamentos homologado em Chromium headless (16/10/2026)
+
+O usuário executou o teste após ajuste para aceitar um controle extra
+"Selecionar todos". Evidências do próprio Gestta:
+- ESCOPO_ANTES: found=true, candidateScopes=1, nearbyToggleCounts=[1,22];
+- item extra reconhecido como comando, ignoredSelectAllControls=1;
+- rowCount=21, recognizedUnique=21, unknownCount=0;
+- ANTES: 0 marcados e 21 desmarcados;
+- ESCOPO_DEPOIS: found=true, candidateScopes=1;
+- DEPOIS: 21 marcados e 0 desmarcados;
+- "DEPARTAMENTOS: 21/21 marcados confirmados por estado de checkbox";
+- nenhuma exportação ou sincronização.
+
+Status: homologados em ambiente REAL a abertura do funil e a validação dos
+21 checkboxes por escopo. A PR permanece draft porque o teste integrado,
+o botão Filtrar, o período mensal XLSX e o envio à Luce ainda precisam
+de validação antes de produção.
+
+Próxima fase: teste dos filtros EM CONJUNTO, sem Filtrar nem download.
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:advanced
+
+O teste abre Chromium HEADLESS, navega à lista de tarefas, valida as três
+tarefas E-BEF, quatro status (Aberta, Concluída, Impedimento e
+Desconsiderada), três tipos (Fluxo de tarefas, Solicitação de serviço,
+Recorrente) e o escopo único de 21 departamentos. Confere novamente
+status e tipos após a seleção dos departamentos.
+
+Saída esperada: INTEGRADO: tarefas E-BEF=3/3; status selecionados=4/4;
+tipos selecionados=3/3; departamentos selecionados=21/21; sucesso SEM
+EXPORTACAO, SEM FILTRAR E SEM SINCRONIZACAO.
+
+Se falhar, enviar a mensagem começando em FALHA NO TESTE INTEGRADO;
+não executar o comando sync nem habilitar automação agendada.
