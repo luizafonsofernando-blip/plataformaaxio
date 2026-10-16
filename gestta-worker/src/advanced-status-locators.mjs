@@ -12,20 +12,23 @@ export const VERIFIED_STATUS_LABELS = Object.freeze({
   DESCONSIDERADA: 'Desconsiderada',
 });
 
+// Todos os quatro usam correspondência ancorada, tolerando apenas
+// espaços/ícones ao final do nome acessível. O diagnóstico integrado
+// encontrou Concluída na primeira leitura, mas após um clique no filtro
+// anterior a busca por igualdade exata retornou zero correspondências.
+// A hipótese de um glifo dinâmico será verificada no próximo teste real.
 const NAME_MATCHERS = Object.freeze({
   ABERTA: /^Aberta\b/i,
-  CONCLUIDA: 'Concluída',
+  CONCLUIDA: /^Concluída\b/i,
   IMPEDIMENTO: /^Impedimento\b/i,
-  DESCONSIDERADA: 'Desconsiderada',
+  DESCONSIDERADA: /^Desconsiderada\b/i,
 });
 
 export function statusCheckbox(page, key) {
   if (!Object.hasOwn(NAME_MATCHERS, key)) {
     throw new Error('Status E-BEF não reconhecido: ' + String(key));
   }
-  const name = NAME_MATCHERS[key];
-  return page.getByRole('checkbox', typeof name === 'string'
-    ? { name, exact: true } : { name });
+  return page.getByRole('checkbox', { name: NAME_MATCHERS[key] });
 }
 
 export function concludedStatusCheckbox(page) {
@@ -62,11 +65,26 @@ export async function inspectAdvancedStatuses(page) {
 }
 
 export async function ensureAllAdvancedStatuses(page) {
-  // Não modificar sequer os filtros caso algum dos quatro elementos falte.
-  await inspectAdvancedStatuses(page);
+  // Conferir o grupo inteiro antes de qualquer marcação. A cada alteração
+  // confirmar o estado do elemento, sem tocar em status de tarefas reais.
+  const initial = await inspectAdvancedStatuses(page);
+  console.log('STATUS: encontrados=4/4; marcados_iniciais='+
+    Object.values(initial).filter(x=>x.checked).length);
   for (const key of Object.keys(VERIFIED_STATUS_LABELS)) {
     const item = statusCheckbox(page,key);
-    if (!(await item.isChecked())) await item.check({ timeout: 10000 });
+    const matches=await item.count();
+    if(matches!==1 || !(await item.isVisible())){
+      const applied=await page.getByRole('button',{name:'Filtrar',exact:true}).count();
+      throw new Error('Status '+key+' desapareceu ou ficou ambiguo apos '+
+        'interacao anterior (correspondencias='+matches+'; botoes_Filtrar='+applied+'). '+
+        'Nao prosseguir com a exportacao.');
+    }
+    const previouslyChecked=await item.isChecked();
+    if(!previouslyChecked) await item.check({timeout:10000});
+    if(!(await item.isChecked())){
+      throw new Error('Status '+key+' nao permaneceu marcado.');
+    }
+    console.log('STATUS: '+key+'=marcado'+(previouslyChecked?' (ja estava)':' (selecionado)'));
   }
   const final = await inspectAdvancedStatuses(page);
   if (Object.values(final).some(x => x.checked !== true)) {
