@@ -1328,3 +1328,41 @@ O novo comando:
 Usar a linha DEPT_TRIGGER para determinar um seletor que identifique o
 dropdown de maneira unica na interface real. Ainda NÃO modificar
 automaticamente o seletor de produção nem liberar exportação.
+
+
+## Campo Departamento persistido mapeado pela estrutura real (16/10/2026)
+
+O teste somente leitura npm run diagnose:department-trigger identificou:
+- 21 nomes distintos de departamentos da lista oficial;
+- uniqueGroupCount=1;
+- um menu ul.gestta-multiselect-dropdown__menu com 22 itens:
+  21 departamentos e 1 controle de selecao;
+- ancestral mais proximo com um unico ID de dropdown:
+  gestta-multiselect-dropdown-6-p;
+- ancestrais distantes com outros dropdowns que NAO devem ser clicados.
+
+O numero 6 foi observado apenas nesta consulta: os IDs podem mudar.
+A implementacao NAO depende de IDs numericos fixos.
+
+Ajuste:
+- Conserva getByText('Todos departamentos') no estado inicial;
+- No estado preenchido, reconhece a lista exata de 21+1 e deriva
+  dinamicamente o ID do dropdown unico do ancestral proximo;
+- Antes do clique valida controle unico e visivel, dimensoes e um
+  ponto seguro a esquerda, sem sobrepor X, button, input, link ou item
+  de dropdown. Se nao houver ponto seguro, aborta;
+- Exige novamente estado de 21/21 departamentos marcados antes do
+  botao Filtrar, sem exportacao XLSX nem transmissao Luce.
+
+Os 13 testes simulados passaram, incluindo testes negativos. Falta
+homologacao real do novo clique no Windows.
+
+Com instancias anteriores do Chromium/Inspector fechadas:
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run test:apply
+
+Enviar log a partir de APLICAR:, DEPARTAMENTOS: ou
+FALHA NO TESTE DE APLICACAO. O teste aplica apenas filtros visuais,
+sem baixar arquivos ou transmitir dados a Luce.
