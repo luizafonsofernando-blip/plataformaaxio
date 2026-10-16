@@ -1482,3 +1482,47 @@ Objetivo: preservar a consulta mensal em intervalos de até 30 dias,
 combinando posteriormente 01-30 e 02-31 e removendo duplicidades
 pelo identificador estável do Gestta, quando os arquivos XLSX forem
 efetivamente homologados. O teste continua SEM Filtrar, XLSX e sync.
+
+
+## Segunda janela de outubro homologada (16/10/2026)
+
+O usuario executou no Windows:
+    npm run test:period -- --start=2026-10-02 --end=2026-10-31
+O Gestta confirmou:
+- PERIODO: solicitado=02/10/2026 - 31/10/2026;
+- tarefas E-BEF=3/3;
+- PERIODO: antes=01/10/2026 - 30/10/2026;
+- PERIODO: depois=02/10/2026 - 31/10/2026;
+- SUCESSO SEM FILTRAR, SEM DOWNLOAD, SEM XLSX E SEM SINCRONIZACAO.
+
+Ambas as janelas de 30 dias de outubro estao homologadas como
+selecoes VISUAIS de calendario. Ainda nao testamos exportacoes por
+competencia ou dados de clientes.
+
+## Planejamento de todas as competencias (SOMENTE SIMULACAO)
+
+Para visualizar a sequencia desde janeiro de 2026 ate a competencia
+do mes atual no Brasil, SEM abrir Chromium, sem usar credenciais,
+sem acessar Gestta, sem baixar XLSX e sem sincronizar dados:
+
+    cd "$HOME\Luce\plataformaaxio"
+    git pull --ff-only
+    cd gestta-worker
+    npm run plan:months
+
+Com a data de referencia de 16/10/2026, o plano contem 10 competencias
+e 16 janelas, incluindo duas janelas para cada mes com 31 dias.
+A competencia em andamento e planejada ate o ultimo dia do mes
+(para contemplar tarefas futuras ja cadastradas no Gestta).
+A rotina de exportacao devera conservar a deduplicacao por source_key.
+
+Opcional para uma conferencia reproduzivel:
+    npm run plan:months -- --through=2026-10-16
+
+O comando exibe somente PLANO e JANELA. Cinco testes automatizados
+de planejamento passaram (cobertura sem lacunas, limite de 30 dias,
+intervalo incremental, data explicita e rejeicao de parametros
+desconhecidos). Ainda nao ha liberacao para executar as 16 consultas
+automaticamente. A proxima fase sera validar um teste sequencial
+supervisionado sem exportacao, antes de habilitar downloads e envio
+à Luce.
