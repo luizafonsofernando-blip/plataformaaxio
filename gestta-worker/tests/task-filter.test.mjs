@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {
   verifyTaskFilterTrigger, validateEbefOptionNames,
   taskSearchLocator, ebefMenuItemsLocator, menuItemCheckbox,
-  ensureUnfilteredTaskPicker, selectEbefTasks,
+  ensureUnfilteredTaskPicker, taskFilterClearLocator,
+  TASK_FILTER_CLEAR_CONTAINER, selectEbefTasks,
 } from '../src/task-filter.mjs';
 
 const taskNames = [
@@ -210,13 +211,53 @@ test('quando havia selecao salva limpa apenas o X calibrado e valida estado inic
   assert.equal(f.selected(),false);
 });
 
-test('quando havia selecao salva e falta seletor para X interrompe sem clique',async()=>{
-  const f=fakePersistedTaskFilter();
+test('localizador default usa o X confirmado no Inspector',async()=>{
+  assert.equal(TASK_FILTER_CLEAR_CONTAINER,'#gestta-multiselect-dropdown-5-p');
+  let clearClicks=0, selected=true;
+  const button={
+    count:async()=>1, isVisible:async()=>true,
+    click:async()=>{clearClicks++;selected=false;},
+  };
+  const container={
+    getByRole:role=>{ assert.equal(role,'button');return button; },
+    innerText:async()=> 'DECLARAÇÃO DE EBEF | TÉCNICO',
+  };
+  const trigger={
+    first:()=>trigger,
+    waitFor:async()=>{if(selected)throw Error('not ready');},
+    count:async()=>selected?0:1,
+    isVisible:async()=>!selected,
+  };
+  const page={
+    getByText:()=>trigger,
+    locator:css=>{assert.equal(css,TASK_FILTER_CLEAR_CONTAINER);return container;},
+  };
+  assert.equal(taskFilterClearLocator(page),button);
+  await ensureUnfilteredTaskPicker(page,{clearCss:''});
+  assert.equal(clearClicks,1);
+  assert.equal(selected,false);
+});
+
+test('nao clica no X default caso o container nao exiba tarefa E-BEF',async()=>{
+  let clears=0;
+  const trigger={
+    first:()=>trigger,waitFor:async()=>{throw Error('not ready');},
+    count:async()=>0,isVisible:async()=>false,
+  };
+  const clear={count:async()=>1,isVisible:async()=>true,click:async()=>clears++};
+  const container={
+    getByRole:()=>clear,
+    innerText:async()=> 'Todos clientes',
+  };
+  const page={
+    getByText:()=>trigger,
+    locator:selector=>{assert.equal(selector,TASK_FILTER_CLEAR_CONTAINER);return container;},
+  };
   await assert.rejects(
-    ()=>ensureUnfilteredTaskPicker(f.page,{clearCss:''}),
-    /GESTTA_TASK_FILTER_CLEAR_SELECTOR/
+    ()=>ensureUnfilteredTaskPicker(page,{clearCss:''}),
+    /nao exibe uma tarefa E-BEF/
   );
-  assert.equal(f.clearClicks(),0);
+  assert.equal(clears,0);
 });
 
 test('nao clica em X generico, ambiguo ou oculto',async()=>{
@@ -243,4 +284,64 @@ test('se o X nao devolver Todas as tarefas nao prossegue para busca',async()=>{
   );
   assert.equal(f.clearClicks(),1);
   assert.equal(f.triggerClicks(),0);
+});
+
+
+test('duas consultas consecutivas limpam selecao E-BEF e repetem 3/3',async()=>{
+  let active=false, dropdownOpened=false, clears=0, selections=0, searchValue='';
+  let marks=[false,false,false];
+  const trigger={
+    first:()=>trigger,
+    waitFor:async()=>{if(active)throw Error('not ready');},
+    count:async()=>active?0:1,
+    isVisible:async()=>!active,
+    click:async()=>{dropdownOpened=true;},
+  };
+  const clear={
+    count:async()=>active?1:0,
+    isVisible:async()=>active,
+    click:async()=>{
+      clears++;active=false;dropdownOpened=false;marks=[false,false,false];
+    },
+  };
+  const container={
+    getByRole:()=>clear,
+    innerText:async()=>active?'DECLARAÇÃO DE EBEF | TÉCNICO':'Todas as tarefas',
+  };
+  const search={
+    first:()=>search,waitFor:async()=>{if(!dropdownOpened)throw Error('closed');},
+    count:async()=>dropdownOpened?1:0,isVisible:async()=>true,
+    fill:async v=>{searchValue=v;},inputValue:async()=>searchValue,
+  };
+  const labels=[
+    'DECLARAÇÃO DE EBEF | TÉCNICO',
+    'VERIFICAR NECESSIDADE DE EBEF | TÉCNICO',
+    'VERIFICAR NECESSIDADE DE EBEF | OUTRO DEPARTAMENTO',
+  ];
+  const check=i=>({
+    count:async()=>1,scrollIntoViewIfNeeded:async()=>{},
+    isChecked:async()=>marks[i],
+    check:async()=>{marks[i]=true;selections++;if(marks.every(Boolean))active=true;},
+  });
+  const row=i=>({
+    waitFor:async()=>{},scrollIntoViewIfNeeded:async()=>{},
+    isVisible:async()=>true,innerText:async()=>labels[i],
+    getByRole:()=>check(i),
+  });
+  const menuitems={nth:row,count:async()=>3};
+  const page={
+    waitForTimeout:async()=>{},
+    getByText:(text)=>text==='Selecionar todas ativas'
+      ? {count:async()=>0}:trigger,
+    getByRole:(role,opts)=>role==='textbox'
+      ? (opts?search:{count:async()=>1})
+      : (opts?menuitems:{count:async()=>3}),
+    locator:css=>{assert.equal(css,TASK_FILTER_CLEAR_CONTAINER);return container;},
+  };
+  assert.deepEqual(await selectEbefTasks(page),{selected:3});
+  assert.equal(clears,0);
+  assert.deepEqual(await selectEbefTasks(page),{selected:3});
+  assert.equal(clears,1);
+  assert.equal(selections,6);
+  assert.deepEqual(marks,[true,true,true]);
 });
