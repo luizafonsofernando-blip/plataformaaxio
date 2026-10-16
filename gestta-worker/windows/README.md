@@ -570,3 +570,19 @@ desative Pick Locator, clique manualmente no funil e reative Pick Locator
 sobre o checkbox "Concluída" dentro do painel. Envie somente os atributos
 de diagnóstico e o localizador de Concluída para calibrar o status.
 Ainda não exportar nem sincronizar até homologar os filtros.
+
+
+## Primeiro checkbox dos status confirmado: Concluída (16/10/2026)
+
+O Inspector, com Filtros avançados aberto, retornou exatamente:
+    getByRole('checkbox', { name: 'Concluída' })
+
+Esse controle está registrado em src/advanced-status-locators.mjs
+com conferência de unicidade, visibilidade e leitura de isChecked().
+NÃO é acionado automaticamente nesta fase.
+
+Próximo passo: sem fechar o Inspector atual, use Pick Locator nas caixas
+Aberta, Impedimento e Desconsiderada, uma de cada vez. Envie apenas
+os três localizadores. Depois será necessário capturar o botão Filtrar
+(que aplica os status) e homologar o funil por identificador estável.
+Não marcar/desmarcar tarefas reais; somente inspecionar os filtros.
