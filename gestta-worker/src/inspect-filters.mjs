@@ -37,8 +37,10 @@ try {
   } catch (error) {
     console.log('Filtro principal ainda precisa de calibracao: ' + error.message);
   }
-  console.log('Inspector em pausa: desative Pick Locator, abra o menu Todas as tarefas,');
-  console.log('depois reative Pick Locator para inspecionar uma opcao E-BEF/checkbox.');
+  console.log('Inspector em pausa: desative Pick Locator, clique em Todas as tarefas,');
+  console.log('digite bef na pesquisa do dropdown e confira as tres opcoes E-BEF.');
+  console.log('Depois reative Pick Locator e localize o campo de busca e o checkbox de uma opcao.');
+  console.log('Nao use Selecionar todas ativas: isso pode selecionar tarefas nao E-BEF.');
   console.log('Nao clique em concluir, descartar, transferir ou alterar tarefas.');
   console.log('Nao copie URLs de sessao, nomes de clientes ou credenciais.');
   await page.pause();
