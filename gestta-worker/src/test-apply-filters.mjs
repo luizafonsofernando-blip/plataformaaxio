@@ -18,6 +18,23 @@ import { assertDepartmentSelection, assertSelectedStatusesAndTypes } from './app
 import { clickAdvancedApplyButton, verifyAdvancedApplyButton } from './advanced-action-locators.mjs';
 import { readControlText, DATE_SELECTORS } from './date-picker.mjs';
 import { withDeadline } from './timeout-utils.mjs';
+import {
+  inspectUserDropdownTopology,openUsersFilterForInspection,inspectUsersPopup,
+} from './users-filter-inspection.mjs';
+import {
+  validateUsersBeforeSelect,selectUsersAllVisualOnly,
+} from './users-select-all-guards.mjs';
+import {
+  assertAllRenderedUsersChecked,assertUserSelectionPersisted,
+} from './users-integrated-guards.mjs';
+
+// O teste padrao continua sem alterar selecao de Usuarios.
+// A variante integrada exige permissao explicita, mesmo sem exportacao.
+const args=process.argv.slice(2);
+const verifyUsers=args.length===1 && args[0]==='--confirm-users-select-all';
+if(args.length!==0 && !verifyUsers) {
+  throw new Error('Parametro invalido. Use somente --confirm-users-select-all (opcional).');
+}
 
 const target=new URL(process.env.GESTTA_REPORT_URL?.trim()||'https://app.gestta.com.br/');
 if(target.protocol!=='https:'||target.hostname!=='app.gestta.com.br'){
@@ -39,6 +56,35 @@ try{
   const taskResult=await selectEbefTasks(page);
   if(taskResult.selected!==3)throw new Error('Tarefas E-BEF nao confirmadas: 3/3.');
   console.log('APLICAR: tarefas=3/3');
+  let usersBeforeApply=null;
+  if(verifyUsers){
+    const topology=await withDeadline('Identificar controle Usuarios',
+      ()=>inspectUserDropdownTopology(page),15000);
+    if(!topology.topologyConfirmed){
+      throw new Error('Controle Usuarios nao confirmado; nao acionar Filtrar.');
+    }
+    const id=await openUsersFilterForInspection(page,topology);
+    await page.waitForTimeout(1500);
+    const before=await withDeadline('Ler Usuarios antes',
+      ()=>inspectUsersPopup(page,id),15000);
+    if(!before.found){
+      throw new Error('Menu Usuarios nao confirmado; nao acionar Filtrar.');
+    }
+    if(before.uncheckedCount>0){
+      validateUsersBeforeSelect(before);
+      await withDeadline('Marcar checkboxes visiveis Usuarios',
+        ()=>selectUsersAllVisualOnly(page,id,before),45000);
+    }
+    const confirmed=await withDeadline('Confirmar Usuarios antes de Filtrar',
+      ()=>inspectUsersPopup(page,id),15000);
+    usersBeforeApply=assertAllRenderedUsersChecked(confirmed);
+    console.log('APLICAR: usuarios_visiveis_antes='+usersBeforeApply+'/'+usersBeforeApply);
+    // Fechar menu sem acionar X ou qualquer outro filtro.
+    await openUsersFilterForInspection(page,topology);
+    if(await page.locator('#'+id).getAttribute('aria-expanded')!=='false'){
+      throw new Error('Menu Usuarios nao fechou; nao acionar Filtrar.');
+    }
+  }
 
   const dateRange=page.locator(process.env.GESTTA_DATE_RANGE_SELECTOR?.trim()||DATE_SELECTORS.range);
   if(await dateRange.count()!==1 || !(await dateRange.isVisible())){
@@ -91,6 +137,21 @@ try{
     throw new Error('O botao Filtrar mudou o periodo exibido; revisar antes de exportar.');
   }
   console.log('APLICAR: periodo_depois='+dateAfter);
+  if(verifyUsers){
+    const topology=await withDeadline('Localizar Usuarios apos Filtrar',
+      ()=>inspectUserDropdownTopology(page),15000);
+    if(!topology.topologyConfirmed){
+      throw new Error('Controle Usuarios nao localizado apos Filtrar.');
+    }
+    const id=await openUsersFilterForInspection(page,topology);
+    await page.waitForTimeout(1500);
+    const state=await withDeadline('Ler Usuarios apos Filtrar',
+      ()=>inspectUsersPopup(page,id),15000);
+    const persisted=assertUserSelectionPersisted(usersBeforeApply,state);
+    console.log('APLICAR: usuarios_apos_filtrar='+persisted.checkedCount+'/'+
+      persisted.visibleCheckboxes+' CHECKBOXES RENDERIZADOS.');
+    console.log('APLICAR: todos usuarios cadastrados NAO comprovados; sem exportacao.');
+  }
   console.log('APLICAR: botao Filtrar acionado; tela de tarefas e periodo preservados.');
   console.log('APLICAR: SUCESSO SEM DOWNLOAD, SEM EXPORTACAO E SEM SINCRONIZACAO.');
 }catch(error){
