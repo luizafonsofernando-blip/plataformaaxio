@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  parseSingleExportOptions,assertGlobalExportFilters,verifiedExportButton,
+  parseSingleExportOptions,assertGlobalExportFilters,assertClientsAndDataMeta,verifiedExportButton,
   assertEbefSelectionPreserved,EXPORT_BUTTON_CSS,
 } from '../src/export-test-guards.mjs';
 
@@ -44,6 +44,17 @@ test('só permite exportação com Todos clientes, Todos usuarios e Data Meta vi
     all[missing]=false;
     await assert.rejects(()=>assertGlobalExportFilters(globalPage(all)),/nao confirmado/);
   }
+});
+test('preflight valida apenas clientes e Data Meta, sem afirmar cobertura Usuarios',async()=>{
+  assert.deepEqual(await assertClientsAndDataMeta(globalPage({
+    clientes:true,usuarios:false,'Data Meta':true,
+  })),{allClientsLabel:true,modeDataMeta:true});
+  await assert.rejects(()=>assertClientsAndDataMeta(globalPage({
+    clientes:false,'Data Meta':true,
+  })),/nao confirmado/);
+  await assert.rejects(()=>assertClientsAndDataMeta(globalPage({
+    clientes:true,'Data Meta':false,
+  })),/nao confirmado/);
 });
 test('seleção EBEF obrigatória após Filtrar',async()=>{
   const makePage=text=>({
