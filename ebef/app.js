@@ -1,5 +1,5 @@
 'use strict';
-// Controle 100% local: File API -> memoria. Sem fetch, storage, API ou uploads.
+// Dados locais: arquivo escolhido OU servidor 127.0.0.1 autorizado. Sem uploads ou storage.
 const $=id=>document.getElementById(id);
 let records=[],period='',view='companies';
 const dataCells=['cnpj','empresa','categoria','status','titulo',
@@ -136,6 +136,31 @@ function metrics(){
     'Recorte '+period+' • somente espelho das tarefas Gestta':
     'Importe um arquivo para visualizar sua carteira.';
 }
+function showReport(data,source){
+  const parsed=validateData(data);
+  records=parsed.tasks;period=parsed.month;
+  ['search','status','category','clear'].forEach(id=>$(id).disabled=false);
+  notice('Controle carregado '+source+': '+records.length+
+    ' tarefas. Nenhum envio à LUCE ou ao Supabase.');
+  metrics();render();
+}
+async function autoLoadLoopback(){
+  // Autorizado apenas no servidor efêmero de 127.0.0.1.
+  // Abrir index.html como arquivo continua EXIGINDO escolha manual do JSON.
+  if(window.location.hostname!=='127.0.0.1'||
+     !/^\\/session\\/[a-f0-9]{64}\\/$/.test(window.location.pathname)){
+    return;
+  }
+  try{
+    const response=await fetch('./report',{cache:'no-store',credentials:'omit'});
+    if(!response.ok)throw Error('Não foi possível abrir os dados locais.');
+    showReport(await response.json(),'automaticamente do Excel local');
+    document.querySelector('.import-box').hidden=true;
+  }catch{
+    records=[];period='';metrics();render();
+    notice('Não foi possível carregar o Excel local. Feche e reabra o painel pelo PowerShell.',true);
+  }
+}
 $('fileInput').addEventListener('change',async e=>{
   const file=e.target.files?.[0];
   if(!file)return;
@@ -147,11 +172,7 @@ $('fileInput').addEventListener('change',async e=>{
     if(!file.name.toLowerCase().endsWith('.json')||file.size>8*1024*1024){
       throw Error('Selecione um JSON local válido de até 8 MB.');
     }
-    const parsed=validateData(JSON.parse(await file.text()));
-    records=parsed.tasks;period=parsed.month;
-    ['search','status','category','clear'].forEach(id=>$(id).disabled=false);
-    notice('Painel carregado localmente: '+records.length+
-      ' tarefas. Nenhuma informação foi enviada para servidores.');
+    showReport(JSON.parse(await file.text()),'pelo arquivo local');
   }catch(err){
     notice(err instanceof SyntaxError?
       'O arquivo não contém um JSON válido.':err.message,true);
@@ -168,3 +189,5 @@ $('clear').addEventListener('click',()=>{
 $('tabCompanies').addEventListener('click',()=>{view='companies';render()});
 $('tabTasks').addEventListener('click',()=>{view='tasks';render()});
 render();
+
+void autoLoadLoopback();
