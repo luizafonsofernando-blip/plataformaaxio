@@ -34,7 +34,9 @@
     "test:preflight-export": "node src/test-apply-filters.mjs --confirm-users-select-all --preflight-export --start=2026-10-01 --end=2026-10-30",
     "test:export-pilot": "node src/test-export-one-pilot.mjs --start=2026-10-01 --end=2026-10-30 --confirm-download --confirm-rendered-users-only",
     "diagnose:export-pilot-start": "node src/diagnose-export-pilot-start.mjs",
-    "diagnose:tasks-view": "node src/diagnose-tasks-navigation-headless.mjs"
+    "diagnose:tasks-view": "node src/diagnose-tasks-navigation-headless.mjs",
+    "test:preflight-export-31": "node src/test-apply-filters.mjs --confirm-users-select-all --preflight-export --confirm-second-window --start=2026-10-02 --end=2026-10-31",
+    "test:export-pilot-31": "node src/test-export-one-pilot.mjs --start=2026-10-02 --end=2026-10-31 --confirm-download --confirm-rendered-users-only --confirm-second-window"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
