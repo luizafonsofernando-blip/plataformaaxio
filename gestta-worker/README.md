@@ -227,3 +227,21 @@ nao equivale a 44 declaracoes entregues nem comprova todos usuarios Gestta.
 
 A validacao `validate_only` e um contrato de backend, nao uma chamada
 de producao ou comprovante de entrega da obrigacao fiscal.
+
+### Planejamento de reconciliacao offline (apos 220 testes unitarios aprovados)
+
+- `src/ebef-reconciliation-plan.mjs` e
+  `tests/ebef-reconciliation-plan.test.mjs`: separacao entre novas,
+  alteradas e inalteradas usando identidade validada do Gestta;
+  snapshots incompletos ou identidades conflitantes bloqueiam o plano.
+- Sem snapshot, inclusoes/atualizacoes/inalterados permanecem
+  desconhecidos (null). Com snapshot declarado completo, as contagens
+  sao apenas **estimativas offline**; nao ha consulta real ao banco.
+- A execucao pareada imprime `PAREADO_PLANO_OFFLINE_SEM_BANCO`
+  sem CNPJs/nomes/IDs. Continua exigindo autorizacao para 2 downloads
+  no Gestta e nao escreve na LUCE.
+- Os requisitos ainda pendentes para idempotencia, concorrencia,
+  transacao unica e integracao efetiva estao em
+  `docs/reconciliation-safety.md`.
+- Nenhuma alteracao da branch principal, deployment ou banco foi
+  realizada. Execute `npm test` para validar os novos testes.
