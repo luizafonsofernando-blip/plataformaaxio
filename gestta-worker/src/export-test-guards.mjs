@@ -29,6 +29,15 @@ async function uniqueVisible(locator,label) {
   }
 }
 
+// Preflight SEM DOWNLOAD: confirma somente clientes e Data Meta.
+// A abrangencia de Usuarios e verificada separadamente pelos checkboxes;
+// o resumo visual dos Usuarios nao e prova de abrangencia total.
+export async function assertClientsAndDataMeta(page) {
+  await uniqueVisible(page.getByText(/^Todos\\s+(?:os\\s+)?clientes$/i),'Todos clientes');
+  await uniqueVisible(page.getByText(/^Data\\s+Meta$/i),'Data Meta');
+  return {allClientsLabel:true,modeDataMeta:true};
+}
+
 // Usa texto conhecido dos controles, NUNCA clica nos filtros globais.
 // Se o Gestta mudar a nomenclatura, falha com segurança para calibrar.
 export async function assertGlobalExportFilters(page) {
