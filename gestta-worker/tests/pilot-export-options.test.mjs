@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {parsePilotExportOptions} from '../src/pilot-export-options.mjs';
 
-test('piloto exige dois consentimentos e restricao a 596 checkbox renderizados',()=>{
+test('piloto exige dois consentimentos, sem limitar quantidade exata de usuarios',()=>{
   assert.deepEqual(parsePilotExportOptions([
     '--start=2026-10-01','--end=2026-10-30',
     '--confirm-download','--confirm-rendered-users-only',
