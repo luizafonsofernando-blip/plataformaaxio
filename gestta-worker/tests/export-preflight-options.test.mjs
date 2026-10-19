@@ -22,3 +22,21 @@ test('preflight limita intervalo, exige consentimento e nunca aceita download',(
     ['--confirm-users-select-all','--confirm-users-select-all','--preflight-export','--end=2026-10-30'],
   ])assert.throws(()=>parseApplyPreflightOptions(args));
 });
+
+test('segunda janela preflight exige flag adicional e datas exatas',()=>{
+  assert.deepEqual(parseApplyPreflightOptions([
+    '--confirm-users-select-all','--preflight-export',
+    '--confirm-second-window','--start=2026-10-02','--end=2026-10-31',
+  ]),{verifyUsers:true,preflight:{
+    window:{start:'2026-10-02',end:'2026-10-31'},
+    expected:'02/10/2026 - 31/10/2026',
+  }});
+  for(const args of [
+    ['--confirm-users-select-all','--preflight-export',
+      '--start=2026-10-02','--end=2026-10-31'],
+    ['--confirm-users-select-all','--preflight-export','--confirm-second-window',
+      '--start=2026-10-01','--end=2026-10-30'],
+    ['--confirm-users-select-all','--preflight-export','--confirm-second-window',
+      '--start=2026-10-02','--end=2026-10-31','--confirm-download'],
+  ]) assert.throws(()=>parseApplyPreflightOptions(args));
+});
