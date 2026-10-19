@@ -198,3 +198,32 @@ Testes isolados, sem Playwright/Chromium ou banco: `npm test`.
 - A ausencia das tabelas nao significa base vazia para a simulacao:
   `inserts` e `updates` continuam desconhecidos; o preview offline
   permanece desativado para consultas reais.
+
+### Revisao da API Gestta -> LUCE (modo seguro, 19/10/2026)
+
+**Importante: ainda NAO existe sincronizacao real homologada.** A auditoria
+pareada encontrou 44 tarefas E-BEF de verificacao para 38 CNPJs, mas isso
+nao equivale a 44 declaracoes entregues nem comprova todos usuarios Gestta.
+
+- `api/ebef/gestta-sync-contract.mjs`: contrato de validacao puro.
+  Exige identidade de tarefa verificavel (ID Gestta e SHA-256), CNPJ
+  com 14 digitos, competencia, campos presentes, datas ISO validas,
+  booleanos corretos, categorias E-BEF conhecidas e IDs unicos.
+- `api/ebef/gestta-sync.js`: **somente** POST autenticado com
+  `mode:"validate_only"` e `source:"gestta"`. Retorna exclusivamente
+  `acceptedRecords`, contagens por categoria e marcadores
+  `writesPerformed:false`, `dbCompared:false` e
+  `allUsersProven:false`. Nao chama Supabase, nao transmite registros
+  nem guarda dados. O formato legado de sincronizacao e recusado com 423.
+- `gestta-worker/src/sync.mjs` e `gestta-worker/src/cli.mjs`:
+  `npm run sync` sem `--dry-run` agora falha ANTES de executar
+  exportacoes ou acessar a rede. Apenas simulacoes locais sao permitidas.
+- Testes sem Chromium e sem rede: `tests/gestta-api-contract.test.mjs`,
+  `tests/gestta-api-readonly.test.mjs`; executar `npm test`.
+- A futura escrita exigira reconciliacao transacional, controle de
+  idempotencia e backup. Nao configurar variaveis do Supabase para
+  contornar este bloqueio; a ausencia de tabela e a validacao de payload
+  nao autorizam criacao/insercao. Nao executar migrations por enquanto.
+
+A validacao `validate_only` e um contrato de backend, nao uma chamada
+de producao ou comprovante de entrega da obrigacao fiscal.
