@@ -29,6 +29,9 @@ import {
 import {validateUsersBeforeSelect,selectUsersAllVisualOnly} from './users-select-all-guards.mjs';
 import {assertAllRenderedUsersChecked,assertUserSelectionPersisted}
   from './users-integrated-guards.mjs';
+import {inspectUsersCheckboxKinds} from './users-checkbox-kinds-diagnostic.mjs';
+import {validatePilotUsersStructure,validatePilotUsersSelected,assertPilotUsersStable}
+  from './pilot-users-guards.mjs';
 import {verifyEbefCheckboxesAfterApply} from './ebef-selection-after-apply.mjs';
 
 async function userTopology(page){
@@ -54,7 +57,7 @@ async function closeUsers(page,topology,id){
 
 
 // Somente execução explicitamente autorizada: um relatório e um intervalo.
-const {window,expected,expectedRenderedUsers}=parsePilotExportOptions(process.argv.slice(2));
+const {window,expected}=parsePilotExportOptions(process.argv.slice(2));
 const target=new URL(process.env.GESTTA_REPORT_URL?.trim()||'https://app.gestta.com.br/');
 if(target.protocol!=='https:'||target.hostname!=='app.gestta.com.br') {
   throw new Error('Origem do Gestta nao autorizada.');
@@ -94,6 +97,10 @@ try{
     inputs:beforeUsers.inputCheckboxCount,checked:beforeUsers.checkedCount,
     unchecked:beforeUsers.uncheckedCount,controlCount:beforeUsers.controlCount,
   }));
+  markStage('CONFERIR_ESTRUTURA_USUARIOS');
+  const kindBefore=await withDeadline('Classificar Usuarios antes',
+    ()=>inspectUsersCheckboxKinds(page,beforeId),15000);
+  validatePilotUsersStructure(beforeUsers,kindBefore);
   if(beforeUsers.uncheckedCount>0){
     markStage('VALIDAR_SELECAO_USUARIOS');
     validateUsersBeforeSelect(beforeUsers);
@@ -104,10 +111,15 @@ try{
   markStage('CONFERIR_USUARIOS');
   const confirmedBefore=await withDeadline('Conferir Usuarios renderizados',
     ()=>inspectUsersPopup(page,beforeId),15000);
+  const classifiedBefore=await withDeadline('Classificar Usuarios marcados antes',
+    ()=>inspectUsersCheckboxKinds(page,beforeId),15000);
+  const approvedBefore=validatePilotUsersSelected(confirmedBefore,classifiedBefore);
   const countBefore=assertAllRenderedUsersChecked(confirmedBefore);
-  if(countBefore!==expectedRenderedUsers){
-    throw new Error('Total de usuarios renderizados diferente do piloto homologado; sem download.');
+  if(countBefore!==approvedBefore.visibleCheckboxes){
+    throw new Error('Selecao e estrutura dos Usuarios divergiram antes; sem download.');
   }
+  console.log('PILOTO_USUARIOS_CONFERIDOS: '+countBefore+'/'+countBefore+
+    '; estrutura reconhecida e nenhum desmarcado.');
   markStage('FECHAR_MENU_USUARIOS');
   await closeUsers(page,beforeTopology,beforeId);
   console.log('PILOTO XLSX: usuarios renderizados antes='+countBefore+'/'+countBefore+
@@ -163,6 +175,10 @@ try{
   markStage('RECONFERIR_USUARIOS');
   const afterTopology=await userTopology(page);
   const {id:afterId,state:afterUsers}=await openUsers(page,afterTopology);
+  const kindsAfter=await withDeadline('Classificar Usuarios apos Filtrar',
+    ()=>inspectUsersCheckboxKinds(page,afterId),15000);
+  const approvedAfter=validatePilotUsersSelected(afterUsers,kindsAfter);
+  assertPilotUsersStable(approvedBefore,approvedAfter);
   const persisted=assertUserSelectionPersisted(countBefore,afterUsers);
   await closeUsers(page,afterTopology,afterId);
   console.log('PILOTO XLSX: usuarios renderizados depois='+persisted.checkedCount+'/'+
