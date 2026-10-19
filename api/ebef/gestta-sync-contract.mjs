@@ -33,7 +33,8 @@ export function validateGesttaApiTask(row){
   if(TEXT_FIELDS.some(f=>typeof row[f]!=='string'||row[f].length>500))return false;
   if(!row.tarefa.trim()||!row.cliente.trim()||!row.responsavel.trim()||
      !row.status_gestta.trim()||row.tipo_registro.length>100)return false;
-  if(!DATE_FIELDS.every(f=>validDate(row[f])))return false;
+  // O worker E-BEF exporta exclusivamente com Data Meta validada.
+  if(row.vencimento===null || !DATE_FIELDS.every(f=>validDate(row[f])))return false;
   if(!BOOL_FIELDS.every(f=>row[f]===null||typeof row[f]==='boolean'))return false;
   const title=ascii(row.tarefa);
   const type=/^DECLARACAO DE EBEF(?:\s*\||$)/.test(title)?'declaracao'
