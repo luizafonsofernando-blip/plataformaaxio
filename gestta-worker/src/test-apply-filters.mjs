@@ -96,7 +96,7 @@ try{
   }
   console.log('APLICAR: periodo_antes='+dateBefore);
   if(preflight){
-    const compact=x=>String(x).replace(/\\s/g,'');
+    const compact=x=>String(x).replace(/\s/g,'');
     if(compact(dateBefore)!==compact(preflight.expected)){
       await withDeadline('Configurar periodo de preflight',
         ()=>applyDateWindow(page,preflight.window),45000);
