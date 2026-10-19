@@ -61,7 +61,7 @@ A rotina não contorna login, MFA ou CAPTCHA e **não** adivinha seletores. Se o
 ## Cuidados operacionais
 
 - Exportações parciais não excluem tarefas que estavam no banco; ausência da tarefa não equivale a conclusão.
-- A chave lógica é derivada de CNPJ + competência + título normalizado. Mudança no título gera uma chave nova; revisão posterior será necessária.
+- Quando o XLSX contém ID de tarefa Gestta válido, a chave lógica deriva desse ID; sem ID, existe uma chave alternativa baseada em CNPJ + competência + título normalizado. A importação mensal com janela de datas exige ID válido, evitando que mudança de título crie outra identidade.
 - O status da tarefa **não comprova** a transmissão E-BEF. Protocolo, comprovantes e outras informações do controle continuam independentes.
 - Tokens/senhas não vão para o GitHub nem ao frontend; cookies permanecem no robô local.
 - O banco só permite acesso via função protegida de servidor; não foram criadas policies de leitura para usuários comuns.
@@ -100,3 +100,12 @@ A captura de tela nao revela seletores HTML. Se o date-picker for somente leitur
 A calibracao automatica tambem exige GESTTA_DATE_MODE_SELECTOR para confirmar que o campo Exibir por esta em Data Meta. Somente inspecao do HTML autenticado pode estabelecer seletores confiaveis.
 
 A rotina tambem exige calibrar o filtro avancado Departamento: GESTTA_ADVANCED_DEPARTMENT_SELECTOR, GESTTA_ADVANCED_DEPARTMENT_SELECT_ALL_SELECTOR, GESTTA_ADVANCED_DEPARTMENT_ROW_SELECTOR e GESTTA_ADVANCED_DEPARTMENT_ROW_CHECKBOX_SELECTOR. Ao abrir o campo, o robo aciona **Selecionar todos** e valida cada checkbox e os nomes dos 21 departamentos confirmados pela ORTECONTE. Na captura, Arquivo estava desmarcado. Nao deduzir cobertura total pelo resumo `Contabil +16`. Se a lista for virtualizada, inspecionar e adaptar a verificacao antes de ativar o agendamento.
+
+
+## Auditoria mensal local sem sincronização (após o primeiro piloto)
+
+- O piloto 01/10/2026–30/10/2026 foi validado localmente com 43 registros de categoria `verificacao`, 43 IDs únicos e descarte da cópia temporária. Isso **não comprova a cobertura integral de outubro** nem a quantidade total de usuários do Gestta.
+- Em meses de 31 dias, devem existir as duas janelas já planejadas (`01–30` e `02–31`). A segunda exportação real **exige autorização específica**; não está habilitada pelo primeiro piloto.
+- `src/monthly-ebef-audit.mjs` contém uma auditoria **pura, sem I/O ou rede**: recebe tarefas já normalizadas pelo parser, exige todas as janelas esperadas, valida datas, consolida por chave de ID, conta duplicatas da sobreposição e bloqueia registros conflitantes.
+- `tests/monthly-ebef-audit.test.mjs` exercita janelas completas e ausentes, 31º dia, duplicações e divergências. Execute `npm test` para validar as regras.
+- O retorno mostra **somente números agregados**, nunca lista de clientes, CNPJ, nomes ou IDs. `allUsersProven:false` e `synchronized:false` permanecem explícitos no resumo. O módulo ainda não recebe arquivos XLSX diretamente: a integração com relatórios reais será feita depois de homologar a segunda janela, sem acesso ao banco LUCE.
