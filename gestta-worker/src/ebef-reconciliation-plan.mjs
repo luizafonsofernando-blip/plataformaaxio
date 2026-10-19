@@ -36,8 +36,9 @@ function validUtcInstant(value) {
     return false;
   }
   const date=new Date(value);
-  return Number.isFinite(date.getTime())&&date.toISOString()===
-    new Date(Date.parse(value)).toISOString();
+  if(!Number.isFinite(date.getTime()))return false;
+  const expected=value.length===20?value.slice(0,-1)+'.000Z':value;
+  return date.toISOString()===expected;
 }
 function validateOfflineSnapshot(snapshot){
   if(!snapshot||typeof snapshot!=='object'||Array.isArray(snapshot)||
