@@ -176,7 +176,25 @@ processo continua estritamente exploratorio, sem sincronizacao.
   metrica com dados reais, uma nova execucao pareada precisa de autorizacao.
 - **Antes de qualquer integracao de producao**, conferir a migracao SQL
   `supabase/migrations/20261015_ebef_gestta_sync.sql` e o esquema efetivo
-  da LUCE. A versao armazenada no GitHub aparenta apresentar texto SQL
-  duplicado/incompleto e NAO deve ser executada sem revisao e backup.
+  da LUCE. A versao originalmente truncada foi substituida na branch por
+  proposta coerente com os campos normalizados, ainda **NAO APLICADA**
+  ao Supabase. Sua sintaxe e seguranca operacional requerem revisao antes
+  de DDL, backup e autorizacao explicita. O teste de contrato de colunas e
+  RLS e `tests/ebef-migration-contract.test.mjs`.
 
 Testes isolados, sem Playwright/Chromium ou banco: `npm test`.
+
+
+### Estado da base e bloqueio de provisionamento (19/10/2026)
+
+- Consulta **somente leitura** no Supabase conectado nao encontrou tabelas
+  publicas com `ebef` ou `gestta` no nome; nenhuma criacao/DDL executada.
+- A migracao corrigida define `ebef_gestta_tasks` e
+  `ebef_gestta_sync_runs` isoladamente, revoga acesso de
+  `public`, `anon`, `authenticated`, habilita RLS e
+  permite a `service_role` somente operacoes planejadas, sem `DELETE`.
+- Esta proposta SQL ainda nao foi validada contra a API que escrevera no
+  banco e NAO deve ser aplicada ate haver revisao, backup e autorizacao.
+- A ausencia das tabelas nao significa base vazia para a simulacao:
+  `inserts` e `updates` continuam desconhecidos; o preview offline
+  permanece desativado para consultas reais.
