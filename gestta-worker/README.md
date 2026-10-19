@@ -2,61 +2,52 @@
 
 Serviço Node.js 20+ e Playwright que usa uma sessão autorizada no Gestta para exportar o relatório XLSX e sincronizá-lo com o backend da Luce. **Não executa operações de escrita no Gestta.** O navegador RPA roda no computador dedicado da ORTECONTE, fora da Vercel.
 
-## Preparação
+## Situação atual — somente leitura e homologação
 
-1. Revisar se a automação é permitida pelo contrato/políticas do Gestta e obter autorização interna.
-2. Em homologação, executar a migração SQL em \`supabase/migrations/20261015_ebef_gestta_sync.sql\`. Ela **apenas cria duas tabelas**.
-3. Na Vercel, definir as variáveis *server-side* \`GESTTA_SYNC_TOKEN\` (segredo exclusivo forte, 32+ caracteres), \`SUPABASE_URL\` e \`SUPABASE_SERVICE_ROLE_KEY\`. Nunca usar \`VITE_\` para a service role nem inseri-la no frontend.
-4. No computador com navegador (Windows PowerShell), executar:
+**NÃO executar migração SQL, NÃO enviar registros ao Supabase e NÃO remover
+o bloqueio de sincronização nesta etapa.** A API da branch aceita apenas
+`validate_only`, e o worker só aceita `sync --dry-run`.
 
-\`\`\`powershell
+As tabelas E-BEF propostas ainda não existem no Supabase consultado.
+Os pilotos de outubro identificaram 44 tarefas para 38 CNPJs, sem provar
+que todos os usuários ou declarações transmitidas foram contemplados.
+
+## Preparação no Windows
+
+1. Confirmar a autorização interna para o acesso automatizado ao Gestta.
+2. Manter o projeto na branch `feature/ebef-gestta-readonly-sync`.
+3. No PowerShell, instalar as dependências locais (se necessário):
+
+```powershell
 cd gestta-worker
 npm install
 npx playwright install chromium
-Copy-Item .env.example .env
-\`\`\`
+```
 
-5. Preencher \`.env\` com \`LUCE_SYNC_URL\` e \`LUCE_SYNC_TOKEN\` igual ao token Vercel. **Não compartilhe o arquivo, senhas ou cookies.**
+4. Não incluir senhas, tokens, cookies ou arquivos `.env` no GitHub.
+   **Não configurar credenciais do Supabase para esta homologação.**
 
-## Testes sem escrita
+## Testes e diagnóstico sem escrita
 
-\`\`\`powershell
+```powershell
 npm test
-npm run sync -- --file "C:\caminho\Clientes EBEF (1).xlsx" --dry-run
-\`\`\`
+npm run diagnose:tasks-view
+npm run test:preflight-export
+npm run test:preflight-export-31
+```
 
-O modo \`--dry-run\` valida e conta as tarefas sem chamar a API. Não divulga a lista de clientes em logs.
+Os diagnósticos com Chromium interagem somente com os filtros visuais e
+não fazem download. O comando `npm test` não utiliza navegador.
 
-## Sincronização assistida
+Os pilotos XLSX exigem autorização individual porque baixam relatórios
+reais. O comando pareado `npm run test:export-paired-october` realiza
+**dois downloads** e descarta os XLSX depois da auditoria offline.
+Ele não consulta nem escreve no Supabase.
 
-Primeiro, se a organização autorizar o acesso automatizado:
-
-\`\`\`powershell
-npm run login
-\`\`\`
-
-Entre no Gestta na janela exibida, incluindo eventual MFA, e retorne ao terminal. A sessão é guardada em \`.gestta-profile\`, ignorada pelo Git.
-
-Em seguida:
-
-\`\`\`powershell
-npm run sync -- --backfill --dry-run
-\`\`\`
-
-No navegador, ajuste os filtros de **tarefas E-BEF e competências desejadas** e exporte o XLSX. Confirme contagens. Quando aprovado, executar sem \`--dry-run\`.
-
-Também é possível sincronizar um relatório já baixado com \`npm run sync -- --file "C:\arquivo.xlsx"\`.
-
-## Automação total (somente após calibrar a interface)
-
-Configure a URL e os seletores da tela e dos filtros, conforme descrito no final deste documento. Valide que os filtros foram aplicados ao abrir a página em uma nova sessão. Depois:
-
-\`\`\`powershell
-npm run sync -- --backfill --recent=2 --auto --dry-run
-npm run sync -- --backfill --recent=2 --auto
-\`\`\`
-
-A rotina não contorna login, MFA ou CAPTCHA e **não** adivinha seletores. Se o layout ou a sessão mudar, falhará e exigirá revisão. Não programe execução automática antes de verificar uma exportação completa e correta.
+A única forma permitida de testar o comando legado é com
+`--dry-run`; executar `npm run sync` sem essa opção falha
+antes de tentar exportação ou envio. Não habilitar agendamentos
+automáticos ou sincronização de produção.
 
 ## Cuidados operacionais
 
@@ -87,7 +78,7 @@ Rotina para os dois meses mais recentes, tambem sem enviar dados:
 
     npm run sync -- --backfill --recent=2 --dry-run
 
-Nos meses com 31 dias, exportar 01-30 e 02-31, dois intervalos de ate 30 dias. A sobreposicao e removida pelo ID da tarefa. O mes atual e consultado por inteiro (inclusive vencimentos futuros). Todos os XLSX sao validados antes de enviar qualquer registro.
+Nos meses com 31 dias, exportar 01-30 e 02-31, dois intervalos de ate 30 dias. A sobreposicao e removida pelo ID da tarefa. O mes atual e consultado por inteiro (inclusive vencimentos futuros). Todos os XLSX sao validados localmente; o envio de registros para LUCE permanece bloqueado.
 
 Automacao completa, apenas depois de calibrar seletores CSS reais no Windows e confirmar os 3 filtros de tarefa, todos os clientes, todos os usuarios, Data Meta e botao Exportar:
 
@@ -245,3 +236,19 @@ de producao ou comprovante de entrega da obrigacao fiscal.
   `docs/reconciliation-safety.md`.
 - Nenhuma alteracao da branch principal, deployment ou banco foi
   realizada. Execute `npm test` para validar os novos testes.
+
+## Validação de páginas para futura fotografia offline
+
+- `src/ebef-snapshot-pages.mjs` implementa montagem **em memória** de
+  páginas fornecidas pelo operador, com validação de ordem global de IDs,
+  quantidade esperada, revisão constante, datas e contrato das tarefas.
+  Em erros de paginação, aborta sem criar snapshot.
+- O objeto `snapshot.complete:true` significa exclusivamente que todas
+  as páginas batem com o manifesto **autodeclarado**; não comprova que o
+  banco foi lido em uma transação consistente ou que a tabela exista.
+- Ainda não há adaptador de consulta real ao Supabase, pois as tabelas
+  E-BEF continuam não provisionadas. A futura leitura deve ser exclusiva
+  das tabelas Gestta, usar transação/snapshot consistente no banco e
+  permissões mínimas. Não utilizar `service_role` para um leitor local.
+- Testes puramente sintéticos em
+  `tests/ebef-snapshot-pages.test.mjs`, executados por `npm test`.
