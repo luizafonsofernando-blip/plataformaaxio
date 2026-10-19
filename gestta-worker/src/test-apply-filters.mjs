@@ -19,6 +19,7 @@ import { clickAdvancedApplyButton, verifyAdvancedApplyButton } from './advanced-
 import { readControlText, DATE_SELECTORS, applyDateWindow } from './date-picker.mjs';
 import { withDeadline } from './timeout-utils.mjs';
 import {parseApplyPreflightOptions} from './export-preflight-options.mjs';
+import {inspectEbefFilterLabelSafely} from './ebef-summary-diagnostic.mjs';
 import {
   assertClientsAndDataMeta,assertEbefSelectionPreserved,verifiedExportButton,
 } from './export-test-guards.mjs';
@@ -173,6 +174,11 @@ try{
   }
   if(preflight){
     await assertClientsAndDataMeta(page);
+    // Apenas leitura: registrar estrutura de dropdowns (sem texto bruto)
+    // antes da guarda rigorosa. A falha continua bloqueando a homologacao.
+    const taskSummary=await withDeadline('Diagnosticar resumo EBEF apos Filtrar',
+      ()=>inspectEbefFilterLabelSafely(page),15000);
+    console.log('PREFLIGHT_EBEF_DIAG: '+JSON.stringify(taskSummary));
     await assertEbefSelectionPreserved(page);
     await verifiedExportButton(page);
     console.log('PREFLIGHT: EBEF 3/3 (resumo), usuarios renderizados, Data Meta e botao Exportar reconfirmados.');
