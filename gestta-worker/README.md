@@ -127,3 +127,26 @@ NAO permite consolidar os dois arquivos: depois de homologar as duas janelas,
 sera necessario implementar a execucao mensal pareada que processe ambas na
 mesma rodada, em memoria, auditando os IDs sem escrever na LUCE.
 Enquanto essa rotina pareada nao existir, nao declarar outubro consolidado.
+
+### Execucao pareada experimental de outubro/2026 (nao executada automaticamente)
+
+O comando `npm run test:export-paired-october` prepara **duas exportacoes reais**,
+01/10–30/10 e 02/10–31/10, em uma unica sessao Chromium headless. Ele
+exige simultaneamente os consentimentos `--confirm-two-downloads`,
+`--confirm-rendered-users-only` e `--confirm-no-sync`, incorporados no
+script npm. Executar SOMENTE apos autorizacao para dois downloads reais.
+Nao reutiliza os XLSX anteriores porque os pilotos isolados os apagaram.
+
+Cada XLSX passa pelo parser (colunas, ID unico, Data Meta e campos esperados).
+O modulo `monthly-ebef-audit.mjs` compara os registros das duas janelas por
+chave de ID, conta duplicatas, rejeita conflitos de titulo/status/competencia
+e so considera o calendario mensal validado quando AMBAS as janelas passarem.
+Resultados agregados sao mostrados no terminal sem dados de clientes.
+A pasta temporaria privada e excluida ao final (o script avisa se falhar
+a exclusao). Nenhum registro e enviado a LUCE/Supabase.
+
+O numero de checkboxes renderizados selecionados, mesmo 597/597, **nao e
+evidencia suficiente para afirmar todos os usuarios cadastrados**. Da mesma
+forma, tarefas com tipo `verificacao` nao comprovam uma declaracao transmitida.
+Enquanto a abrangencia nao for validada por uma fonte independente, este
+processo continua estritamente exploratorio, sem sincronizacao.
