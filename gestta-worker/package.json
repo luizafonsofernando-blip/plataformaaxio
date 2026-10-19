@@ -30,7 +30,8 @@
     "test:export-one": "node src/test-export-one.mjs",
     "diagnose:global-filters": "node src/diagnose-global-filters.mjs",
     "diagnose:users-filter": "node src/diagnose-users-filter.mjs",
-    "test:users-select-all": "node src/test-users-select-all.mjs"
+    "test:users-select-all": "node src/test-users-select-all.mjs",
+    "test:preflight-export": "node src/test-apply-filters.mjs --confirm-users-select-all --preflight-export --start=2026-10-01 --end=2026-10-30"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
