@@ -79,5 +79,10 @@ export async function verifyEbefCheckboxesAfterApply(page) {
     records.push({name:(await row.innerText()).trim(),checked:await checkbox.isChecked()});
   }
   // Nao imprimir nomes brutos no terminal.
-  return assertEbefThreeSelected(records);
+  const result=assertEbefThreeSelected(records);
+  await trigger.click({position:{x:hit.x,y:hit.y},timeout:10000});
+  if(await trigger.getAttribute('aria-expanded')!=='false'){
+    throw new Error('Filtro E-BEF nao fechou apos conferencia. Sem exportacao.');
+  }
+  return result;
 }
