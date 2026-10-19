@@ -75,16 +75,18 @@ registros de clientes**. A lista de usuários autorizados deve ser
 configurada apenas no ambiente do backend; nunca no HTML ou JavaScript
 cliente. A chave `SUPABASE_SERVICE_ROLE_KEY` não sai do backend.
 
-As variáveis de ambiente da futura homologação hospedada são:
-`SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` e
-`EBEF_ALLOWED_USER_IDS` (UUIDs separados por vírgula). O projeto
-Supabase autorizado é o já configurado na LUCE. **Não colocar
-credenciais no GitHub.**
+As variáveis da futura prévia hospedada incluem
+`SUPABASE_PUBLISHABLE_KEY` da LUCE principal,
+`EBEF_HOMOLOG_SUPABASE_URL`, `EBEF_HOMOLOG_SERVICE_ROLE_KEY`,
+`EBEF_ALLOWED_USER_IDS`, `EBEF_HOMOLOG_ENABLED=true` e
+`VERCEL_ENV=preview`. A API valida o JWT no projeto principal, mas
+lê tarefas apenas da homologação. **Não usar a chave service-role
+principal para ler a homologação, nem colocar credenciais no GitHub.**
 
-O endpoint será capaz de consultar a tabela
-`public.ebef_gestta_tasks` por Data Meta, somente depois de essa
-tabela existir e ser preenchida mediante processo separado, seguro e
-expressamente autorizado. Enquanto isso a tela mostrará
+O endpoint consulta a tabela `public.ebef_gestta_tasks` por Data Meta,
+exclusivamente no projeto independente de homologação, somente quando
+houver dados importados de forma controlada. A tabela já existe na
+homologação, mas permanece vazia. Enquanto isso a tela mostrará
 "base E-BEF ainda não provisionada" ou "acesso não habilitado".
 O painel local `npm run dashboard:local` continua funcionando
 independentemente.
@@ -95,9 +97,10 @@ Testes específicos, sem Chromium e sem banco:
 node --test .\\tests\\ebef-cloud-overview.test.mjs
 ```
 
-**Status:** integração visual + leitura protegida preparadas em código;
-sem implantação em produção, sem migração aplicada, sem dados persistidos
-e sem sincronização habilitada. A URL hospedada só deve ser homologada em
+**Status:** integração visual e leitura protegida preparadas em código;
+sem implantação em produção, sem migração no banco PRINCIPAL e
+sem dados reais importados. A migração E-BEF foi aplicada apenas no
+projeto gratuito independente de homologação. A sincronização segue bloqueada. A URL hospedada só deve ser homologada em
 preview/revisão depois de conferidas permissões, variáveis e esquema.
 
 ## Acesso imediato sem importar JSON — UM comando
