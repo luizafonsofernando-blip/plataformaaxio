@@ -8,7 +8,7 @@ import {resolve} from 'node:path';
 import {ensureTasksView} from './task-navigation.mjs';
 import {selectEbefTasks} from './task-filter.mjs';
 import {inspectGlobalFilters} from './global-filters-diagnostic.mjs';
-import {inspectUserDropdownTopology} from './users-filter-inspection.mjs';
+import {inspectUserDropdownTopology,openUsersFilterForInspection,inspectUsersPopup} from './users-filter-inspection.mjs';
 import {assertClientsAndDataMeta} from './export-test-guards.mjs';
 import {withDeadline} from './timeout-utils.mjs';
 
@@ -78,6 +78,34 @@ try{
     }else {
       console.log('DIAG_PILOTO: controle ainda nao confirmado apos espera.');
     }
+  }
+  // Reproduz o proximo passo do piloto, ainda SEM alterar um unico checkbox.
+  const topology=await withDeadline('Inspecao final da topologia Usuarios',
+    ()=>inspectUserDropdownTopology(tasksPage),15000);
+  if(topology.topologyConfirmed){
+    console.log('DIAG_PILOTO_USUARIOS_MENU: ABRINDO_APENAS_PARA_LEITURA');
+    const id=await openUsersFilterForInspection(tasksPage,topology);
+    await tasksPage.waitForTimeout(1500);
+    const popup=await withDeadline('Ler popup Usuarios',
+      ()=>inspectUsersPopup(tasksPage,id),15000);
+    console.log('DIAG_PILOTO_USUARIOS_POPUP: '+JSON.stringify({
+      found:popup.found===true,
+      association:popup.menuAssociation??'nao_confirmada',
+      reason:popup.found?'confirmado':'nao_confirmado',
+      inputCheckboxCount:popup.inputCheckboxCount??0,
+      checkedCount:popup.checkedCount??0,
+      uncheckedCount:popup.uncheckedCount??0,
+      unknownInputCount:popup.unknownInputCount??0,
+      disabledInputCount:popup.disabledInputCount??0,
+      controlCount:popup.controlCount??0,
+    }));
+    if(popup.found){
+      console.log('DIAG_PILOTO_USUARIOS_POPUP: LEITURA_CONFIRMADA_SEM_MARCAR');
+    }else{
+      console.log('DIAG_PILOTO_USUARIOS_POPUP: LEITURA_INCOMPLETA_SEM_MARCAR');
+    }
+  }else{
+    console.log('DIAG_PILOTO_USUARIOS_POPUP: TOPOLOGIA_NAO_CONFIRMADA_SEM_ABRIR');
   }
   console.log('DIAG_PILOTO: FIM. Nenhum download e nenhuma sincronizacao.');
 }catch{
