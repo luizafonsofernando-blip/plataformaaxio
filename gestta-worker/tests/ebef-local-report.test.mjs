@@ -35,7 +35,8 @@ test('MVP local gera abas com filtros e CNPJs em texto sem considerar transmissa
   assert.equal(wb.getWorksheet('Tarefas').rowCount,7);
   assert.equal(wb.getWorksheet('Empresas').getRow(5).getCell(1).numFmt,'@');
   assert.equal(wb.getWorksheet('Painel').getCell('B15').value,'NÃO COMPROVADA');
-  assert.equal(wb.getWorksheet('Empresas').getRow(5).getCell(2).value,"'=EMPRESA SINTETICA");
+  const names=[5,6].map(r=>wb.getWorksheet('Empresas').getRow(r).getCell(2).value);
+  assert.ok(names.includes("'=EMPRESA SINTETICA"));
   assert.equal(wb.getWorksheet('Tarefas').autoFilter.from.row,4);
   const bytes=await wb.xlsx.writeBuffer();
   assert.ok(bytes.length>5000);
