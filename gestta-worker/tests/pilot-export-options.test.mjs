@@ -19,3 +19,23 @@ test('piloto impede consentimento parcial, duplicado ou intervalo incorreto',()=
   ];
   for(const args of cases)assert.throws(()=>parsePilotExportOptions(args));
 });
+
+test('segunda janela somente com aceite explicito e intervalo 02-31',()=>{
+  assert.deepEqual(parsePilotExportOptions([
+    '--start=2026-10-02','--end=2026-10-31',
+    '--confirm-download','--confirm-rendered-users-only',
+    '--confirm-second-window',
+  ]),{window:{start:'2026-10-02',end:'2026-10-31'},
+    expected:'02/10/2026 - 31/10/2026'});
+  for(const args of [
+    ['--start=2026-10-02','--end=2026-10-31',
+      '--confirm-download','--confirm-rendered-users-only'],
+    ['--start=2026-10-01','--end=2026-10-30',
+      '--confirm-download','--confirm-rendered-users-only','--confirm-second-window'],
+    ['--start=2026-10-02','--end=2026-10-31',
+      '--confirm-download','--confirm-rendered-users-only',
+      '--confirm-second-window','--confirm-second-window'],
+    ['--start=2026-10-02','--end=2026-10-31',
+      '--confirm-rendered-users-only','--confirm-second-window'],
+  ])assert.throws(()=>parsePilotExportOptions(args));
+});
