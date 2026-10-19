@@ -150,3 +150,33 @@ evidencia suficiente para afirmar todos os usuarios cadastrados**. Da mesma
 forma, tarefas com tipo `verificacao` nao comprovam uma declaracao transmitida.
 Enquanto a abrangencia nao for validada por uma fonte independente, este
 processo continua estritamente exploratorio, sem sincronizacao.
+
+### Conferencia empresarial e pre-sincronizacao segura (somente codigo)
+
+- `src/monthly-ebef-review.mjs` aplica a auditoria de janelas e calcula
+  `uniqueCnpjs`, empresas so com `verificacao`, so com `declaracao`, com
+  ambas e totais de status em grupos codificados. O resumo nao inclui CNPJs,
+  nomes ou IDs; a classificacao da tarefa NAO confirma entrega E-BEF.
+- `src/pre-sync-preview.mjs` faz uma comparacao PURA em memoria contra um
+  snapshot local **explicito e declarado completo** dos registros existentes.
+  Sem snapshot, as contagens de inclusoes, atualizacoes e inalterados ficam
+  `null` (DESCONHECIDAS), jamais se presume que a tabela esteja vazia.
+  Um snapshot fornecido nao e evidência independente de que o banco foi
+  efetivamente consultado; esse resultado e rotulado estimativa offline.
+- A comparacao contempla apenas campos persistiveis normalizados. Um mesmo
+  ID do Gestta associado a CNPJ diferente bloqueia a simulacao. Nao ha
+  deletions, requests de rede, credenciais ou comandos SQL nestes modulos.
+- `test-export-paired-october.mjs` agora imprime
+  `PAREADO_CONFERENCIA_AGREGADA` e `PAREADO_PRE_SYNC_SEM_BANCO` apos
+  auditar os dois XLSX na mesma memoria. O ultimo mostra contagens
+  `inserts:null` e `updates:null` enquanto a LUCE nao fornecer um
+  snapshot confiavel em modo somente leitura.
+- Os pilotos anteriores descartaram os XLSX. Nao e possivel recuperar uma
+  contagem de CNPJs unicos dos resumos com 44 tarefas. Para calcular essa
+  metrica com dados reais, uma nova execucao pareada precisa de autorizacao.
+- **Antes de qualquer integracao de producao**, conferir a migracao SQL
+  `supabase/migrations/20261015_ebef_gestta_sync.sql` e o esquema efetivo
+  da LUCE. A versao armazenada no GitHub aparenta apresentar texto SQL
+  duplicado/incompleto e NAO deve ser executada sem revisao e backup.
+
+Testes isolados, sem Playwright/Chromium ou banco: `npm test`.
