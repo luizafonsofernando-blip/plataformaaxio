@@ -38,7 +38,8 @@
     "test:preflight-export-31": "node src/test-apply-filters.mjs --confirm-users-select-all --preflight-export --confirm-second-window --start=2026-10-02 --end=2026-10-31",
     "test:export-pilot-31": "node src/test-export-one-pilot.mjs --start=2026-10-02 --end=2026-10-31 --confirm-download --confirm-rendered-users-only --confirm-second-window",
     "test:export-paired-october": "node src/test-export-paired-october.mjs --confirm-two-downloads --confirm-rendered-users-only --confirm-no-sync",
-    "export:october-local": "node src/test-export-paired-october.mjs --confirm-two-downloads --confirm-rendered-users-only --confirm-no-sync --confirm-save-local-report"
+    "export:october-local": "node src/test-export-paired-october.mjs --confirm-two-downloads --confirm-rendered-users-only --confirm-no-sync --confirm-save-local-report",
+    "dashboard:prepare": "node src/ebef-dashboard-prepare.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
