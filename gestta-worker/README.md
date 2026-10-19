@@ -1,5 +1,45 @@
 # Luce E-BEF Sync | Robô Gestta (somente leitura)
 
+## Integração hospedada na LUCE — preparada na branch (não ativada)
+
+A nova rota `/ebef/cloud.html` reaproveita o login LUCE
+(`assets/module-auth.js`) e o mesmo painel de filtros. Ela foi
+adicionada ao catálogo de módulos da landing page **somente nesta branch**.
+
+A rota `GET /api/ebef/overview?month=AAAA-MM` **não grava** no Supabase.
+A API exige JWT válido consultado em `/auth/v1/user`, status
+`approved` e o UUID do usuário incluído explicitamente na variável
+de ambiente de servidor `EBEF_ALLOWED_USER_IDS`. Sem allowlist,
+credenciais ou tabela, a API falha de maneira segura e **não exibe
+registros de clientes**. A lista de usuários autorizados deve ser
+configurada apenas no ambiente do backend; nunca no HTML ou JavaScript
+cliente. A chave `SUPABASE_SERVICE_ROLE_KEY` não sai do backend.
+
+As variáveis de ambiente da futura homologação hospedada são:
+`SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` e
+`EBEF_ALLOWED_USER_IDS` (UUIDs separados por vírgula). O projeto
+Supabase autorizado é o já configurado na LUCE. **Não colocar
+credenciais no GitHub.**
+
+O endpoint será capaz de consultar a tabela
+`public.ebef_gestta_tasks` por Data Meta, somente depois de essa
+tabela existir e ser preenchida mediante processo separado, seguro e
+expressamente autorizado. Enquanto isso a tela mostrará
+"base E-BEF ainda não provisionada" ou "acesso não habilitado".
+O painel local `npm run dashboard:local` continua funcionando
+independentemente.
+
+Testes específicos, sem Chromium e sem banco:
+
+```powershell
+node --test .\\tests\\ebef-cloud-overview.test.mjs
+```
+
+**Status:** integração visual + leitura protegida preparadas em código;
+sem implantação em produção, sem migração aplicada, sem dados persistidos
+e sem sincronização habilitada. A URL hospedada só deve ser homologada em
+preview/revisão depois de conferidas permissões, variáveis e esquema.
+
 ## Acesso imediato sem importar JSON — UM comando
 
 No PowerShell, dentro de `gestta-worker`, após atualizar a branch:
