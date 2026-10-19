@@ -69,7 +69,9 @@ export function previewEbefSyncReadOnly(tasks,snapshot=null){
   for(const [id,next] of proposed.entries()){
     const old=current.get(id);
     if(!old)inserts++;
-    else if(equivalent(old,next))unchanged++;
+    else if(old.gestta_id!==next.gestta_id || old.cnpj!==next.cnpj){
+      throw new Error('Mesmo ID com identidade de cliente diferente; revisao obrigatoria.');
+    }else if(equivalent(old,next))unchanged++;
     else updates++;
   }
   return {
