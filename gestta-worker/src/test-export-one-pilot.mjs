@@ -63,6 +63,11 @@ if(target.protocol!=='https:'||target.hostname!=='app.gestta.com.br') {
 const profile=resolve(process.cwd(),'.gestta-profile');
 await mkdir(profile,{recursive:true,mode:0o700});
 let context,dir;
+let lastStage='INICIALIZACAO';
+function markStage(name){
+  lastStage=name;
+  console.log('PILOTO_ETAPA: '+name);
+}
 const compact=text=>String(text).replace(/\s/g,'');
 try{
   console.log('PILOTO XLSX: apenas usuarios renderizados, cobertura global NAO comprovada.');
@@ -78,24 +83,37 @@ try{
   if(tasks.selected!==3)throw new Error('Tarefas E-BEF nao confirmadas 3/3.');
   console.log('XLSX UNICO: tarefas=3/3');
 
+  markStage('VERIFICAR_CLIENTES_E_DATAMETA');
   await assertClientsAndDataMeta(page);
+  markStage('LOCALIZAR_USUARIOS');
   const beforeTopology=await userTopology(page);
+  markStage('ABRIR_MENU_USUARIOS');
   const {id:beforeId,state:beforeUsers}=await openUsers(page,beforeTopology);
+  console.log('PILOTO_USUARIOS_ANTES: '+JSON.stringify({
+    found:beforeUsers.found,association:beforeUsers.menuAssociation,
+    inputs:beforeUsers.inputCheckboxCount,checked:beforeUsers.checkedCount,
+    unchecked:beforeUsers.uncheckedCount,controlCount:beforeUsers.controlCount,
+  }));
   if(beforeUsers.uncheckedCount>0){
+    markStage('VALIDAR_SELECAO_USUARIOS');
     validateUsersBeforeSelect(beforeUsers);
+    markStage('SELECIONAR_USUARIOS');
     await withDeadline('Selecionar Usuarios renderizados',
       ()=>selectUsersAllVisualOnly(page,beforeId,beforeUsers),45000);
   }
+  markStage('CONFERIR_USUARIOS');
   const confirmedBefore=await withDeadline('Conferir Usuarios renderizados',
     ()=>inspectUsersPopup(page,beforeId),15000);
   const countBefore=assertAllRenderedUsersChecked(confirmedBefore);
   if(countBefore!==expectedRenderedUsers){
     throw new Error('Total de usuarios renderizados diferente do piloto homologado; sem download.');
   }
+  markStage('FECHAR_MENU_USUARIOS');
   await closeUsers(page,beforeTopology,beforeId);
   console.log('PILOTO XLSX: usuarios renderizados antes='+countBefore+'/'+countBefore+
     '; abrangencia global NAO comprovada.');
 
+  markStage('VERIFICAR_PERIODO');
   const dateRange=page.locator(process.env.GESTTA_DATE_RANGE_SELECTOR?.trim()||DATE_SELECTORS.range);
   if(await dateRange.count()!==1 || !(await dateRange.isVisible())) {
     throw new Error('Campo de datas ausente ou ambiguo.');
@@ -108,6 +126,7 @@ try{
   }
   console.log('XLSX UNICO: periodo confirmado='+expected);
 
+  markStage('FILTROS_AVANCADOS');
   await openAdvancedFilters(page);
   await ensureAllAdvancedStatuses(page);
   await ensureAllTaskTypes(page);
@@ -133,6 +152,7 @@ try{
     await inspectTaskTypes(page)
   );
   console.log('XLSX UNICO: filtros avancados=4 status / 3 tipos / 21 departamentos.');
+  markStage('APLICAR_FILTROS');
   await clickAdvancedApplyButton(page);
   await page.waitForTimeout(1500);
 
@@ -140,6 +160,7 @@ try{
     throw new Error('Botao Filtrar alterou o periodo autorizado. Exportacao interrompida.');
   }
   await assertClientsAndDataMeta(page);
+  markStage('RECONFERIR_USUARIOS');
   const afterTopology=await userTopology(page);
   const {id:afterId,state:afterUsers}=await openUsers(page,afterTopology);
   const persisted=assertUserSelectionPersisted(countBefore,afterUsers);
@@ -147,6 +168,7 @@ try{
   console.log('PILOTO XLSX: usuarios renderizados depois='+persisted.checkedCount+'/'+
     persisted.visibleCheckboxes+' (nao prova todos cadastrados).');
 
+  markStage('RECONFERIR_TAREFAS_EBEF');
   const tasksAfter=await withDeadline('Conferir tarefas EBEF apos Filtrar',
     ()=>verifyEbefCheckboxesAfterApply(page),60000);
   if(tasksAfter.checked!==3 || tasksAfter.found!==3){
@@ -154,11 +176,13 @@ try{
   }
   console.log('PILOTO XLSX: tarefas EBEF apos Filtrar=3/3 confirmadas.');
 
+  markStage('VERIFICAR_BOTAO_EXPORTAR');
   const button=await verifiedExportButton(page);
   console.log('PILOTO XLSX: recorte exploratorio autorizado; iniciando UM download, sem sync.');
 
   // A exportação é uma ação autorizada apenas pelo --confirm-download;
   // os bytes ficam em diretório temporário privado e não são retransmitidos.
+  markStage('DOWNLOAD_UNICO');
   const [download]=await Promise.all([
     page.waitForEvent('download',{timeout:120000}),
     button.click({timeout:30000}),
@@ -170,6 +194,7 @@ try{
   const filepath=join(dir,'gestta-homologacao.xlsx');
   await download.saveAs(filepath);
   console.log('XLSX UNICO: download XLSX recebido e salvo em pasta temporaria.');
+  markStage('VALIDAR_XLSX');
   let validated;
   try{
     validated=await parseGesttaXlsx(filepath,{expectedWindow:window,allowEmpty:false});
@@ -193,6 +218,8 @@ try{
     '; categorias='+JSON.stringify(types)+'; ids_unicos='+keyCount);
   console.log('PILOTO XLSX: SUCESSO LOCAL. AMOSTRA NAO COMPROVA ABRANGENCIA GLOBAL; SEM ENVIO A LUCE.');
 }catch(error){
+  // Nunca expor conteudo bruto do Gestta nos logs de erro.
+  console.error('PILOTO_FALHA_ETAPA: '+lastStage);
   // Erros de Playwright às vezes incluem texto DOM/URL em mensagens.
   // Somente erros explícitos do nosso validador são expostos literalmente.
   const known=String(error.message||'');
