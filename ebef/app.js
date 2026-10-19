@@ -147,8 +147,10 @@ function showReport(data,source){
 async function autoLoadLoopback(){
   // Autorizado apenas no servidor efêmero de 127.0.0.1.
   // Abrir index.html como arquivo continua EXIGINDO escolha manual do JSON.
+  const segments=window.location.pathname.split('/');
   if(window.location.hostname!=='127.0.0.1'||
-     !/^\\/session\\/[a-f0-9]{64}\\/$/.test(window.location.pathname)){
+     segments.length!==4||segments[1]!=='session'||
+     !/^[a-f0-9]{64}$/.test(segments[2])||segments[3]!==''){
     return;
   }
   try{
