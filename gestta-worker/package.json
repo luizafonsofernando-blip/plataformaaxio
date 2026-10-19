@@ -33,7 +33,8 @@
     "test:users-select-all": "node src/test-users-select-all.mjs",
     "test:preflight-export": "node src/test-apply-filters.mjs --confirm-users-select-all --preflight-export --start=2026-10-01 --end=2026-10-30",
     "test:export-pilot": "node src/test-export-one-pilot.mjs --start=2026-10-01 --end=2026-10-30 --confirm-download --confirm-rendered-users-only",
-    "diagnose:export-pilot-start": "node src/diagnose-export-pilot-start.mjs"
+    "diagnose:export-pilot-start": "node src/diagnose-export-pilot-start.mjs",
+    "diagnose:tasks-view": "node src/diagnose-tasks-navigation-headless.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
