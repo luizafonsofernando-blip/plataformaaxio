@@ -9,6 +9,7 @@ import {ensureTasksView} from './task-navigation.mjs';
 import {selectEbefTasks} from './task-filter.mjs';
 import {inspectGlobalFilters} from './global-filters-diagnostic.mjs';
 import {inspectUserDropdownTopology,openUsersFilterForInspection,inspectUsersPopup} from './users-filter-inspection.mjs';
+import {inspectUsersCheckboxKinds} from './users-checkbox-kinds-diagnostic.mjs';
 import {assertClientsAndDataMeta} from './export-test-guards.mjs';
 import {withDeadline} from './timeout-utils.mjs';
 
@@ -100,6 +101,9 @@ try{
       controlCount:popup.controlCount??0,
     }));
     if(popup.found){
+      const classified=await withDeadline('Classificar tipos de checkbox sem nomes',
+        ()=>inspectUsersCheckboxKinds(tasksPage,id),15000);
+      console.log('DIAG_PILOTO_USUARIOS_CHECKBOX_TIPOS: '+JSON.stringify(classified));
       console.log('DIAG_PILOTO_USUARIOS_POPUP: LEITURA_CONFIRMADA_SEM_MARCAR');
     }else{
       console.log('DIAG_PILOTO_USUARIOS_POPUP: LEITURA_INCOMPLETA_SEM_MARCAR');
