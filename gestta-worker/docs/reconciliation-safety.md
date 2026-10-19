@@ -58,3 +58,35 @@ de verificação; nenhuma linha de cliente é impressa.
 
 Até a implementação e homologação de todos esses controles,
 **não alterar `validate_only`, não habilitar `sync` e não aplicar SQL**.
+
+## Contrato de leitura consistente do banco (planejado, não executado)
+
+O módulo puro `src/ebef-readonly-query-plan.mjs` fornece apenas
+o desenho de consultas para uso futuro por backend autorizado:
+
+- A mesma conexão deverá iniciar `BEGIN TRANSACTION ISOLATION LEVEL
+  REPEATABLE READ, READ ONLY`, consultar a contagem e percorrer as
+  páginas ordenadas por `source_key`, usando cursor parametrizado.
+- A consulta deve ocorrer inteiramente dentro da mesma transação/snapshot;
+  páginas independentes pela API REST não garantem consistência se
+  ocorrerem atualizações concorrentes.
+- Encerrar por `ROLLBACK` para descartar a transação de leitura.
+  Nenhuma query de inserção, alteração, criação de tabelas ou exclusão
+  está contida no módulo.
+- O backend futuro deverá usar papel de banco exclusivamente com
+  `SELECT` na tabela E-BEF e nunca enviar suas credenciais para o
+  Playwright, navegador ou computador Windows.
+- O resultado poderá conter dados de clientes, portanto deve permanecer
+  em memória/ambiente protegido, sem registrar linhas nos logs.
+- A proposta SQL depende da futura tabela
+  `public.ebef_gestta_tasks`, que **não existe** no Supabase consultado.
+  Não executar a migração para testar esse módulo.
+
+O construtor `src/ebef-snapshot-pages.mjs` aceita também uma
+fotografia autodeclarada com zero linhas e zero páginas, mas
+**não interpreta isso como prova de banco vazio**: os marcadores
+`databaseSnapshotVerified:false` e
+`isolationIndependentlyVerified:false` continuam obrigatórios.
+
+Testes sintéticos: `tests/ebef-readonly-query-plan.test.mjs` e
+`tests/ebef-snapshot-pages.test.mjs`. Nenhum acesso de rede.
