@@ -16,8 +16,12 @@ import { inspectScopedDepartments } from './department-scope.mjs';
 import { REQUIRED_DEPARTMENTS } from './advanced-filter-config.mjs';
 import { assertDepartmentSelection, assertSelectedStatusesAndTypes } from './apply-test-guards.mjs';
 import { clickAdvancedApplyButton, verifyAdvancedApplyButton } from './advanced-action-locators.mjs';
-import { readControlText, DATE_SELECTORS } from './date-picker.mjs';
+import { readControlText, DATE_SELECTORS, applyDateWindow } from './date-picker.mjs';
 import { withDeadline } from './timeout-utils.mjs';
+import {parseApplyPreflightOptions} from './export-preflight-options.mjs';
+import {
+  assertClientsAndDataMeta,assertEbefSelectionPreserved,verifiedExportButton,
+} from './export-test-guards.mjs';
 import {
   inspectUserDropdownTopology,openUsersFilterForInspection,inspectUsersPopup,
 } from './users-filter-inspection.mjs';
@@ -30,11 +34,7 @@ import {
 
 // O teste padrao continua sem alterar selecao de Usuarios.
 // A variante integrada exige permissao explicita, mesmo sem exportacao.
-const args=process.argv.slice(2);
-const verifyUsers=args.length===1 && args[0]==='--confirm-users-select-all';
-if(args.length!==0 && !verifyUsers) {
-  throw new Error('Parametro invalido. Use somente --confirm-users-select-all (opcional).');
-}
+const {verifyUsers,preflight}=parseApplyPreflightOptions(process.argv.slice(2));
 
 const target=new URL(process.env.GESTTA_REPORT_URL?.trim()||'https://app.gestta.com.br/');
 if(target.protocol!=='https:'||target.hostname!=='app.gestta.com.br'){
@@ -90,11 +90,24 @@ try{
   if(await dateRange.count()!==1 || !(await dateRange.isVisible())){
     throw new Error('Campo de periodo nao esta visivel ou e ambiguo.');
   }
-  const dateBefore=(await readControlText(dateRange)).trim();
+  let dateBefore=(await readControlText(dateRange)).trim();
   if(!/^\d{2}\/\d{2}\/\d{4}\s*-\s*\d{2}\/\d{2}\/\d{4}$/.test(dateBefore)){
     throw new Error('Periodo atual nao reconhecido; nao aplicar filtro sem referencia.');
   }
   console.log('APLICAR: periodo_antes='+dateBefore);
+  if(preflight){
+    const compact=x=>String(x).replace(/\\s/g,'');
+    if(compact(dateBefore)!==compact(preflight.expected)){
+      await withDeadline('Configurar periodo de preflight',
+        ()=>applyDateWindow(page,preflight.window),45000);
+      dateBefore=(await readControlText(dateRange)).trim();
+    }
+    if(compact(dateBefore)!==compact(preflight.expected)){
+      throw new Error('Preflight: Data Meta nao confirmou janela autorizada. Sem download.');
+    }
+    await assertClientsAndDataMeta(page);
+    console.log('PREFLIGHT: periodo='+preflight.expected+'; clientes e Data Meta confirmados.');
+  }
 
   await openAdvancedFilters(page);
   await ensureAllAdvancedStatuses(page);
@@ -151,6 +164,19 @@ try{
     console.log('APLICAR: usuarios_apos_filtrar='+persisted.checkedCount+'/'+
       persisted.visibleCheckboxes+' CHECKBOXES RENDERIZADOS.');
     console.log('APLICAR: todos usuarios cadastrados NAO comprovados; sem exportacao.');
+    if(preflight){
+      await openUsersFilterForInspection(page,topology);
+      if(await page.locator('#'+id).getAttribute('aria-expanded')!=='false'){
+        throw new Error('Preflight: menu Usuarios nao fechou. Sem download.');
+      }
+    }
+  }
+  if(preflight){
+    await assertClientsAndDataMeta(page);
+    await assertEbefSelectionPreserved(page);
+    await verifiedExportButton(page);
+    console.log('PREFLIGHT: EBEF 3/3 (resumo), usuarios renderizados, Data Meta e botao Exportar reconfirmados.');
+    console.log('PREFLIGHT: APROVADO SEM DOWNLOAD. Abrangencia global de Usuarios ainda NAO comprovada.');
   }
   console.log('APLICAR: botao Filtrar acionado; tela de tarefas e periodo preservados.');
   console.log('APLICAR: SUCESSO SEM DOWNLOAD, SEM EXPORTACAO E SEM SINCRONIZACAO.');
