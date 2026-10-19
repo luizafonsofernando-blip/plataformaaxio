@@ -9,6 +9,8 @@ import {join,resolve} from 'node:path';
 import {parsePairedPilotOptions,PAIRED_MONTH} from './paired-pilot-options.mjs';
 import {runValidatedPilotWindow} from './export-pilot-window-workflow.mjs';
 import {auditMonthlyEbefExports} from './monthly-ebef-audit.mjs';
+import {reviewMonthlyEbefExports} from './monthly-ebef-review.mjs';
+import {previewEbefSyncReadOnly} from './pre-sync-preview.mjs';
 import {withDeadline} from './timeout-utils.mjs';
 
 const windows=parsePairedPilotOptions(process.argv.slice(2));
@@ -46,6 +48,28 @@ try{
     throw new Error('Auditoria mensal incompleta.');
   }
   console.log('PAREADO_RESUMO_SEM_DADOS_PESSOAIS: '+JSON.stringify(result));
+  stage='CONFERENCIA_CLIENTES_CATEGORIAS';
+  const reviewed=reviewMonthlyEbefExports(PAIRED_MONTH,exports);
+  if(reviewed.summary.distinctTasks!==result.distinctTasks){
+    throw new Error('Resumo mensal divergente.');
+  }
+  console.log('PAREADO_CONFERENCIA_AGREGADA: '+JSON.stringify({
+    uniqueCnpjs:reviewed.summary.uniqueCnpjs,
+    companiesOnlyVerification:reviewed.summary.companiesOnlyVerification,
+    companiesOnlyDeclaration:reviewed.summary.companiesOnlyDeclaration,
+    companiesBoth:reviewed.summary.companiesBoth,
+    categories:reviewed.summary.categories,
+    statusCounts:reviewed.summary.statusCounts,
+    declarationDeliveryVerified:false,
+    allUsersProven:false,
+  }));
+  stage='PRE_SYNC_SOMENTE_LEITURA';
+  const preview=previewEbefSyncReadOnly(reviewed.tasks);
+  if(preview.inserts!==null||preview.updates!==null||
+     preview.writesPerformed!==false||preview.actualDatabaseCompared!==false){
+    throw new Error('Preview anunciou alteracoes sem base confirmada.');
+  }
+  console.log('PAREADO_PRE_SYNC_SEM_BANCO: '+JSON.stringify(preview));
   console.log('PAREADO: AUDITORIA LOCAL CONCLUIDA. SEM SINCRONIZACAO. '+
     'A cobertura de todos Usuarios NAO foi comprovada.');
 }catch{
