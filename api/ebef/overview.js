@@ -48,10 +48,10 @@ export async function readCloudEbefMonth({month,conf,requestFetch=fetch}){
   const results=[],ids=new Set();
   let cursor=null;
   while(true){
-    const url=new URL(conf.origin+'/rest/v1/ebef_gestta_tasks');
+    const url=new URL(conf.dataOrigin+'/rest/v1/ebef_gestta_tasks');
     url.searchParams.set('select',DATA_FIELDS.join(','));
-    url.searchParams.set('vencimento','gte.'+month+'-01');
-    url.searchParams.set('and', '(vencimento.lt.'+nextEbefMonth(month)+'-01)');
+    url.searchParams.set('and','(vencimento.gte.'+month+'-01,'+
+      'vencimento.lt.'+nextEbefMonth(month)+'-01)');
     url.searchParams.set('order','source_key.asc');
     url.searchParams.set('limit',String(MAX_PAGE_SIZE));
     if(cursor)url.searchParams.set('source_key','gt.'+cursor);
