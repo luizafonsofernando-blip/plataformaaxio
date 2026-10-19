@@ -24,13 +24,13 @@ function notice(message,error=false){
 function validateData(data){
   if(!data||typeof data!=='object'||Array.isArray(data)||
      data.schema!=='luce-ebef-local/v1' ||
-     data.origin!=='arquivo_local' ||
+     !['arquivo_local','luce_cloud'].includes(data.origin) ||
      data.sync!==false ||
      data.coverage!=='usuarios_nao_comprovados' ||
      data.transmission!=='nao_comprovada' ||
      !/^20\d{2}-(0[1-9]|1[0-2])$/.test(data.month??'')||
      !Array.isArray(data.tasks) ||
-     data.tasks.length<1||data.tasks.length>20000){
+     (data.tasks.length<1&&data.origin!=='luce_cloud')||data.tasks.length>20000){
     throw Error('Arquivo de painel invalido. Prepare novamente a partir do Excel LUCE.');
   }
   const ids=new Set();
@@ -141,7 +141,7 @@ function showReport(data,source){
   records=parsed.tasks;period=parsed.month;
   ['search','status','category','clear'].forEach(id=>$(id).disabled=false);
   notice('Controle carregado '+source+': '+records.length+
-    ' tarefas. Nenhum envio à LUCE ou ao Supabase.');
+    ' tarefas. Visualização somente leitura.');
   metrics();render();
 }
 async function autoLoadLoopback(){
@@ -163,7 +163,7 @@ async function autoLoadLoopback(){
     notice('Não foi possível carregar o Excel local. Feche e reabra o painel pelo PowerShell.',true);
   }
 }
-$('fileInput').addEventListener('change',async e=>{
+if($('fileInput'))$('fileInput').addEventListener('change',async e=>{
   const file=e.target.files?.[0];
   if(!file)return;
   // Nunca manter dados anteriores quando a importacao falha.
@@ -193,3 +193,13 @@ $('tabTasks').addEventListener('click',()=>{view='tasks';render()});
 render();
 
 void autoLoadLoopback();
+
+if(document.body.dataset.ebefMode==='cloud'){
+  window.LuceEbefPanel={
+    load(data){showReport(data,'da base autorizada LUCE');},
+    reset(message,error=false){
+      records=[];period='';metrics();render();
+      notice(message,error);
+    }
+  };
+}
