@@ -29,7 +29,7 @@ const url=await dashboard.listen();
 console.log('LUCE E-BEF: controle local carregado. Empresas='+
   new Set(report.tasks.map(t=>t.cnpj)).size+'; tarefas='+report.tasks.length);
 console.log('LUCE E-BEF: Endereco local temporario: '+url);
-console.log('LUCE E-BEF: sem download Gestta, JSON e Supabase.');
+console.log('LUCE E-BEF: sem download Gestta, sem arquivo JSON novo e sem Supabase.');
 console.log('LUCE E-BEF: use Ctrl+C no PowerShell para encerrar o painel.');
 if(process.platform==='win32'){
   try{
