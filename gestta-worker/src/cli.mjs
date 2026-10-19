@@ -56,6 +56,9 @@ async function main() {
     throw new Error('Informe o caminho do XLSX após --file.');
   }
   const dryRun = args.includes('--dry-run');
+  if(!dryRun){
+    throw new Error('Sincronizacao real bloqueada durante homologacao. Utilize --dry-run.');
+  }
   const auto = args.includes('--auto');
   const monthly = args.includes('--backfill');
   if (filePath && monthly) throw new Error('--file não pode ser combinado com --backfill.');
