@@ -12,9 +12,16 @@ import {auditMonthlyEbefExports} from './monthly-ebef-audit.mjs';
 import {reviewMonthlyEbefExports} from './monthly-ebef-review.mjs';
 import {previewEbefSyncReadOnly} from './pre-sync-preview.mjs';
 import {planEbefReconciliationOffline} from './ebef-reconciliation-plan.mjs';
+import {saveEbefLocalWorkbook} from './ebef-local-report.mjs';
 import {withDeadline} from './timeout-utils.mjs';
 
-const windows=parsePairedPilotOptions(process.argv.slice(2));
+const saveFlag='--confirm-save-local-report';
+const args=process.argv.slice(2);
+if(args.filter(x=>x===saveFlag).length>1){
+  throw new Error('Autorizacao de arquivo local duplicada.');
+}
+const saveLocal=args.includes(saveFlag);
+const windows=parsePairedPilotOptions(args.filter(x=>x!==saveFlag));
 const target=new URL(process.env.GESTTA_REPORT_URL?.trim()||'https://app.gestta.com.br/');
 if(target.protocol!=='https:'||target.hostname!=='app.gestta.com.br'){
   throw new Error('Origem Gestta nao autorizada para auditoria pareada.');
@@ -85,6 +92,13 @@ try{
     needsReadOnlySnapshot:true,applyAuthorized:false,writesPerformed:false,
     concurrencyRechecked:false,
   }));
+  if(saveLocal){
+    stage='SALVAR_RELATORIO_LOCAL';
+    const saved=await saveEbefLocalWorkbook(reviewed);
+    console.log('PAREADO_ARQUIVO_LOCAL: reports/'+saved.filename+
+      ' | empresas='+saved.companies+' | tarefas='+saved.records);
+    console.log('PAREADO: Relatorio contem dados confidenciais. Guardar localmente; nunca commitar.');
+  }
   console.log('PAREADO: AUDITORIA LOCAL CONCLUIDA. SEM SINCRONIZACAO. '+
     'A cobertura de todos Usuarios NAO foi comprovada.');
 }catch{
