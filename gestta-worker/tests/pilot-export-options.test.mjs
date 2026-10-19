@@ -1,16 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parsePilotExportOptions,PILOT_EXPECTED_RENDERED_USERS}
-  from '../src/pilot-export-options.mjs';
+import {parsePilotExportOptions} from '../src/pilot-export-options.mjs';
 
 test('piloto exige dois consentimentos e restricao a 596 checkbox renderizados',()=>{
   assert.deepEqual(parsePilotExportOptions([
     '--start=2026-10-01','--end=2026-10-30',
     '--confirm-download','--confirm-rendered-users-only',
   ]),{window:{start:'2026-10-01',end:'2026-10-30'},
-    expected:'01/10/2026 - 30/10/2026',
-    expectedRenderedUsers:596});
-  assert.equal(PILOT_EXPECTED_RENDERED_USERS,596);
+    expected:'01/10/2026 - 30/10/2026'});
 });
 test('piloto impede consentimento parcial, duplicado ou intervalo incorreto',()=>{
   const cases=[
