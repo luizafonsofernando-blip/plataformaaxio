@@ -33,8 +33,8 @@ async function uniqueVisible(locator,label) {
 // A abrangencia de Usuarios e verificada separadamente pelos checkboxes;
 // o resumo visual dos Usuarios nao e prova de abrangencia total.
 export async function assertClientsAndDataMeta(page) {
-  await uniqueVisible(page.getByText(/^Todos\\s+(?:os\\s+)?clientes$/i),'Todos clientes');
-  await uniqueVisible(page.getByText(/^Data\\s+Meta$/i),'Data Meta');
+  await uniqueVisible(page.getByText(/^Todos\s+(?:os\s+)?clientes$/i),'Todos clientes');
+  await uniqueVisible(page.getByText(/^Data\s+Meta$/i),'Data Meta');
   return {allClientsLabel:true,modeDataMeta:true};
 }
 
