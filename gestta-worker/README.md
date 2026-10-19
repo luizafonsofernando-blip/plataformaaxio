@@ -109,3 +109,21 @@ A rotina tambem exige calibrar o filtro avancado Departamento: GESTTA_ADVANCED_D
 - `src/monthly-ebef-audit.mjs` contém uma auditoria **pura, sem I/O ou rede**: recebe tarefas já normalizadas pelo parser, exige todas as janelas esperadas, valida datas, consolida por chave de ID, conta duplicatas da sobreposição e bloqueia registros conflitantes.
 - `tests/monthly-ebef-audit.test.mjs` exercita janelas completas e ausentes, 31º dia, duplicações e divergências. Execute `npm test` para validar as regras.
 - O retorno mostra **somente números agregados**, nunca lista de clientes, CNPJ, nomes ou IDs. `allUsersProven:false` e `synchronized:false` permanecem explícitos no resumo. O módulo ainda não recebe arquivos XLSX diretamente: a integração com relatórios reais será feita depois de homologar a segunda janela, sem acesso ao banco LUCE.
+
+### Segunda janela de outubro — comandos separados (preparados, ainda nao homologados)
+
+Os comandos abaixo estao separados do piloto original. A segunda janela requer
+`--confirm-second-window` alem das autorizacoes existentes. Nunca utilizar
+um piloto como comprovacao de cobertura global dos usuarios.
+
+1. Conferir as regras sem navegador: `npm test`.
+2. Conferir filtros sem XLSX: `npm run test:preflight-export-31`.
+3. **Somente mediante autorizacao expressa para um novo download real**,
+   executar `npm run test:export-pilot-31` (02/10–31/10/2026).
+
+O XLSX do primeiro piloto (01–30) foi descartado. O segundo piloto isolado
+tambem apaga seu proprio XLSX. Portanto, realizar apenas a segunda exportacao
+NAO permite consolidar os dois arquivos: depois de homologar as duas janelas,
+sera necessario implementar a execucao mensal pareada que processe ambas na
+mesma rodada, em memoria, auditando os IDs sem escrever na LUCE.
+Enquanto essa rotina pareada nao existir, nao declarar outubro consolidado.
