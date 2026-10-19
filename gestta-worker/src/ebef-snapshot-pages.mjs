@@ -24,7 +24,7 @@ export function assembleEbefOfflineSnapshot(manifest,pages){
      !/^[a-f0-9]{64}$/.test(manifest.revision??'')||
      !capturedAtValid(manifest.capturedAt) ||
      !Number.isSafeInteger(manifest.totalRows) ||
-     manifest.totalRows<1 || manifest.totalRows>MAX_EBEF_SNAPSHOT_ROWS ||
+     manifest.totalRows<0 || manifest.totalRows>MAX_EBEF_SNAPSHOT_ROWS ||
      !Number.isSafeInteger(manifest.pageSize) ||
      manifest.pageSize<1 || manifest.pageSize>500 ||
      !Array.isArray(pages)){
