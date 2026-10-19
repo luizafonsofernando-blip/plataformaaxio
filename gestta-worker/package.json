@@ -9,7 +9,7 @@
   "scripts": {
     "login": "node src/cli.mjs login",
     "sync": "node src/cli.mjs sync",
-    "test": "node --test",
+    "test": "node run-unit-tests.mjs",
     "inspect": "node src/inspect.mjs",
     "test:calendar": "node src/test-calendar.mjs",
     "diagnose:navigation": "node src/diagnose-navigation.mjs",
