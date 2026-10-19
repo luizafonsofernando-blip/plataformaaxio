@@ -31,7 +31,8 @@
     "diagnose:global-filters": "node src/diagnose-global-filters.mjs",
     "diagnose:users-filter": "node src/diagnose-users-filter.mjs",
     "test:users-select-all": "node src/test-users-select-all.mjs",
-    "test:preflight-export": "node src/test-apply-filters.mjs --confirm-users-select-all --preflight-export --start=2026-10-01 --end=2026-10-30"
+    "test:preflight-export": "node src/test-apply-filters.mjs --confirm-users-select-all --preflight-export --start=2026-10-01 --end=2026-10-30",
+    "test:export-pilot": "node src/test-export-one-pilot.mjs --start=2026-10-01 --end=2026-10-30 --confirm-download --confirm-rendered-users-only"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
