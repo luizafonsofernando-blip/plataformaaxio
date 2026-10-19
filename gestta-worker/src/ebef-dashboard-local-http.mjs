@@ -28,7 +28,9 @@ export function createLocalEbefDashboard({report,html,script,style}){
   const root='/session/'+token+'/';
   // Variante apenas para o servidor local. Ao abrir index.html via arquivo,
   // o CSP permanece com connect-src none (sem solicitacoes HTTP).
-  const localHtml=html.replace("connect-src 'none'","connect-src 'self'");
+  const localHtml=html.replace("connect-src 'none'","connect-src 'self'")
+    .replace('<a class="back" href="../index.html">← Voltar ao ecossistema</a>',
+      '<span class="back">Painel local protegido • LUCE E-BEF</span>');
   const payload=JSON.stringify(report);
   const items=new Map([
     ['', ['text/html; charset=utf-8',localHtml]],
