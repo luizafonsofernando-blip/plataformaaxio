@@ -33,7 +33,9 @@ let stage='INICIALIZACAO';
 try{
   console.log('PAREADO: duas janelas 01-30 e 02-31 outubro. DOIS XLSX autorizados.');
   console.log('PAREADO: Usuarios renderizados NAO comprovam todos os cadastrados.');
-  console.log('PAREADO: SOMENTE memoria e pasta temporaria, NENHUMA sincronizacao.');
+  console.log(saveLocal
+    ? 'PAREADO: gerara relatorio Excel local em reports/; nenhuma sincronizacao.'
+    : 'PAREADO: SOMENTE memoria e pasta temporaria, NENHUMA sincronizacao.');
   dir=await mkdtemp(join(tmpdir(),'luce-ebef-paired-'));
   stage='ABRIR_CHROMIUM';
   context=await chromium.launchPersistentContext(profile,{
