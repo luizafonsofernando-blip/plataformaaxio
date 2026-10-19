@@ -1,5 +1,65 @@
 # Luce E-BEF Sync | Robô Gestta (somente leitura)
 
+## Piloto Supabase Free — outubro/2026 (sem tocar producao)
+
+Projeto testado e isolado: `LUCE E-BEF Homologação`
+(`xwpwjwbpahdphksggatm`). As tabelas
+`ebef_gestta_tasks` e `ebef_gestta_sync_runs` foram criadas **somente
+nesse projeto**, com RLS. O banco principal continua separado.
+O Excel local previamente homologado tem 44 tarefas, 38 empresas.
+Ainda NÃO houve importacao de CNPJs reais.
+
+**Etapa 1, sem rede e sem credenciais:**
+
+```powershell
+cd C:\Users\Juridico01\Luce\plataformaaxio\gestta-worker
+git pull --ff-only origin feature/ebef-gestta-readonly-sync
+npm run homolog:preview
+```
+
+O preview le o XLSX mais recente de `reports/`, verifica mes
+2026-10, **44 tarefas, 38 CNPJs**, IDs, campos e Data Meta.
+Exibe apenas quantidades; nao transmite nada.
+
+**Etapa 2 — nao executar antes de autorizar o envio de dados reais:**
+O comando `npm run homolog:import` envia UMA vez o lote completo
+para `https://xwpwjwbpahdphksggatm.supabase.co` e apenas
+se a tabela estiver vazia. Nao tem UPSERT, UPDATE, DELETE,
+nem acesso ao projeto principal. A comunicacao usa HTTPS e requer
+`EBEF_HOMOLOG_SUPABASE_URL` EXATA e
+`EBEF_HOMOLOG_SERVICE_ROLE_KEY` do projeto isolado.
+A chave e privilegiada: utilizar somente temporariamente
+no proprio computador, nunca adicionar ao `.env`, ao GitHub,
+prints, logs ou mensagens. Ao terminar, remover a variavel
+de ambiente e revogar/rotacionar a chave se necessario.
+A ausencia dos campos detalhados no Excel fica representada
+como NULL e nao deve ser confundida com o XLSX original do Gestta.
+
+**API da LUCE em ambiente de preview:** `GET /api/ebef/overview`
+autentica com o JWT da LUCE principal no projeto original
+`prznhgwiibcazuwlwvnt`, mas le APENAS da homologacao
+`xwpwjwbpahdphksggatm`, nunca da producao.
+Somente habilitada quando `VERCEL_ENV=preview`,
+`EBEF_HOMOLOG_ENABLED=true`,
+`EBEF_HOMOLOG_SUPABASE_URL=https://xwpwjwbpahdphksggatm.supabase.co`,
+`EBEF_HOMOLOG_SERVICE_ROLE_KEY` e `EBEF_ALLOWED_USER_IDS`
+estiverem configuradas APENAS no backend.
+A chave publica para autenticacao é
+`SUPABASE_PUBLISHABLE_KEY` do projeto principal.
+Sem uma dessas configuracoes, a API nao abre acesso.
+A rota cloud local/preview nao faz INSERT.
+
+Nunca configurar `SUPABASE_URL` da LUCE principal para
+o projeto de homologacao. Nao executar migracoes nem habilitar
+sincronizacao automatica no principal.
+
+Testes focados sem Gestta/navegador ou banco:
+
+```powershell
+node --test .\tests\ebef-cloud-overview.test.mjs .\tests\ebef-homolog-import.test.mjs
+```
+
+
 ## Integração hospedada na LUCE — preparada na branch (não ativada)
 
 A nova rota `/ebef/cloud.html` reaproveita o login LUCE
