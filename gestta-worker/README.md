@@ -1,5 +1,37 @@
 # Luce E-BEF Sync | Robô Gestta (somente leitura)
 
+## Painel visual LUCE E-BEF — a partir do Excel ja salvo (sem novo download)
+
+Se voce ja tem `reports/LUCE_EBEF_2026_10_....xlsx`, **NAO
+execute o robô Gestta novamente**. Basta preparar uma cópia estruturada
+local e abrir a interface:
+
+```powershell
+git pull --ff-only origin feature/ebef-gestta-readonly-sync
+npm run dashboard:prepare
+Start-Process ..\ebef\index.html
+```
+
+O primeiro comando atualiza o projeto; o segundo usa o **Excel mais
+recente** dentro de `reports/` e cria um arquivo
+`LUCE_EBEF_2026_10_..._painel_XXXXXXXX.json` na mesma pasta. O terceiro
+abre o painel gráfico no navegador. No painel, clicar **Importar controle
+local** e selecionar o JSON recém-gerado.
+
+O painel oferece pesquisa por nome, CNPJ, responsável e tarefa, além de
+filtros por status, categoria, e visões por empresas ou tarefas. O
+carregamento do JSON ocorre exclusivamente pela File API do navegador,
+**sem fetch, upload ou escrita no Supabase**. Não utiliza cookies de
+autenticação. Não publicar nem compartilhar o JSON: contém nomes, CNPJs,
+dados de responsáveis e tarefas. Ao fechar o navegador, os dados em
+memória são descartados (não há armazenamento no navegador).
+
+Este painel é um MVP **local**, não um módulo de produção com login e
+persistência na LUCE. A rota está nos arquivos da branch em `ebef/`;
+publicar no domínio oficial só depois de revisão de acesso e UX.
+O Excel e o JSON ficam no seu computador, não são enviados pela plataforma.
+
+
 Serviço Node.js 20+ e Playwright que usa uma sessão autorizada no Gestta para exportar o relatório XLSX e sincronizá-lo com o backend da Luce. **Não executa operações de escrita no Gestta.** O navegador RPA roda no computador dedicado da ORTECONTE, fora da Vercel.
 
 ## MVP funcional imediato — Relatório Excel local
