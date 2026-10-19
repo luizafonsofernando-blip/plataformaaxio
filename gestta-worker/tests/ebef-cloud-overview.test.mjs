@@ -9,9 +9,12 @@ import {
 
 const USER_ID='11111111-1111-4111-8111-111111111111';
 const mockEnv={
+  VERCEL_ENV:'preview',
+  EBEF_HOMOLOG_ENABLED:'true',
+  EBEF_HOMOLOG_SUPABASE_URL:'https://xwpwjwbpahdphksggatm.supabase.co',
   EBEF_ALLOWED_USER_IDS:USER_ID,
   SUPABASE_PUBLISHABLE_KEY:'public-test-key',
-  SUPABASE_SERVICE_ROLE_KEY:'server-only-test-key'
+  EBEF_HOMOLOG_SERVICE_ROLE_KEY:'server-only-test-key'
 };
 const user={id:USER_ID,app_metadata:{status:'approved',role:'user'}};
 function request(month='2026-10',authorization='Bearer '+'t'.repeat(36)){
@@ -119,4 +122,36 @@ test('leitura E-BEF vazia e valido vazio, nunca deve inventar tarefas',async()=>
   assert.deepEqual(data.tasks,[]);
   assert.equal(data.coverage,'usuarios_nao_comprovados');
   assert.equal(data.sync,false);
+});
+
+test('API hospedada bloqueia ambiente production e credencial principal como substituto',async()=>{
+  let requests=0;
+  const fake=async()=>{requests++;throw Error('Nao deveria consultar');};
+  for(const patch of [
+    {VERCEL_ENV:'production'},
+    {EBEF_HOMOLOG_ENABLED:'false'},
+    {EBEF_HOMOLOG_SUPABASE_URL:'https://prznhgwiibcazuwlwvnt.supabase.co'},
+    {EBEF_HOMOLOG_SERVICE_ROLE_KEY:undefined,SUPABASE_SERVICE_ROLE_KEY:'nao_aceitar'}
+  ]){
+    const res=response();
+    await serveEbefOverview(request(),res,{
+      env:{...mockEnv,...patch},requestFetch:fake
+    });
+    assert.equal(res.code,503);
+  }
+  assert.equal(requests,0);
+});
+test('API autentica no banco principal e le apenas projeto E-BEF Free',async()=>{
+  const requested=[];
+  const fake=async(url)=>{
+    requested.push(url);
+    if(url.includes('/auth/v1/user'))
+      return new Response(JSON.stringify(user),{status:200});
+    return new Response('[]',{status:200});
+  };
+  const res=response();
+  await serveEbefOverview(request(),res,{env:mockEnv,requestFetch:fake});
+  assert.equal(res.code,200);
+  assert.ok(requested[0].startsWith('https://prznhgwiibcazuwlwvnt.supabase.co/auth/'));
+  assert.ok(requested[1].startsWith('https://xwpwjwbpahdphksggatm.supabase.co/rest/'));
 });
