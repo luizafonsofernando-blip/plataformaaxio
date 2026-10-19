@@ -7,8 +7,8 @@ import {resolve,join} from 'node:path';
 import {randomBytes} from 'node:crypto';
 import {ascii} from './normalize.mjs';
 
-const NAVY='12213B',BLUE='244A79',SILVER='E7ECF2',WHITE='FFFFFF';
-const SUCCESS='DDF3E8',WARNING='FFF2D7',RED='F9E2E2',TEXT='172B49';
+const NAVY='FF12213B',BLUE='FF244A79',WHITE='FFFFFFFF';
+const SUCCESS='FFDDF3E8',WARNING='FFFFF2D7',RED='FFF9E2E2',TEXT='FF172B49';
 const dash=v=>v===null||v===undefined?'':String(v);
 const safeText=v=>{
   const value=dash(v).replace(/[\u0000-\u001f\u007f]/g,' ').trim();
@@ -39,7 +39,7 @@ function initSheet(wb,name,headers,widths){
     cell.font={name:'Aptos',bold:true,size:10,color:{argb:WHITE}};
     cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:BLUE}};
     cell.alignment={vertical:'middle',wrapText:true};
-    cell.border={bottom:{style:'thin',color:{argb:'CBD5E1'}}};
+    cell.border={bottom:{style:'thin',color:{argb:'FFCBD5E1'}}};
   });
   ws.autoFilter={from:{row:4,column:1},to:{row:4,column:headers.length}};
   ws.pageSetup={fitToPage:true,fitToWidth:1,fitToHeight:0,orientation:'landscape'};
@@ -52,7 +52,7 @@ function styleRows(ws,first,last,statusColumn){
     row.eachCell({includeEmpty:true},(cell,col)=>{
       cell.font={name:'Aptos',size:10,color:{argb:TEXT}};
       cell.alignment={vertical:'middle',wrapText:false};
-      if(r%2===0)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'F5F7FA'}};
+      if(r%2===0)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF5F7FA'}};
       if(col===statusColumn){
         const v=ascii(cell.value);
         const color=/CONCLUID/.test(v)?SUCCESS:/ABERT|PENDENT/.test(v)?WARNING:RED;
@@ -78,7 +78,7 @@ function verifiedReviewed(reviewed){
     if(!/^\d{14}$/.test(t.cnpj??'')||
       !/^[a-f0-9]{24}$/.test(t.gestta_id??'')||
       !['verificacao','declaracao'].includes(t.tipo_tarefa)||
-      !['string'].includes(typeof t.cliente)){
+      typeof t.cliente!=='string'){
       throw new Error('Tarefa inconsistente; arquivo nao gerado.');
     }
   }
@@ -123,7 +123,7 @@ export function buildEbefLocalWorkbook(reviewed){
     line.getCell(1).font={bold:true,color:{argb:BLUE},size:11};
     line.getCell(2).font={color:{argb:TEXT},bold:true,size:11};
     for(let c=1;c<=2;c++)line.getCell(c).fill={type:'pattern',
-      pattern:'solid',fgColor:{argb:(r%2===0?'EDF2F7':'F8FAFC')}};
+      pattern:'solid',fgColor:{argb:(r%2===0?'FFEDF2F7':'FFF8FAFC')}};
   }
   dashSheet.mergeCells('A19:D20');
   dashSheet.getCell('A19').value='ATENÇÃO: conclusão no Gestta não é comprovante de transmissão da E-BEF. Conferir protocolos e obrigações no controle oficial.';
