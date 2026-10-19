@@ -21,8 +21,9 @@ import { withDeadline } from './timeout-utils.mjs';
 import {parseApplyPreflightOptions} from './export-preflight-options.mjs';
 import {inspectEbefFilterLabelSafely} from './ebef-summary-diagnostic.mjs';
 import {
-  assertClientsAndDataMeta,assertEbefSelectionPreserved,verifiedExportButton,
+  assertClientsAndDataMeta,verifiedExportButton,
 } from './export-test-guards.mjs';
+import {verifyEbefCheckboxesAfterApply} from './ebef-selection-after-apply.mjs';
 import {
   inspectUserDropdownTopology,openUsersFilterForInspection,inspectUsersPopup,
 } from './users-filter-inspection.mjs';
@@ -179,9 +180,11 @@ try{
     const taskSummary=await withDeadline('Diagnosticar resumo EBEF apos Filtrar',
       ()=>inspectEbefFilterLabelSafely(page),15000);
     console.log('PREFLIGHT_EBEF_DIAG: '+JSON.stringify(taskSummary));
-    await assertEbefSelectionPreserved(page);
+    const checkedTasks=await withDeadline('Verificar 3 checkboxes EBEF depois de Filtrar',
+      ()=>verifyEbefCheckboxesAfterApply(page),60000);
+    console.log('PREFLIGHT: tarefas EBEF apos Filtrar='+checkedTasks.checked+'/'+checkedTasks.found+' checkboxes.');
     await verifiedExportButton(page);
-    console.log('PREFLIGHT: EBEF 3/3 (resumo), usuarios renderizados, Data Meta e botao Exportar reconfirmados.');
+    console.log('PREFLIGHT: 3 EBEF marcadas no menu, usuarios renderizados, Data Meta e botao Exportar reconfirmados.');
     console.log('PREFLIGHT: APROVADO SEM DOWNLOAD. Abrangencia global de Usuarios ainda NAO comprovada.');
   }
   console.log('APLICAR: botao Filtrar acionado; tela de tarefas e periodo preservados.');
