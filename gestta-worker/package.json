@@ -40,7 +40,9 @@
     "test:export-paired-october": "node src/test-export-paired-october.mjs --confirm-two-downloads --confirm-rendered-users-only --confirm-no-sync",
     "export:october-local": "node src/test-export-paired-october.mjs --confirm-two-downloads --confirm-rendered-users-only --confirm-no-sync --confirm-save-local-report",
     "dashboard:prepare": "node src/ebef-dashboard-prepare.mjs",
-    "dashboard:local": "node src/ebef-dashboard-local-open.mjs"
+    "dashboard:local": "node src/ebef-dashboard-local-open.mjs",
+    "homolog:preview": "node src/ebef-homolog-cli.mjs",
+    "homolog:import": "node src/ebef-homolog-cli.mjs --confirm-homolog-upload"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
