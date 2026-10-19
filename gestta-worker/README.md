@@ -1,5 +1,40 @@
 # Luce E-BEF Sync | Robô Gestta (somente leitura)
 
+## Acesso imediato sem importar JSON — UM comando
+
+No PowerShell, dentro de `gestta-worker`, após atualizar a branch:
+
+```powershell
+npm run dashboard:local
+```
+
+O comando busca o Excel mais recente em `reports/`, valida-o e abre o
+painel no navegador Windows automaticamente. **Não é necessário preparar
+ou selecionar JSON**. Se o navegador não abrir, o PowerShell mostrará
+um endereço temporário para copiar.
+
+Este modo cria um servidor HTTP somente em `127.0.0.1`, porta aleatória,
+com caminho de sessão imprevisível, sem cache e sem CORS aberto. Os dados
+são servidos **somente para o navegador local** durante essa execução
+e não são gravados em um banco, publicados ou enviados à LUCE.
+A execução requer manter a janela PowerShell aberta. Use `Ctrl+C`
+para encerrar. Ao reabrir, o programa lê novamente o Excel mais recente.
+
+⚠️ **Confidencialidade:** o Excel contém dados de clientes. Não enviar
+capturas contendo nomes/CNPJs, não compartilhar o endereço de sessão e
+não publicar o servidor em nuvem. O mecanismo local é uma solução
+provisória, **não um módulo autenticado de produção na LUCE**.
+
+Para atualizar os dados do Gestta: primeiro execute novamente, com
+autorização, `npm run export:october-local`, depois encerre e
+reabra `npm run dashboard:local`. Ainda não existe atualização automática
+nem sincronização persistente.
+
+Os testes de segurança do servidor local estão em
+`tests/ebef-dashboard-local-http.test.mjs`; podem ser executados
+isoladamente, sem Chromium nem Gestta, com
+`node --test .\\tests\\ebef-dashboard-local-http.test.mjs`.
+
 ## Painel visual LUCE E-BEF — a partir do Excel ja salvo (sem novo download)
 
 Se voce ja tem `reports/LUCE_EBEF_2026_10_....xlsx`, **NAO
