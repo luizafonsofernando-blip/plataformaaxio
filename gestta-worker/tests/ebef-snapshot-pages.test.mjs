@@ -80,7 +80,7 @@ test('rejeita manifesto com escopo errado, hora impossivel ou total zero',()=>{
     {mode:'live_db_verified'},
     {revision:'nao_validada'},
     {capturedAt:'2026-02-31T16:00:00.000Z'},
-    {totalRows:0},
+    {totalRows:-1},
     {totalRows:10001},
     {pageSize:501},
   ]){
@@ -92,5 +92,20 @@ test('rejeita pagina truncada e total declarado inconsistente',()=>{
   const cut=pages();cut[0].rows=cut[0].rows.slice(0,1);
   assert.throws(()=>assembleEbefOfflineSnapshot(manifest(),cut),/incompleto/);
   assert.throws(()=>assembleEbefOfflineSnapshot(manifest(4,2),pages()),
+    /incompleto/);
+});
+
+test('fotografia vazia exige manifesto com zero e nenhuma pagina, sem provar banco vazio',()=>{
+  const {snapshot,summary}=assembleEbefOfflineSnapshot(manifest(0,200),[]);
+  assert.deepEqual(snapshot.rows,[]);
+  assert.equal(summary.rowsVerified,0);
+  assert.equal(summary.pagesVerified,0);
+  assert.equal(summary.databaseSnapshotVerified,false);
+  assert.equal(summary.isolationIndependentlyVerified,false);
+  const plan=planEbefReconciliationOffline([sorted()[0]],snapshot);
+  assert.equal(plan.inserts,1);
+  assert.equal(plan.snapshotVerifiedAgainstDatabase,false);
+  assert.equal(plan.applyAuthorized,false);
+  assert.throws(()=>assembleEbefOfflineSnapshot(manifest(0,200),pages()),
     /incompleto/);
 });
