@@ -172,7 +172,7 @@ try{
   console.log('XLSX UNICO: download XLSX recebido e salvo em pasta temporaria.');
   let validated;
   try{
-    validated=await parseGesttaXlsx(filepath,{expectedWindow:window,allowEmpty:true});
+    validated=await parseGesttaXlsx(filepath,{expectedWindow:window,allowEmpty:false});
   }catch(error){
     // Não imprimir conteúdo de linha, cliente, documento ou URL em logs.
     const message=String(error.message||'');
