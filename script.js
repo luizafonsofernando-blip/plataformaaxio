@@ -40,6 +40,14 @@ const modules = [
     benefits: ["Carteira ativa", "Receita recorrente", "Apoio à retenção"]
   },
   {
+    initials: "EB",
+    name: "Controle E-BEF",
+    href: "ebef/cloud.html",
+    status: "Acesso restrito · Em homologação",
+    description: "Acompanha as tarefas E-BEF por empresa, status e competência em um painel integrado à LUCE.",
+    benefits: ["Filtros por CNPJ", "Visão mensal", "Autenticação individual"]
+  },
+  {
     initials: "CO",
     name: "Comunicados Orteconte",
     href: "comunicados-orteconte/",
