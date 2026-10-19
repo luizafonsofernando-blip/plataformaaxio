@@ -23,8 +23,9 @@ function fingerprint(task){
   // Comparar campos essenciais sem expor seus valores no erro.
   return JSON.stringify([
     task.gestta_id,task.cnpj,task.competencia,task.tarefa,
-    task.tipo_tarefa,task.status_gestta,task.vencimento,
-    task.concluido_em,task.baixado,
+    task.tipo_tarefa,task.tipo_registro,task.cliente,task.departamento,
+    task.responsavel,task.status_gestta,task.vencimento,task.data_legal,
+    task.concluido_em,task.feito_atrasado,task.feito_com_multa,task.baixado,
   ]);
 }
 
