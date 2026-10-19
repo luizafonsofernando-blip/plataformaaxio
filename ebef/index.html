@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>LUCE | Controle E-BEF</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-label="Menu do Controle E-BEF">
+      <div class="brand"><div class="brand-symbol">L</div><div><strong>LUCE</strong><span>SISTEMAS</span></div></div>
+      <div class="side-group"><small>CONTROLE OPERACIONAL</small><div class="side-active">◈ &nbsp; Painel E-BEF</div></div>
+      <div class="side-note"><strong>Leitura local</strong><p>Dados importados somente do seu computador. Nenhum envio à LUCE, Gestta ou Supabase.</p></div>
+      <a class="back" href="../index.html">← Voltar ao ecossistema</a>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div><div class="eyebrow">INTELIGÊNCIA OPERACIONAL / E-BEF</div><h1>Controle E-BEF</h1><p>Uma visão clara das tarefas e empresas acompanhadas no Gestta.</p></div>
+        <div class="import-box">
+          <label class="import-button" for="fileInput">Importar controle local</label>
+          <input type="file" id="fileInput" accept=".json,application/json" aria-label="Importar JSON preparado no computador">
+          <small>Arquivo <b>_painel_*.json</b> preparado pela LUCE</small>
+        </div>
+      </header>
+      <div class="alert" role="status" id="notice">Selecione o JSON gerado a partir do Excel da LUCE. Nenhuma informação será enviada pela internet.</div>
+      <section class="summary" aria-label="Indicadores do Gestta">
+        <article class="metric"><small>Empresas distintas</small><strong id="mCompanies">—</strong><span>Identificadas por CNPJ</span></article>
+        <article class="metric"><small>Tarefas únicas</small><strong id="mTasks">—</strong><span>Registros importados</span></article>
+        <article class="metric"><small>Concluídas no Gestta</small><strong id="mDone">—</strong><span>Não comprova transmissão</span></article>
+        <article class="metric"><small>Em aberto</small><strong id="mOpen">—</strong><span>Demandas a acompanhar</span></article>
+      </section>
+      <section class="workspace">
+        <div class="workspace-top">
+          <div><div class="eyebrow">CARTEIRA E-BEF</div><h2 id="tableTitle">Empresas</h2><p id="subInfo">Importe um arquivo para visualizar sua carteira.</p></div>
+          <div class="toolbar">
+            <div class="tabs" role="group" aria-label="Exibição">
+              <button id="tabCompanies" class="active" type="button" aria-pressed="true">Empresas</button>
+              <button id="tabTasks" type="button" aria-pressed="false">Tarefas</button>
+            </div>
+          </div>
+        </div>
+        <div class="filters">
+          <label class="search-label"><span>Pesquisar</span><input id="search" type="search" placeholder="Nome, CNPJ, responsável ou tarefa" disabled></label>
+          <label><span>Status</span><select id="status" disabled><option value="all">Todos os status</option><option value="open">Em aberto</option><option value="done">Concluídas</option><option value="other">Outros</option></select></label>
+          <label><span>Categoria</span><select id="category" disabled><option value="all">Todas</option><option value="Verificação">Verificação</option><option value="Declaração">Declaração</option></select></label>
+          <button id="clear" type="button" class="reset" disabled>Limpar</button>
+        </div>
+        <div class="table-scroll"><table aria-label="Relação E-BEF"><thead id="thead"></thead><tbody id="tbody"><tr><td class="empty">Nenhum arquivo carregado.</td></tr></tbody></table></div>
+        <div class="table-footer"><span id="count">Aguardando importação</span><span id="period">Período —</span></div>
+      </section>
+      <div class="footnote">A seleção dos usuários no Gestta não foi comprovada como global. O status “Concluída” reflete somente a tarefa no Gestta, não a entrega efetiva da obrigação E-BEF.</div>
+    </main>
+  </div>
+</body>
+</html>
