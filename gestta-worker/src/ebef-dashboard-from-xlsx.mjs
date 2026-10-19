@@ -1,7 +1,7 @@
 // Adapta o Excel local homologado em um JSON para visualizacao, SEM REDE.
 // Uso: node src/ebef-dashboard-from-xlsx.mjs --input=reports/ARQUIVO.xlsx
 import ExcelJS from 'exceljs';
-import {readFile,stat,mkdir,open,unlink} from 'node:fs/promises';
+import {stat,mkdir,open,unlink} from 'node:fs/promises';
 import {basename,dirname,join,resolve,extname} from 'node:path';
 import {randomBytes} from 'node:crypto';
 
@@ -73,7 +73,7 @@ export async function readEbefDashboardData(xlsxPath){
        !empresa||!status||!titulo||!responsavel||
        !['Verificação','Declaração'].includes(categoria)||
        !/^20\d{2}-(0[1-9]|1[0-2])$/.test(competencia)||
-       competencia!==month||seen.has(id)){
+       seen.has(id)){
       throw Error('Linha inconsistente ou ID duplicado; importacao cancelada.');
     }
     seen.add(id);
