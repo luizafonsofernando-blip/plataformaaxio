@@ -11,6 +11,7 @@ import {runValidatedPilotWindow} from './export-pilot-window-workflow.mjs';
 import {auditMonthlyEbefExports} from './monthly-ebef-audit.mjs';
 import {reviewMonthlyEbefExports} from './monthly-ebef-review.mjs';
 import {previewEbefSyncReadOnly} from './pre-sync-preview.mjs';
+import {planEbefReconciliationOffline} from './ebef-reconciliation-plan.mjs';
 import {withDeadline} from './timeout-utils.mjs';
 
 const windows=parsePairedPilotOptions(process.argv.slice(2));
@@ -70,6 +71,20 @@ try{
     throw new Error('Preview anunciou alteracoes sem base confirmada.');
   }
   console.log('PAREADO_PRE_SYNC_SEM_BANCO: '+JSON.stringify(preview));
+  stage='PLANEJAMENTO_RECONCILIACAO_INERTE';
+  const reconciliation=planEbefReconciliationOffline(reviewed.tasks);
+  if(reconciliation.inserts!==null||reconciliation.updates!==null||
+     reconciliation.writesPerformed!==false||
+     reconciliation.applyAuthorized!==false){
+    throw new Error('Reconciliação sem snapshot afirmou operacoes indevidas.');
+  }
+  console.log('PAREADO_PLANO_OFFLINE_SEM_BANCO: '+JSON.stringify({
+    proposedRecords:reconciliation.proposedRecords,
+    inserts:reconciliation.inserts,updates:reconciliation.updates,
+    unchanged:reconciliation.unchanged,wouldDelete:0,
+    needsReadOnlySnapshot:true,applyAuthorized:false,writesPerformed:false,
+    concurrencyRechecked:false,
+  }));
   console.log('PAREADO: AUDITORIA LOCAL CONCLUIDA. SEM SINCRONIZACAO. '+
     'A cobertura de todos Usuarios NAO foi comprovada.');
 }catch{
