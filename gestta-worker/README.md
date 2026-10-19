@@ -2,6 +2,44 @@
 
 Serviço Node.js 20+ e Playwright que usa uma sessão autorizada no Gestta para exportar o relatório XLSX e sincronizá-lo com o backend da Luce. **Não executa operações de escrita no Gestta.** O navegador RPA roda no computador dedicado da ORTECONTE, fora da Vercel.
 
+## MVP funcional imediato — Relatório Excel local
+
+A forma mais rápida de usar a automação hoje é gerar o **controle E-BEF
+diretamente no computador Windows**, sem instalar tabelas no Supabase
+e sem aguardar desenvolvimento do dashboard da LUCE.
+
+No PowerShell, dentro de `gestta-worker`:
+
+```powershell
+git pull --ff-only origin feature/ebef-gestta-readonly-sync
+node --test .\\tests\\ebef-local-report.test.mjs
+npm run export:october-local
+```
+
+- **Atenção:** o último comando autoriza 2 downloads reais do Gestta,
+  janelas de outubro `01–30` e `02–31`, e armazenamento local do
+  controle resultante. Execute somente com a devida autorização.
+- O robô aplica os filtros já homologados, confere as janelas, deduplica
+  os IDs, valida a consolidação e gera UMA planilha Excel com três abas:
+  **Painel**, **Empresas** e **Tarefas**, com filtros, CNPJs em formato
+  texto e cores da LUCE.
+- O arquivo final é salvo na pasta `gestta-worker/reports/`, com nome
+  `LUCE_EBEF_2026_10_<identificador>.xlsx`, e **não é apagado**.
+  A pasta `reports/` consta no `.gitignore`. Guardar o arquivo com
+  acesso restrito porque contém nomes de clientes, CNPJs e responsáveis.
+- O relatório mostra tarefas de verificação, declarações e status do
+  **Gestta**. Ele **não comprova a transmissão de uma E-BEF**.
+- A seleção de checkboxes renderizados não prova cobertura de todos os
+  usuários. A competência corrente pode mudar até o fechamento mensal.
+- Nenhuma API da LUCE é chamada; não há criação de tabelas, importação
+  ou sincronização. Os XLSX intermediários são removidos depois da
+  conferência.
+- O comando anterior `test:export-paired-october` continua igual, sem
+  salvar relatório final, para diagnósticos.
+
+Este é o MVP utilizável enquanto a integração visual com a LUCE
+estiver em desenvolvimento.
+
 ## Situação atual — somente leitura e homologação
 
 **NÃO executar migração SQL, NÃO enviar registros ao Supabase e NÃO remover
