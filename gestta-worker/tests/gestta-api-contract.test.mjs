@@ -32,7 +32,7 @@ test('API reconhece Data Meta legitima e valida somente a estrutura',()=>{
 });
 test('API rejeita datas impossiveis, formato errado e campo omitido',()=>{
   for(const v of ['2026-02-30','2026-13-01','19/10/2026','2026-10-00',
-    '2026-11-31','2026-10-19T00:00:00Z',undefined]){
+    '2026-11-31','2026-10-19T00:00:00Z',null,undefined]){
     const row={...task(),vencimento:v};
     assert.equal(validateGesttaApiTask(row),false,String(v));
   }
