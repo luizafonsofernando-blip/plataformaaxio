@@ -5,6 +5,9 @@
       "includeFiles": "api/**/*.mjs"
     }
   },
+  "redirects": [
+    { "source": "/ebef", "destination": "/ebef/", "permanent": false }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -44,6 +47,23 @@
         {
           "key": "X-DNS-Prefetch-Control",
           "value": "off"
+        }
+      ]
+    },
+    {
+      "source": "/ebef/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' https://esm.sh https://cdn.sheetjs.com; connect-src 'self' https://prznhgwiibcazuwlwvnt.supabase.co wss://prznhgwiibcazuwlwvnt.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
         }
       ]
     },
