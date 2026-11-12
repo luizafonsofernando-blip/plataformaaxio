@@ -1,5 +1,13 @@
 const modules = [
   {
+    initials: "EB",
+    name: "E-BEF",
+    href: "/ebef/",
+    status: "Controle de declarações",
+    description: "Acompanha a situação das declarações E-BEF, os prazos e os responsáveis.",
+    benefits: ["Carteira por exercício", "Alertas de prazo", "Histórico de alterações"]
+  },
+  {
     initials: "OC",
     name: "Onboarding Contábil",
     href: "app/",
