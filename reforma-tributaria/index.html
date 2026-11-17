@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reforma Tributária | Portal Luce</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Portal Luce">LUCE</a>
+    <span class="product">Reforma Tributária</span>
+    <button id="logout" type="button" hidden>Sair</button>
+  </header>
+  <main>
+    <section id="loginView" class="login-view" aria-labelledby="loginTitle">
+      <div class="login-panel">
+        <p class="eyebrow">Portal Luce</p>
+        <h1 id="loginTitle">Reforma Tributária</h1>
+        <form id="loginForm">
+          <label for="identifier">Usuário ou e-mail</label>
+          <input id="identifier" name="identifier" autocomplete="username" required>
+          <label for="password">Senha</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <button type="submit">Entrar</button>
+        </form>
+        <p id="loginMessage" class="message" role="alert"></p>
+      </div>
+    </section>
+    <section id="workspace" class="workspace" hidden aria-labelledby="workspaceTitle">
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow">Luce Reforma Tributária</p>
+          <h1 id="workspaceTitle">Prontidão das integrações</h1>
+        </div>
+        <span class="phase">Desenvolvimento e homologação</span>
+      </div>
+      <p id="workspaceMessage" class="message" role="status"></p>
+      <table>
+        <thead><tr><th>Motor oficial</th><th>Estado</th></tr></thead>
+        <tbody id="engines"></tbody>
+      </table>
+    </section>
+  </main>
+  <script src="app.js" defer></script>
+</body>
+</html>

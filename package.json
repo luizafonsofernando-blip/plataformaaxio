@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "check:rtc": "node --check reforma-tributaria/app.js && node --check api/rtc/status.js && node --test tests/rtc-foundation.test.mjs",
     "check:orthography": "node scripts/check-orthography.js",
     "check:js": "node --check app/app.js",
     "check:sentinela": "node --check sentinela/sentinela.js && node --check sentinela/sentinela-compliance.js && node --check sentinela/sentinela-assisted.js && node --check api/sentinela/index.js && node --check server-assets/sentinela-upload.mjs && node --check server-assets/sentinela-compliance.mjs && node --check server-assets/sentinela-assisted.mjs && node --test tests/sentinela.test.mjs tests/sentinela-compliance.test.mjs tests/sentinela-assisted.test.mjs",

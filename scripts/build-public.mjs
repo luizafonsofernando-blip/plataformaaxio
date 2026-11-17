@@ -4,7 +4,7 @@ import { scanFile } from './scan-secrets.mjs';
 
 const publicDirs = [
   'app', 'assets', 'comunicados-orteconte', 'contratos', 'ebef',
-  'property', 'radar-legislativo', 'radar-sindical', 'review-folha'
+  'property', 'radar-legislativo', 'radar-sindical', 'review-folha', 'reforma-tributaria'
 ];
 const publicFiles = ['index.html', 'luce-logo.svg', 'luce-property-demo.html', 'script.js', 'styles.css'];
 const output = '.luce-public';
