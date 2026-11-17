@@ -1,0 +1,178 @@
+@import url("luce-design-system.css");
+
+/* Shared presentation only: each module keeps its own forms and auth handlers. */
+body .login-screen,
+body .module-login-screen {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.03fr) minmax(340px, .97fr) !important;
+  gap: 0 !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  min-height: 100svh !important;
+  height: auto !important;
+  padding: 0 !important;
+  overflow: auto !important;
+  color: var(--luce-ink) !important;
+  background: var(--luce-canvas) !important;
+}
+body .module-login-screen > .login-card[hidden] { display: none !important; }
+body .module-login-screen > .luce-auth-story { grid-column: 1; grid-row: 1; }
+body .module-login-screen > .login-card:not([hidden]) { grid-column: 2; grid-row: 1; }
+body.authenticated .login-screen,
+body.module-authenticated .module-login-screen,
+body.property-authenticated .login-screen { display: none !important; }
+body .login-screen > .luce-auth-story,
+body .module-login-screen > .luce-auth-story {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  min-height: 100svh !important;
+  max-height: none !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  padding: clamp(40px, 6vw, 88px) !important;
+  overflow: hidden !important;
+  color: #fff !important;
+  background: var(--luce-navy) !important;
+  isolation: isolate;
+}
+body .login-screen > .luce-auth-story::before,
+body .module-login-screen > .luce-auth-story::before {
+  content: "" !important;
+  position: absolute !important;
+  display: block !important;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  clip-path: none !important;
+  filter: none !important;
+  transform: none !important;
+  opacity: .21 !important;
+  background: url("luce-hero-architecture.png") 62% center / cover no-repeat !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+}
+body .login-screen > .luce-auth-story::after,
+body .module-login-screen > .luce-auth-story::after {
+  content: "";
+  position: absolute;
+  display: block;
+  left: clamp(40px, 6vw, 88px);
+  right: clamp(40px, 6vw, 88px);
+  bottom: 96px;
+  height: 1px;
+  background: rgba(255,255,255,.3);
+}
+body .luce-auth-copy { max-width: 660px !important; margin: auto 0 !important; }
+body .luce-auth-copy small {
+  color: #a9dff4 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+body .luce-auth-copy h2 {
+  max-width: 580px;
+  margin-top: 18px !important;
+  color: #fff !important;
+  font-family: Inter, Arial, sans-serif !important;
+  font-size: clamp(32px, 3.7vw, 55px) !important;
+  font-weight: 600 !important;
+  line-height: 1.1 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+body .luce-auth-copy p { max-width: 520px; color: #d5e1ef !important; line-height: 1.65 !important; text-shadow: none !important; }
+body .luce-auth-points { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+body .luce-auth-points span {
+  padding: 9px 12px !important;
+  border: 1px solid rgba(255,255,255,.23) !important;
+  border-radius: 6px !important;
+  color: #e8f1fc !important;
+  background: rgba(12,29,61,.24) !important;
+  box-shadow: none !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+body .luce-auth-signature { color: #d5e1ef !important; font-size: 12px; font-weight: 500 !important; text-shadow: none !important; }
+body .login-screen > .login-card,
+body .module-login-screen > .login-card {
+  align-self: center !important;
+  justify-self: center !important;
+  width: min(420px, calc(100% - 48px)) !important;
+  max-height: none !important;
+  margin: 36px 0 !important;
+  padding: 32px !important;
+  overflow: visible !important;
+  border: 1px solid var(--luce-line) !important;
+  border-radius: var(--luce-radius) !important;
+  color: var(--luce-ink) !important;
+  background: #fff !important;
+  box-shadow: var(--luce-shadow) !important;
+  backdrop-filter: none !important;
+}
+body .login-card .login-logo { margin-bottom: 10px; }
+body .login-card .login-logo h1 {
+  color: var(--luce-navy) !important;
+  font-family: Inter, Arial, sans-serif !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+body .login-card label { color: #31445b !important; font-size: 12px !important; font-weight: 650 !important; letter-spacing: 0 !important; text-transform: none !important; }
+body .login-card input,
+body .login-form input,
+body .login-form select {
+  min-height: 48px !important;
+  border: 1px solid #c8d4e2 !important;
+  border-radius: 7px !important;
+  color: var(--luce-ink) !important;
+  background: #fff !important;
+}
+body .login-card input:focus,
+body .login-form input:focus,
+body .login-form select:focus { outline: none !important; border-color: var(--luce-blue) !important; box-shadow: 0 0 0 3px rgba(25,86,174,.14) !important; }
+body .login-card .btn,
+body .login-form button { min-height: 46px !important; border-radius: 7px !important; font-weight: 700 !important; }
+body .login-card .btn.primary,
+body .login-card button[type="submit"],
+body .login-form button.primary {
+  border: 1px solid var(--luce-blue) !important;
+  color: #fff !important;
+  background: var(--luce-blue) !important;
+  box-shadow: 0 5px 14px rgba(25,86,174,.16) !important;
+}
+body .login-card .btn.primary:hover,
+body .login-card button[type="submit"]:hover,
+body .login-form button.primary:hover { background: #164b98 !important; transform: translateY(-1px); }
+body .login-card .btn:not(.primary),
+body .login-form button.secondary { border: 1px solid var(--luce-line) !important; color: var(--luce-navy) !important; background: #fff !important; box-shadow: none !important; }
+body .login-error,
+body .login-status { line-height: 1.45; }
+body .login-card :focus-visible,
+body .login-form :focus-visible { outline: 2px solid var(--luce-blue) !important; outline-offset: 2px !important; }
+body .account-dialog .account-dialog-head h2 { color: #fff !important; }
+
+@media (max-width: 860px) {
+  body .login-screen, body .module-login-screen { grid-template-columns: minmax(0, 1fr) !important; }
+  body .module-login-screen > .login-card:not([hidden]) { grid-column: 1; grid-row: 2; }
+  body .login-screen > .luce-auth-story, body .module-login-screen > .luce-auth-story {
+    min-height: 205px !important;
+    max-height: none !important;
+    padding: 26px 24px !important;
+  }
+  body .luce-auth-copy { margin: 0 !important; }
+  body .luce-auth-copy h2 { font-size: clamp(24px, 5vw, 34px) !important; margin-top: 8px !important; }
+  body .luce-auth-copy p { margin-top: 8px !important; font-size: 13px !important; }
+  body .luce-auth-points, body .luce-auth-signature, body .login-screen > .luce-auth-story::after { display: none !important; }
+  body .login-screen > .login-card, body .module-login-screen > .login-card { width: min(440px, calc(100% - 32px)) !important; margin: 20px auto 32px !important; padding: 26px !important; }
+}
+@media (max-width: 520px) {
+  body .login-screen > .luce-auth-story, body .module-login-screen > .luce-auth-story { min-height: 170px !important; }
+  body .luce-auth-copy h2 { font-size: 25px !important; }
+  body .login-screen > .login-card, body .module-login-screen > .login-card { margin: 14px auto 24px !important; padding: 22px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body .login-card *, body .login-form * { animation: none !important; transition: none !important; }
+}

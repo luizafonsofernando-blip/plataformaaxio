@@ -1,0 +1,13 @@
+:root {
+  --luce-ink: #142137;
+  --luce-navy: #0b1c3c;
+  --luce-blue: #1956ae;
+  --luce-cyan: #117b9b;
+  --luce-muted: #596a7d;
+  --luce-surface: #ffffff;
+  --luce-canvas: #f5f8fb;
+  --luce-line: #dce5ed;
+  --luce-radius: 8px;
+  --luce-shadow: 0 14px 40px rgba(11, 28, 60, .09);
+  --luce-ease: cubic-bezier(.22, 1, .36, 1);
+}

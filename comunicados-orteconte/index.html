@@ -1,0 +1,5588 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="apple-touch-icon" href="/assets/favicon.svg">
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sistema de Comunicados</title>
+  <link rel="stylesheet" href="../assets/auth-luce.css">
+  <link rel="stylesheet" href="../assets/luce-auth-premium.css">
+  <style>
+    :root {
+      --navy: #4880c0;
+      --navy-2: #4880c0;
+      --ink: #111827;
+      --muted: #526070;
+      --line: #d9e0ea;
+      --paper: #ffffff;
+      --bg: #f2f6fb;
+      --accent: #5121c7;
+      --accent-dark: #36108f;
+      --support: #5121c7;
+      --accent-soft: #f1edff;
+      --header-start: #4880c0;
+      --header-mid: #4880c0;
+      --header-end: #4880c0;
+      --header-fixed-start: #315f96;
+      --header-fixed-mid: #3f76b5;
+      --header-fixed-end: #274f80;
+      --institutional-text: #4880c0;
+      --footer-bg: #4880c0;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(320px, 430px) 1fr;
+      gap: 24px;
+      padding: 24px;
+    }
+
+    .panel {
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      align-self: start;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 14px 35px rgba(8, 36, 91, .08);
+      overflow: auto;
+    }
+
+    .panel-header {
+      padding: 22px 24px;
+      color: #fff;
+      background:
+        radial-gradient(circle at 90% 10%, rgba(255,255,255,.16), transparent 22%),
+        linear-gradient(135deg, var(--navy), #3f76b5 65%, var(--navy-2));
+    }
+
+    .panel-header .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .brand-logo {
+      display: block;
+      width: 166px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .brand-mark {
+      display: block;
+      width: 46px;
+      height: 42px;
+      flex: 0 0 auto;
+      object-fit: contain;
+    }
+
+    .brand-mark::before {
+      display: none;
+    }
+
+    .brand-mark::after {
+      display: none;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 23px;
+      line-height: 1.18;
+      letter-spacing: .2px;
+    }
+
+    .panel-note {
+      margin: 9px 0 0;
+      color: #d9e8ff;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .form {
+      display: grid;
+      gap: 18px;
+      padding: 22px 24px 24px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label,
+    .group-label {
+      color: #243244;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .7px;
+      text-transform: uppercase;
+    }
+
+    .input,
+    .textarea,
+    .select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 11px 12px;
+      color: #101827;
+      background: #fff;
+      outline: none;
+      transition: border-color .18s, box-shadow .18s;
+    }
+
+    .textarea {
+      min-height: 190px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .format-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      padding: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: linear-gradient(#f7f9fc, #eef3f8);
+    }
+
+    .format-button {
+      min-width: 34px;
+      min-height: 32px;
+      border: 1px solid #d5deeb;
+      border-radius: 5px;
+      color: #243244;
+      background: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .format-button:hover,
+    .format-button:focus {
+      color: var(--accent);
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    .format-select {
+      min-height: 32px;
+      border: 1px solid #d5deeb;
+      border-radius: 5px;
+      padding: 0 8px;
+      color: #243244;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .insert-tools {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .insert-tools .field {
+      min-width: 150px;
+      flex: 1 1 150px;
+    }
+
+    .insert-menu {
+      position: absolute;
+      z-index: 30;
+      top: calc(100% + 8px);
+      left: 0;
+      width: 270px;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 18px 38px rgba(15, 23, 42, .18);
+    }
+
+    .insert-menu[hidden] {
+      display: none;
+    }
+
+    .insert-menu-title {
+      margin: 0 0 8px;
+      color: #243244;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .table-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 18px);
+      gap: 4px;
+      margin-bottom: 9px;
+    }
+
+    .table-picker-cell {
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      border: 1px solid #9ca3af;
+      border-radius: 1px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .table-picker-cell.is-selected {
+      border-color: #2563eb;
+      background: #dbeafe;
+    }
+
+    .table-picker-label {
+      min-height: 18px;
+      color: #526070;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .rich-editor {
+      width: 100%;
+      min-height: 190px;
+      max-height: 360px;
+      overflow: auto;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 11px 12px;
+      color: #101827;
+      background: #fff;
+      line-height: 1.5;
+      outline: none;
+      transition: border-color .18s, box-shadow .18s;
+    }
+
+    .rich-editor:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+
+    .rich-editor p,
+    .rich-editor div {
+      margin: 0 0 10px;
+    }
+
+    .rich-editor .import-title,
+    .message .import-title {
+      color: var(--accent-dark);
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.18;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .rich-editor .import-subtitle,
+    .message .import-subtitle {
+      color: #526070;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .rich-editor .import-heading,
+    .message .import-heading {
+      color: var(--accent-dark);
+      font-weight: 900;
+      margin-top: 12px;
+      text-transform: uppercase;
+    }
+
+    .rich-editor .import-source,
+    .message .import-source {
+      color: #526070;
+      font-size: 10px;
+      font-style: italic;
+    }
+
+    .input:focus,
+    .textarea:focus,
+    .select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+
+    .segment-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .segment-option {
+      position: relative;
+    }
+
+    .segment-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .segment-card {
+      min-height: 45px;
+      display: flex;
+      align-items: center;
+      border: 1px solid color-mix(in srgb, var(--swatch) 42%, #d5deeb);
+      border-left: 8px solid var(--swatch);
+      border-radius: 7px;
+      padding: 9px 10px 9px 12px;
+      cursor: pointer;
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--swatch) 13%, #fff), #fff 54%);
+      color: color-mix(in srgb, var(--swatch) 70%, #172033);
+      font-size: 13px;
+      font-weight: 700;
+      transition: transform .18s, border-color .18s, background .18s;
+    }
+
+    .segment-option input:checked + .segment-card {
+      border-color: var(--swatch);
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--swatch) 22%, #fff), color-mix(in srgb, var(--swatch) 8%, #fff));
+      transform: translateY(-1px);
+    }
+
+    .two-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .checks {
+      display: grid;
+      gap: 10px;
+      padding: 13px;
+      border: 1px solid #dde5ef;
+      border-radius: 7px;
+      background: #f8fafc;
+    }
+
+    .check-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #243244;
+    }
+
+    .check-line input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .summary-editor {
+      display: none;
+      gap: 18px;
+      padding: 15px;
+      border: 1px solid #dde5ef;
+      border-radius: 7px;
+      background: #fbfdff;
+    }
+
+    .summary-editor.is-visible {
+      display: grid;
+    }
+
+    .summary-style-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .summary-style {
+      position: relative;
+    }
+
+    .summary-style input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .summary-style-card {
+      min-height: 58px;
+      display: grid;
+      align-content: center;
+      gap: 5px;
+      border: 1px solid #d5deeb;
+      border-radius: 7px;
+      padding: 10px;
+      color: #172033;
+      background: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.2;
+      transition: border-color .18s, background .18s, color .18s;
+    }
+
+    .summary-style-card small {
+      color: #64748b;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .summary-style input:checked + .summary-style-card {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 9%, #fff);
+    }
+
+    .art-style-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding-top: 4px;
+    }
+
+    .button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .button.primary {
+      color: #fff;
+      background: var(--navy);
+    }
+
+    .button.secondary {
+      color: var(--navy);
+      background: #e8eef8;
+    }
+
+    .stage {
+      overflow: auto;
+      display: grid;
+      place-items: start center;
+      gap: 20px;
+      padding-bottom: 24px;
+    }
+
+    .print-root {
+      display: none;
+    }
+
+    .sheet {
+      position: relative;
+      width: 210mm;
+      height: 297mm;
+      min-height: 297mm;
+      background: var(--paper);
+      box-shadow: 0 22px 60px rgba(8, 36, 91, .16);
+      overflow: hidden;
+    }
+
+    .sheet-header {
+      position: relative;
+      height: 39mm;
+      padding: 12mm 12mm 0;
+      color: #fff;
+      background: var(--header-start);
+    }
+
+    .cover-sheet {
+      display: none;
+      position: relative;
+      width: 210mm;
+      height: 297mm;
+      background: #fff;
+      box-shadow: 0 22px 60px rgba(8, 36, 91, .16);
+      overflow: hidden;
+    }
+
+    .cover-sheet.is-visible {
+      display: block;
+    }
+
+    .cover-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .cover-overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 45%, rgba(255,255,255,.12) 100%);
+      pointer-events: none;
+    }
+
+    .sheet-header::after {
+      content: "";
+      position: absolute;
+      left: -6mm;
+      right: -6mm;
+      bottom: -15mm;
+      height: 24mm;
+      background: #fff;
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+      transform: rotate(2deg);
+      transform-origin: center bottom;
+    }
+
+    .sheet-brand {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 18mm;
+    }
+
+    .sheet-brand .brand-logo {
+      width: 198px;
+      height: auto;
+    }
+
+    .sheet-brand .brand-mark {
+      width: 50px;
+      height: 54px;
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
+      height: calc(297mm - 39mm - 18mm);
+      box-sizing: border-box;
+      overflow: hidden;
+      padding: 0 13mm 22mm;
+    }
+
+    .tag-row {
+      display: flex;
+      align-items: center;
+      gap: 4mm;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      margin-top: 1mm;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 8mm;
+      border-radius: 999px;
+      padding: 0 4mm;
+      color: #fff;
+      background: var(--accent);
+      box-shadow: 0 7px 20px color-mix(in srgb, var(--accent) 26%, transparent);
+      font-size: 11.5px;
+      font-weight: 900;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+    }
+
+    .headline {
+      max-width: 168mm;
+      margin: 6mm 0 0;
+      color: var(--navy);
+      font-size: 30px;
+      line-height: 1.15;
+      letter-spacing: .2px;
+      text-transform: uppercase;
+    }
+
+    .eyebrow {
+      margin: 3mm 0 0;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+
+    .eyebrow.is-placeholder {
+      color: color-mix(in srgb, var(--accent) 34%, #ffffff);
+      font-style: italic;
+      letter-spacing: .8px;
+    }
+
+    .summary {
+      margin-top: 9mm;
+      border-radius: 7px;
+      padding: 6mm 6mm 5mm;
+      background: color-mix(in srgb, var(--accent) 9%, #fff);
+    }
+
+    .summary-title {
+      margin: 0 0 5mm;
+      color: var(--accent-dark);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .summary-item {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      text-align: center;
+      color: #0f172a;
+      font-size: 10.5px;
+      line-height: 1.28;
+      font-weight: 700;
+    }
+
+    .summary-icon {
+      width: 17mm;
+      height: 17mm;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--support);
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,.18);
+      font-size: 25px;
+      font-weight: 900;
+    }
+
+    .summary.style-ledger {
+      border-left: 5mm solid var(--support);
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--accent) 11%, #fff), #fff 58%),
+        repeating-linear-gradient(0deg, transparent 0 12mm, rgba(15, 23, 42, .045) 12mm 12.2mm);
+    }
+
+    .summary.style-ledger .summary-title {
+      text-align: left;
+      margin-bottom: 4mm;
+    }
+
+    .summary.style-ledger .summary-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 3mm;
+    }
+
+    .summary.style-ledger .summary-item {
+      min-height: 14mm;
+      grid-template-columns: auto 1fr;
+      justify-items: start;
+      align-items: center;
+      gap: 3mm;
+      border-bottom: 1px solid rgba(15, 23, 42, .13);
+      padding: 2mm 0;
+      text-align: left;
+      font-size: 11px;
+    }
+
+    .summary.style-ledger .summary-icon {
+      width: 10mm;
+      height: 10mm;
+      border-radius: 3px;
+      font-size: 15px;
+      box-shadow: none;
+    }
+
+    .summary.style-calendar {
+      position: relative;
+      overflow: hidden;
+      border: 1.2px solid color-mix(in srgb, var(--accent) 28%, #fff);
+      background: #fff;
+    }
+
+    .summary.style-calendar::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 9mm;
+      background: var(--accent);
+    }
+
+    .summary.style-calendar .summary-title,
+    .summary.style-calendar .summary-grid {
+      position: relative;
+      z-index: 1;
+    }
+
+    .summary.style-calendar .summary-title {
+      min-height: 9mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: -2mm 0 5mm;
+      color: #fff;
+    }
+
+    .summary.style-calendar .summary-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3mm;
+    }
+
+    .summary.style-calendar .summary-item {
+      min-height: 32mm;
+      align-content: start;
+      gap: 2mm;
+      border: 1px solid #d9e0ea;
+      border-radius: 5px;
+      padding: 3mm 2mm;
+      background: #fbfdff;
+      font-size: 10.2px;
+    }
+
+    .summary.style-calendar .summary-icon {
+      width: 11mm;
+      height: 11mm;
+      border-radius: 50%;
+      font-size: 14px;
+      box-shadow: none;
+    }
+
+    .body-block {
+      margin-top: 4mm;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 7mm;
+      align-items: end;
+    }
+
+    .body-main {
+      min-width: 0;
+    }
+
+    .message {
+      color: #111827;
+      font-size: 10.6px;
+      line-height: 1.38;
+      white-space: pre-wrap;
+    }
+
+    .message p {
+      margin: 0 0 2.1mm;
+    }
+
+    .message .import-heading {
+      margin-top: 3.2mm;
+      margin-bottom: 1.5mm;
+    }
+
+    .message .import-source {
+      margin-bottom: 1.6mm;
+    }
+
+    .message .lead {
+      font-weight: 800;
+    }
+
+    .graphic-box {
+      display: none;
+      margin-top: 3.5mm;
+      margin-bottom: 3mm;
+      border: 1.2px solid color-mix(in srgb, var(--accent) 28%, #fff);
+      border-radius: 7px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .graphic-box.is-visible {
+      display: block;
+    }
+
+    .graphic-list {
+      display: none;
+    }
+
+    .graphic-list.is-visible {
+      display: block;
+    }
+
+    .graphic-list .graphic-box {
+      display: block;
+    }
+
+    .rich-editor .inline-graphic-block {
+      display: block;
+      margin: 10px 0;
+      border: 1.2px solid color-mix(in srgb, var(--accent) 28%, #fff);
+      border-radius: 7px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .rich-editor .inline-graphic-block input,
+    .rich-editor .inline-graphic-block textarea {
+      width: 100%;
+      border: 0;
+      color: inherit;
+      background: transparent;
+      font: inherit;
+      line-height: inherit;
+      outline: none;
+    }
+
+    .rich-editor .inline-graphic-block .graphic-header-input {
+      color: var(--accent-dark);
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .rich-editor .inline-graphic-block .graphic-caption-input {
+      color: #526070;
+      font-size: 10px;
+      text-align: center;
+    }
+
+    .rich-editor .inline-graphic-block .graphic-cell-input {
+      min-width: 42px;
+      min-height: 18px;
+    }
+
+    .rich-editor .inline-graphic-block .graphic-chart-input {
+      margin-top: 5px;
+      color: var(--accent-dark);
+      font-size: 9px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .rich-editor .inline-graphic-block table {
+      margin: 0;
+    }
+
+    .rich-editor .inline-graphic-block td,
+    .rich-editor .inline-graphic-block th,
+    .rich-editor .inline-graphic-block .graphic-caption {
+      cursor: text;
+    }
+
+    .graphic-item-editor {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid #d9e2ef;
+      border-radius: 7px;
+      background: #fbfdff;
+    }
+
+    .graphic-item-editor + .graphic-item-editor {
+      margin-top: 10px;
+    }
+
+    .graphic-item-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .small-action {
+      border: 0;
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: #fff;
+      background: var(--accent);
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .small-action.danger {
+      background: #b91c1c;
+    }
+
+    .graphic-header {
+      padding: 3mm 5mm;
+      color: #fff;
+      background: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+    }
+
+    .graphic-content {
+      padding: 3.5mm;
+    }
+
+    .graphic-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.5px;
+    }
+
+    .graphic-table th,
+    .graphic-table td {
+      border: 1px solid #d9e0ea;
+      padding: 2mm;
+      text-align: left;
+    }
+
+    .graphic-table th {
+      color: var(--accent-dark);
+      background: color-mix(in srgb, var(--accent) 9%, #fff);
+    }
+
+    .table-builder {
+      display: none;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid #d9e2ef;
+      border-radius: 7px;
+      background: #fbfdff;
+    }
+
+    .table-builder.is-visible {
+      display: grid;
+    }
+
+    .table-size-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .table-editor {
+      overflow: auto;
+      border: 1px solid #d5deeb;
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    .table-editor table {
+      width: 100%;
+      min-width: 360px;
+      border-collapse: collapse;
+    }
+
+    .table-editor th,
+    .table-editor td {
+      border: 1px solid #d9e0ea;
+      padding: 0;
+    }
+
+    .table-editor input {
+      width: 100%;
+      min-width: 90px;
+      border: 0;
+      outline: 0;
+      padding: 8px;
+      color: #111827;
+      font: inherit;
+      font-size: 12px;
+      background: transparent;
+    }
+
+    .table-editor thead input {
+      color: var(--accent-dark);
+      font-weight: 800;
+      background: color-mix(in srgb, var(--accent) 9%, #fff);
+    }
+
+    .graphic-chart {
+      min-height: 34mm;
+      display: flex;
+      align-items: end;
+      gap: 6mm;
+      padding: 5mm 7mm 2mm;
+      border-left: 1.5px solid #cbd5e1;
+      border-bottom: 1.5px solid #cbd5e1;
+    }
+
+    .graphic-bar {
+      flex: 1;
+      min-width: 10mm;
+      display: grid;
+      align-content: end;
+      justify-items: center;
+      gap: 2mm;
+      color: var(--accent-dark);
+      font-size: 9px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .graphic-bar span {
+      width: 100%;
+      min-height: 8mm;
+      border-radius: 4px 4px 0 0;
+      background: var(--accent);
+    }
+
+    .graphic-image {
+      min-height: 34mm;
+      display: grid;
+      place-items: center;
+      border: 1px dashed color-mix(in srgb, var(--accent) 40%, #fff);
+      border-radius: 6px;
+      color: var(--accent-dark);
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, #fff), #fff);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .graphic-image img {
+      max-width: 100%;
+      max-height: 42mm;
+      object-fit: contain;
+      display: block;
+    }
+
+    .graphic-caption {
+      display: none;
+      padding: 0 5mm 5mm;
+      color: #334155;
+      font-size: 10.5px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .graphic-caption.is-visible {
+      display: block;
+    }
+
+    .after-graphic-message {
+      margin-top: 2mm;
+    }
+
+    .deadline-card {
+      width: 47mm;
+      min-height: 34mm;
+      border: 1.4px solid color-mix(in srgb, var(--accent) 55%, #fff);
+      border-radius: 7px;
+      padding: 5mm 4mm;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 5%, #fff);
+    }
+
+    .deadline-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .deadline-date {
+      margin-top: 3mm;
+      font-size: 23px;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .deadline-note {
+      margin-top: 2mm;
+      color: #172033;
+      font-size: 10px;
+      line-height: 1.28;
+      font-weight: 700;
+    }
+
+    .signature {
+      margin-top: 5mm;
+      color: #111827;
+      font-size: 11.2px;
+      line-height: 1.45;
+    }
+
+    .signature strong {
+      display: block;
+      color: var(--accent);
+      font-size: 13px;
+    }
+
+    .sheet-footer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      min-height: 11mm;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      align-items: center;
+      gap: 4mm;
+      padding: 0 13mm;
+      color: #fff;
+      background: var(--footer-bg);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .continuation-pages {
+      display: contents;
+    }
+
+    .continuation-sheet .content {
+      height: calc(297mm - 39mm - 18mm);
+      min-height: 0;
+      padding-top: 8mm;
+      padding-bottom: 30mm;
+    }
+
+    .continuation-sheet .body-block {
+      display: block;
+      margin-top: 6mm;
+    }
+
+    .continuation-sheet .body-main {
+      max-width: 170mm;
+    }
+
+    .page-art {
+      position: absolute;
+      right: 13mm;
+      bottom: 24mm;
+      width: 52mm;
+      height: 52mm;
+      opacity: .12;
+      color: var(--support);
+      pointer-events: none;
+    }
+
+    .page-art.none {
+      display: none;
+    }
+
+    .art-calculator {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: 12mm repeat(4, 1fr);
+      gap: 2mm;
+      border: 2.2mm solid currentColor;
+      border-radius: 6mm;
+      padding: 4mm;
+    }
+
+    .art-calculator::before {
+      content: "";
+      grid-column: 1 / -1;
+      border-radius: 2mm;
+      background: currentColor;
+      opacity: .45;
+    }
+
+    .art-calculator span {
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .art-chart {
+      display: flex;
+      align-items: end;
+      gap: 4mm;
+      border-left: 2mm solid currentColor;
+      border-bottom: 2mm solid currentColor;
+      padding: 5mm 4mm 0;
+    }
+
+    .art-chart span {
+      flex: 1;
+      border-radius: 3mm 3mm 0 0;
+      background: currentColor;
+    }
+
+    .art-chart span:nth-child(1) { height: 35%; }
+    .art-chart span:nth-child(2) { height: 58%; }
+    .art-chart span:nth-child(3) { height: 45%; }
+    .art-chart span:nth-child(4) { height: 82%; }
+
+    .art-numbers {
+      display: grid;
+      place-items: center;
+      border: 2mm solid currentColor;
+      border-radius: 50%;
+      font-size: 19mm;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .art-numbers::before {
+      content: "123";
+    }
+
+    .art-numbers::after {
+      content: "%";
+      position: absolute;
+      right: 1mm;
+      bottom: -2mm;
+      font-size: 18mm;
+    }
+
+    .footer-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    .footer-icon {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+
+    .internal-header-copy,
+    .internal-footer-logo {
+      display: none;
+    }
+
+    .sheet-header {
+      height: 27mm;
+      padding: 6mm 12mm 0;
+      background: linear-gradient(135deg, var(--header-fixed-start) 0%, var(--header-fixed-mid) 62%, var(--header-fixed-end) 100%);
+      border-bottom: 1.4mm solid #d8e7f6;
+    }
+
+    html[data-segment="boletim"] .sheet-header {
+      background: linear-gradient(135deg, var(--header-start) 0%, var(--header-mid) 62%, var(--header-end) 100%);
+    }
+
+    .sheet-header::after {
+      display: none;
+    }
+
+    .sheet-brand {
+      min-height: 14mm;
+      gap: 6mm;
+    }
+
+    .sheet-brand .brand-mark {
+      width: 22mm;
+      height: 15mm;
+      opacity: .28;
+    }
+
+    .sheet-brand .brand-logo {
+      display: block;
+      width: 37mm;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .internal-header-copy {
+      display: grid;
+      flex: 1;
+      gap: 1.3mm;
+      color: #fff;
+      text-align: left;
+      text-transform: uppercase;
+    }
+
+    .internal-header-copy strong {
+      font-size: 19px;
+      line-height: 1;
+      letter-spacing: 1.5px;
+    }
+
+    .internal-header-copy span {
+      color: #eaf4ff;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .5px;
+      line-height: 1.25;
+    }
+
+    .content {
+      height: calc(297mm - 27mm - 9mm);
+      padding-top: 6mm;
+      padding-bottom: 12mm;
+    }
+
+    .tag-row {
+      display: none;
+    }
+
+    .headline {
+      margin-top: 0;
+      color: var(--accent-dark);
+      font-size: 25px;
+      line-height: 1.18;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+    }
+
+    .summary {
+      background: color-mix(in srgb, var(--accent) 10%, #fff);
+    }
+
+    .continuation-sheet .content {
+      height: calc(297mm - 27mm - 9mm);
+      padding-top: 6mm;
+      padding-bottom: 12mm;
+    }
+
+    .sheet-footer {
+      min-height: 9mm;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 12mm;
+      color: var(--accent);
+      background: var(--header-fixed-mid);
+      border-top: 0;
+    }
+
+    html[data-segment="boletim"] .sheet-footer {
+      color: var(--accent);
+      background: #fff;
+      border-top: 1px solid #d8e7f6;
+    }
+
+    .sheet-footer .internal-footer-logo {
+      filter: none;
+    }
+
+    .sheet-footer .footer-item {
+      display: none;
+    }
+
+    .sheet-footer .internal-footer-logo {
+      display: none;
+    }
+
+    .internal-footer-text {
+      display: none;
+    }
+
+    .sheet-footer .internal-footer-text {
+      display: block;
+      color: var(--institutional-text);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+    }
+
+    .brand-name-text {
+      display: none;
+    }
+
+    html[data-segment="boletim"] .sheet-footer .internal-footer-logo {
+      display: block;
+      width: 34mm;
+      height: auto;
+    }
+
+    html[data-segment="boletim"] .sheet-footer .internal-footer-text {
+      display: none;
+    }
+
+    .footer-item:nth-child(2) {
+      justify-content: center;
+    }
+
+    .footer-item:nth-child(3) {
+      justify-content: flex-end;
+    }
+
+    /* Rodape restaurado para o padrao anterior */
+    .sheet-footer {
+      min-height: 11mm;
+      display: grid;
+      grid-template-columns: 36mm 1fr 1fr 1fr;
+      justify-content: initial;
+      align-items: center;
+      gap: 5mm;
+      padding: 0 12mm;
+      color: #fff;
+      background: var(--footer-bg);
+      border-top: 0;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .sheet-footer .internal-footer-logo {
+      display: block;
+      width: 32mm;
+      height: auto;
+      filter: none;
+    }
+
+    .sheet-footer .internal-footer-text {
+      display: none;
+    }
+
+    .sheet-footer .footer-item {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .sheet-footer .footer-item:nth-of-type(1) {
+      justify-content: flex-start;
+    }
+
+    .sheet-footer .footer-item:nth-of-type(2) {
+      justify-content: center;
+    }
+
+    .sheet-footer .footer-item:nth-of-type(3) {
+      justify-content: flex-end;
+    }
+
+    .sheet-footer .footer-icon {
+      width: 15px;
+      height: 15px;
+      filter: brightness(0) invert(1);
+    }
+
+    /* Rodape compacto e estavel para pre-visualizacao, PDF e Word */
+    .sheet-footer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      min-height: 13mm;
+      height: 13mm;
+      display: grid;
+      grid-template-columns: 40mm minmax(0, 1fr);
+      align-items: center;
+      gap: 7mm;
+      padding: 0 12mm;
+      color: #fff;
+      background: var(--header-fixed-mid);
+      border-top: 1px solid rgba(255, 255, 255, .22);
+      font-size: 9.5px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .sheet-footer .internal-footer-logo {
+      display: block;
+      width: 34mm;
+      max-width: 34mm;
+      height: auto;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+
+    .sheet-footer .internal-footer-text {
+      display: none;
+    }
+
+    .sheet-footer .footer-item {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      min-width: 0;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .sheet-footer .footer-item:nth-of-type(1) {
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: start;
+    }
+
+    .sheet-footer .footer-item:nth-of-type(2) {
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: center;
+    }
+
+    .sheet-footer .footer-item:nth-of-type(3) {
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: end;
+    }
+
+    .sheet-footer .footer-icon {
+      width: 12px;
+      height: 12px;
+      margin-right: 4px;
+      object-fit: contain;
+      filter: none;
+    }
+
+    html[data-segment="boletim"] .sheet-footer {
+      color: #fff;
+      background: var(--header-fixed-mid);
+      border-top: 1px solid rgba(255, 255, 255, .22);
+    }
+
+    html[data-segment="boletim"] .sheet-footer .internal-footer-logo {
+      width: 34mm;
+      filter: brightness(0) invert(1);
+    }
+
+    /* Rodape final: somente WhatsApp, e-mail e site */
+    .sheet-footer {
+      height: 11mm;
+      min-height: 11mm;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: center;
+      gap: 4mm;
+      padding: 0 13mm;
+      color: #fff;
+      background: var(--header-fixed-mid);
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .sheet-footer .internal-footer-logo,
+    .sheet-footer .internal-footer-text {
+      display: none;
+    }
+
+    .sheet-footer .footer-item {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .sheet-footer .footer-item:nth-child(1) {
+      justify-content: flex-start;
+    }
+
+    .sheet-footer .footer-item:nth-child(2) {
+      justify-content: center;
+    }
+
+    .sheet-footer .footer-item:nth-child(3) {
+      justify-content: flex-end;
+    }
+
+    .sheet-footer .footer-icon {
+      width: 14px;
+      height: 14px;
+      margin-right: 5px;
+      object-fit: contain;
+      filter: none;
+    }
+
+    /* Correcao definitiva do alinhamento do rodape */
+    .sheet-footer {
+      height: 11mm !important;
+      min-height: 11mm !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 8mm !important;
+      padding: 0 16mm !important;
+      color: #fff !important;
+      background: var(--header-fixed-mid) !important;
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      line-height: 1 !important;
+    }
+
+    .sheet-footer .footer-item {
+      grid-column: auto !important;
+      grid-row: auto !important;
+      display: flex !important;
+      align-items: center !important;
+      flex: 1 1 0 !important;
+      min-width: 0 !important;
+      color: #fff !important;
+      white-space: nowrap !important;
+    }
+
+    .sheet-footer .footer-item:nth-child(1),
+    .sheet-footer .footer-item:nth-of-type(1) {
+      justify-content: flex-start !important;
+      justify-self: auto !important;
+      text-align: left !important;
+    }
+
+    .sheet-footer .footer-item:nth-child(2),
+    .sheet-footer .footer-item:nth-of-type(2) {
+      justify-content: center !important;
+      justify-self: auto !important;
+      text-align: center !important;
+    }
+
+    .sheet-footer .footer-item:nth-child(3),
+    .sheet-footer .footer-item:nth-of-type(3) {
+      justify-content: flex-end !important;
+      justify-self: auto !important;
+      text-align: right !important;
+    }
+
+    .sheet-footer .footer-icon {
+      width: 13px !important;
+      height: 13px !important;
+      margin-right: 5px !important;
+      flex: 0 0 auto !important;
+    }
+
+    @media (max-width: 1180px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        position: relative;
+        top: auto;
+        max-height: none;
+        max-width: 760px;
+        width: 100%;
+        justify-self: center;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        padding: 14px;
+      }
+
+      .stage {
+        align-items: start;
+      }
+
+      .sheet {
+        width: min(100%, 210mm);
+        min-height: auto;
+        aspect-ratio: 210 / 297;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .segment-grid,
+      .two-fields,
+      .actions {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-header,
+      .form {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    @media print {
+      html,
+      body {
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        background: #fff;
+      }
+
+      .panel {
+        display: none !important;
+      }
+
+      body.printing-pdf .app {
+        display: none !important;
+      }
+
+      body.printing-pdf .print-root {
+        display: block !important;
+      }
+
+      body.printing-pdf .print-root .eyebrow.is-placeholder {
+        display: none !important;
+      }
+
+      .app {
+        display: block;
+        padding: 0;
+      }
+
+      .stage {
+        display: block;
+        padding: 0;
+        overflow: visible;
+      }
+
+      .sheet {
+        width: 210mm;
+        height: 297mm;
+        min-height: 297mm;
+        margin: 0;
+        box-shadow: none;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      .cover-sheet {
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        box-shadow: none;
+        page-break-after: always;
+        break-after: page;
+      }
+
+      .print-root .cover-sheet,
+      .print-root .sheet {
+        display: block !important;
+      }
+
+      .print-root .sheet:not(:last-child) {
+        page-break-after: always;
+        break-after: page;
+      }
+    }
+
+    /* Painel superior horizontal e edicao direta na folha */
+    .app {
+      grid-template-columns: 1fr;
+      gap: 18px;
+      padding: 18px;
+    }
+
+    .panel {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      width: 100%;
+      max-height: none;
+      border-radius: 8px;
+      overflow: visible;
+    }
+
+    .panel-header {
+      display: grid;
+      grid-template-columns: auto minmax(210px, 1fr);
+      align-items: center;
+      gap: 18px;
+      padding: 12px 18px;
+    }
+
+    .panel-header .brand {
+      margin: 0;
+    }
+
+    .panel-title {
+      font-size: 18px;
+    }
+
+    .panel-note {
+      display: none;
+    }
+
+    .form {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 18px 14px;
+      overflow-x: auto;
+      overflow-y: visible;
+    }
+
+    .form > .field,
+    .form > .two-fields,
+    .form > .checks,
+    .form > .summary-editor,
+    .form > .actions {
+      flex: 0 0 auto;
+      min-width: 220px;
+    }
+
+    .form > .field:first-child {
+      min-width: 380px;
+    }
+
+    .direct-edit-field {
+      display: none !important;
+    }
+
+    .segment-grid {
+      grid-template-columns: repeat(4, minmax(110px, 1fr));
+    }
+
+    .two-fields {
+      width: 420px;
+    }
+
+    .checks {
+      width: 250px;
+    }
+
+    .summary-editor.is-visible {
+      display: flex;
+      min-width: 720px;
+      align-items: flex-start;
+    }
+
+    .summary-editor.is-visible > .field {
+      min-width: 210px;
+    }
+
+    .art-style-grid {
+      grid-template-columns: repeat(4, minmax(100px, 1fr));
+      width: 500px;
+    }
+
+    .actions {
+      width: 520px;
+      align-self: stretch;
+      align-content: end;
+    }
+
+    .stage {
+      padding-bottom: 24px;
+    }
+
+    .editable-preview {
+      cursor: text;
+      outline: 1px dashed transparent;
+      outline-offset: 2px;
+      transition: outline-color .18s, background-color .18s;
+    }
+
+    .editable-preview:hover {
+      outline-color: rgba(72, 128, 192, .45);
+      background-color: rgba(72, 128, 192, .04);
+    }
+
+    .editable-preview:focus {
+      outline-color: var(--header-fixed-mid);
+      background-color: rgba(72, 128, 192, .07);
+    }
+
+    @media (max-width: 1180px) {
+      .panel {
+        top: 0;
+        max-width: none;
+      }
+
+      .form {
+        flex-wrap: nowrap;
+      }
+    }
+
+    /* Painel compacto com destaque apenas para segmentos */
+    .panel {
+      box-shadow: 0 10px 28px rgba(8, 36, 91, .1);
+    }
+
+    .form {
+      gap: 10px;
+      padding: 10px 14px 12px;
+    }
+
+    .form > .field,
+    .form > .two-fields,
+    .form > .checks,
+    .form > .summary-editor,
+    .form > .actions {
+      min-width: 180px;
+    }
+
+    .form > .field:first-child {
+      min-width: 520px;
+      padding: 10px;
+      border: 1px solid #d7e4f4;
+      border-radius: 8px;
+      background: #f8fbff;
+    }
+
+    .segment-grid {
+      grid-template-columns: repeat(7, minmax(94px, 1fr));
+      gap: 6px;
+    }
+
+    .segment-card {
+      min-height: 34px;
+      border-left-width: 5px;
+      border-radius: 6px;
+      padding: 6px 7px;
+      font-size: 11px;
+      line-height: 1.1;
+    }
+
+    .format-toolbar {
+      position: relative;
+      display: grid;
+      grid-template-columns: 150px 62px repeat(3, 26px) 8px repeat(4, 26px);
+      align-items: center;
+      gap: 2px;
+      width: max-content;
+      min-width: 0;
+      padding: 6px 8px 18px;
+      border: 1px solid #cfd8e5;
+      border-radius: 3px;
+      background: linear-gradient(#f8fafc, #eef2f7);
+      box-shadow: inset 0 1px 0 #fff;
+    }
+
+    .format-toolbar::after {
+      content: "Fonte    Parágrafo";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 3px;
+      color: #667085;
+      font-size: 10px;
+      text-align: center;
+      word-spacing: 56px;
+    }
+
+    .format-select {
+      min-height: 26px;
+      height: 26px;
+      border-radius: 2px;
+      padding: 0 6px;
+      font-size: 11px;
+      font-weight: 500;
+      background: #fff;
+    }
+
+    .format-button {
+      min-width: 26px;
+      width: 26px;
+      min-height: 24px;
+      height: 24px;
+      border-color: transparent;
+      border-radius: 2px;
+      padding: 0;
+      background: transparent;
+      color: #344054;
+      font-size: 11px;
+      line-height: 1;
+      box-shadow: none;
+    }
+
+    .format-button:hover,
+    .format-button:focus {
+      border-color: #b8c4d6;
+      background: #e6ebf2;
+      color: #1d4ed8;
+    }
+
+    .format-button[data-command="bold"],
+    .format-button[data-command="italic"],
+    .format-button[data-command="underline"] {
+      font-size: 12px;
+    }
+
+    .format-button[data-command="justifyLeft"] {
+      margin-left: 8px;
+    }
+
+    .format-button[data-command="justifyLeft"],
+    .format-button[data-command="justifyCenter"],
+    .format-button[data-command="justifyRight"],
+    .format-button[data-command="justifyFull"] {
+      font-size: 0;
+    }
+
+    .format-button[data-command="justifyLeft"]::before,
+    .format-button[data-command="justifyCenter"]::before,
+    .format-button[data-command="justifyRight"]::before,
+    .format-button[data-command="justifyFull"]::before {
+      content: "";
+      display: block;
+      width: 15px;
+      height: 11px;
+      margin: auto;
+      background:
+        linear-gradient(#344054 0 0) 0 0 / 15px 1px no-repeat,
+        linear-gradient(#344054 0 0) 0 5px / 12px 1px no-repeat,
+        linear-gradient(#344054 0 0) 0 10px / 15px 1px no-repeat;
+    }
+
+    .format-button[data-command="justifyCenter"]::before {
+      background:
+        linear-gradient(#344054 0 0) center 0 / 15px 1px no-repeat,
+        linear-gradient(#344054 0 0) center 5px / 12px 1px no-repeat,
+        linear-gradient(#344054 0 0) center 10px / 15px 1px no-repeat;
+    }
+
+    .format-button[data-command="justifyRight"]::before {
+      background:
+        linear-gradient(#344054 0 0) right 0 / 15px 1px no-repeat,
+        linear-gradient(#344054 0 0) right 5px / 12px 1px no-repeat,
+        linear-gradient(#344054 0 0) right 10px / 15px 1px no-repeat;
+    }
+
+    .format-button[data-command="justifyFull"]::before {
+      background:
+        linear-gradient(#344054 0 0) 0 0 / 15px 1px no-repeat,
+        linear-gradient(#344054 0 0) 0 5px / 15px 1px no-repeat,
+        linear-gradient(#344054 0 0) 0 10px / 15px 1px no-repeat;
+    }
+
+    .ghost-button,
+    .small-action,
+    .button {
+      min-height: 32px;
+      border-radius: 6px;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
+    .input,
+    .select {
+      min-height: 34px;
+      padding: 7px 9px;
+      font-size: 12px;
+    }
+
+    .textarea,
+    .rich-editor {
+      font-size: 12px;
+    }
+
+    .actions {
+      width: 410px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .actions .button {
+      min-width: 0;
+      width: 100%;
+      padding: 0 7px;
+      white-space: nowrap;
+    }
+
+    /* Organizacao final do topo e dos segmentos */
+    .panel-header {
+      grid-template-columns: auto;
+      padding: 10px 14px;
+    }
+
+    .panel-header .brand {
+      justify-content: flex-start;
+    }
+
+    .panel-header .brand-logo {
+      width: 142px;
+    }
+
+    .panel-header .brand-mark {
+      width: 34px;
+      height: 34px;
+    }
+
+    .form > .field:first-child {
+      min-width: 430px;
+      max-width: 430px;
+    }
+
+    .segment-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .segment-card {
+      min-height: 32px;
+      justify-content: center;
+      border-left-width: 0;
+      border-bottom: 4px solid var(--swatch);
+      padding: 6px 8px;
+      text-align: center;
+      font-size: 10.5px;
+    }
+
+    .actions {
+      width: 290px;
+    }
+
+    /* Botao de tabela no padrao de editor */
+    .table-tool-field {
+      min-width: 372px !important;
+      width: 372px;
+      display: grid;
+      grid-template-columns: 64px minmax(260px, 1fr);
+      align-items: start;
+      column-gap: 10px;
+      row-gap: 7px;
+    }
+
+    .insert-tools {
+      display: block;
+      width: 64px;
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .table-tool-button {
+      display: grid;
+      width: 58px;
+      min-height: 64px;
+      place-items: center;
+      gap: 3px;
+      border: 1px solid transparent;
+      border-radius: 2px;
+      background: #f5f7fb;
+      color: #243244;
+      cursor: pointer;
+      font-size: 11px;
+      line-height: 1.1;
+    }
+
+    .table-tool-button:hover,
+    .table-tool-button:focus {
+      border-color: #b8c4d6;
+      background: #e8eef7;
+      outline: none;
+    }
+
+    .table-tool-button small {
+      width: 0;
+      height: 0;
+      border-right: 4px solid transparent;
+      border-left: 4px solid transparent;
+      border-top: 5px solid #526070;
+    }
+
+    .table-tool-icon {
+      width: 28px;
+      height: 24px;
+      border: 1px solid #8c98a8;
+      background:
+        linear-gradient(#8c98a8 0 0) 0 7px / 100% 1px no-repeat,
+        linear-gradient(#8c98a8 0 0) 0 14px / 100% 1px no-repeat,
+        linear-gradient(#8c98a8 0 0) 9px 0 / 1px 100% no-repeat,
+        linear-gradient(#8c98a8 0 0) 18px 0 / 1px 100% no-repeat,
+        #fff;
+    }
+
+    .insert-menu {
+      top: calc(100% + 6px);
+      width: 214px;
+      padding: 0 8px 8px;
+      border-radius: 2px;
+      background: #f8f8f8;
+    }
+
+    .insert-menu-title {
+      margin: 0 -8px 7px;
+      padding: 5px 9px;
+      color: #3b4a5f;
+      background: #e9edf3;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .table-picker-grid {
+      grid-template-columns: repeat(10, 16px);
+      gap: 3px;
+      margin-bottom: 9px;
+    }
+
+    .table-picker-cell {
+      width: 16px;
+      height: 16px;
+      border-color: #8d8d8d;
+      background: #fff;
+    }
+
+    .table-picker-cell.is-selected {
+      border-color: #ff6a00;
+      background: #fff7ed;
+      box-shadow: inset 0 0 0 1px #ff6a00;
+    }
+
+    .insert-menu-action {
+      display: block;
+      width: 100%;
+      min-height: 24px;
+      border: 0;
+      padding: 3px 5px;
+      color: #344054;
+      background: transparent;
+      text-align: left;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .insert-menu-action:hover:not(:disabled) {
+      background: #e8eef7;
+    }
+
+    .insert-menu-action:disabled {
+      color: #a0a8b3;
+      cursor: default;
+    }
+
+    .compact-format-toolbar {
+      display: grid;
+      grid-template-columns: 58px repeat(13, 24px);
+      align-items: center;
+      gap: 2px;
+      grid-column: 1 / -1;
+      grid-row: 3;
+      width: max-content;
+      margin-top: 0;
+      padding: 3px 0 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .compact-format-toolbar .format-button {
+      width: 22px;
+      min-width: 22px;
+      height: 22px;
+      min-height: 22px;
+      font-size: 11px;
+      background: #f8fafc;
+      border: 1px solid #d6dfeb;
+    }
+
+    .compact-format-toolbar .compact-font-size {
+      width: 56px;
+      min-width: 56px;
+      height: 22px;
+      min-height: 22px;
+      padding: 0 4px;
+      font-size: 10.5px;
+    }
+
+    .format-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      padding: 7px;
+      background: #f7f9fc;
+      border: 1px solid #d7e0ea;
+      border-bottom: 0;
+      border-radius: 7px 7px 0 0;
+    }
+
+    .format-toolbar .format-button {
+      min-width: 30px;
+      height: 30px;
+      padding: 0 7px;
+      color: #344054;
+      background: #fff;
+      border: 1px solid #d5dee8;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease;
+    }
+
+    .format-toolbar .format-button:hover {
+      color: #174f7f;
+      background: #eef5fb;
+      border-color: #9cb9d2;
+    }
+
+    .format-toolbar .format-button:active { transform: scale(.97); }
+    .format-toolbar .format-button.is-active {
+      color: #fff;
+      background: #174f7f;
+      border-color: #174f7f;
+    }
+
+    .toolbar-divider { width: 1px; height: 22px; margin: 0 2px; background: #d7e0ea; }
+    .format-toolbar + .rich-editor { border-top-left-radius: 0; border-top-right-radius: 0; }
+    .button.is-busy, .save-option.is-busy { pointer-events: none; opacity: .68; }
+    .button.is-success, .save-option.is-success { color: #fff; background: #177457; border-color: #177457; }
+    .unsaved-indicator { color: #9a6507; font-size: 10px; font-weight: 700; }
+
+    @media (max-width: 720px) {
+      .format-toolbar { max-height: 116px; overflow-y: auto; }
+      .format-toolbar .format-select { flex: 1 1 120px; }
+    }
+
+    #removeLastGraphic {
+      grid-column: 1;
+      grid-row: 2;
+      align-self: start;
+      width: 58px;
+      min-height: 28px;
+      border-color: #cfd8e5;
+      background: #fff;
+      color: #344054;
+      box-shadow: none;
+    }
+
+    .format-button[data-command="strikeThrough"] {
+      text-decoration: line-through;
+    }
+
+    .format-button[data-command="subscript"],
+    .format-button[data-command="superscript"] {
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .format-button.color-tool {
+      position: relative;
+      color: #2563eb;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .format-button.color-tool::after {
+      content: "";
+      position: absolute;
+      right: 4px;
+      bottom: 3px;
+      left: 4px;
+      height: 3px;
+      background: var(--tool-color, #2563eb);
+    }
+
+    .color-picker-menu {
+      position: relative;
+      width: 22px;
+      height: 22px;
+    }
+
+    .color-picker-menu summary {
+      list-style: none;
+    }
+
+    .color-picker-menu summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .color-picker-menu[open] {
+      z-index: 700;
+    }
+
+    .color-palette {
+      position: absolute;
+      z-index: 720;
+      top: calc(100% + 6px);
+      left: 0;
+      width: 176px;
+      display: grid;
+      gap: 6px;
+      border: 1px solid #aeb6c2;
+      border-radius: 2px;
+      padding: 5px 6px 7px;
+      background: #f8f8f8;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, .22);
+      color: #243244;
+      font-size: 11px;
+    }
+
+    .palette-auto,
+    .palette-more,
+    .palette-gradient {
+      min-height: 22px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border: 0;
+      padding: 3px 4px;
+      background: transparent;
+      color: #243244;
+      cursor: pointer;
+      font-size: 11px;
+      text-align: left;
+    }
+
+    .palette-auto:hover,
+    .palette-more:hover,
+    .palette-gradient:hover {
+      background: #e8eef7;
+    }
+
+    .palette-current,
+    .palette-icon {
+      width: 14px;
+      height: 14px;
+      border: 1px solid #9aa4b2;
+      background: var(--palette-current, #111827);
+      flex: 0 0 auto;
+    }
+
+    .palette-icon.rainbow {
+      border-radius: 50%;
+      background: conic-gradient(#ef4444, #f97316, #facc15, #22c55e, #06b6d4, #2563eb, #7c3aed, #ef4444);
+    }
+
+    .palette-icon.gradient {
+      background: linear-gradient(135deg, #fff, #94a3b8);
+    }
+
+    .palette-heading {
+      margin: 0;
+      padding: 2px 3px 0;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .theme-color-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 12px);
+      grid-auto-rows: 12px;
+      gap: 3px;
+      padding: 0 2px;
+    }
+
+    .standard-color-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 12px);
+      gap: 3px;
+      padding: 0 2px;
+    }
+
+    .color-swatch {
+      width: 12px;
+      height: 12px;
+      border: 1px solid #d5d9df;
+      border-radius: 0;
+      background: var(--swatch-color);
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .color-swatch:hover,
+    .color-swatch:focus {
+      outline: 1px solid #f97316;
+      outline-offset: 1px;
+    }
+
+    .custom-color-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .deadline-stack {
+      grid-template-columns: 1fr;
+      width: auto;
+      min-width: 0 !important;
+      gap: 6px;
+    }
+
+    .table-tool-field .deadline-stack {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: start;
+      width: 100%;
+    }
+
+    .form > .checks {
+      position: static;
+      align-self: flex-start;
+      flex: 0 0 250px;
+    }
+
+    .art-style-grid {
+      grid-template-columns: 1fr;
+      width: 145px;
+      gap: 5px;
+    }
+
+    .art-style-grid .summary-style-card {
+      min-height: 30px;
+      padding: 5px 7px;
+      font-size: 11px;
+    }
+
+    .art-style-grid .summary-style-card small {
+      display: none;
+    }
+
+    /* Tabela inserida pura, sem titulo, legenda ou moldura de grafico */
+    .rich-editor .inline-table-block,
+    .message .inline-table-block {
+      display: block;
+      margin: 3mm 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      overflow: visible;
+    }
+
+    .inline-table-block .graphic-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .inline-table-block .graphic-table th,
+    .inline-table-block .graphic-table td {
+      border: 1px solid #9ca3af;
+      padding: 4px 5px;
+      color: #111827;
+      background: #fff;
+      font-size: 10px;
+      font-weight: 500;
+      line-height: 1.25;
+    }
+
+    .inline-table-block .graphic-table th {
+      background: #f3f6fa;
+      font-weight: 700;
+    }
+
+    .inline-table-block .graphic-cell-input {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      outline: none;
+    }
+
+    /* Painel sem faixa azul: apenas logo Luce */
+    .panel-header {
+      background: #fff;
+      border-bottom: 1px solid #d7e4f4;
+    }
+
+    .panel-header .brand-logo {
+      content: url("luce-logo.png");
+      width: 118px;
+      filter: none;
+    }
+
+    .panel-header .brand-mark {
+      display: none;
+    }
+
+    /* Cabecalho dos documentos restaurado */
+    .sheet-header {
+      height: 27mm;
+      padding: 6mm 12mm 0;
+      background: linear-gradient(135deg, var(--header-fixed-start) 0%, var(--header-fixed-mid) 62%, var(--header-fixed-end) 100%);
+      border-bottom: 1.4mm solid #d8e7f6;
+    }
+
+    html[data-segment="boletim"] .sheet-header {
+      background: linear-gradient(135deg, var(--header-start) 0%, var(--header-mid) 62%, var(--header-end) 100%);
+    }
+
+    html[data-segment="boletim"] .sheet-footer {
+      background: linear-gradient(135deg, var(--header-start) 0%, var(--header-mid) 62%, var(--header-end) 100%) !important;
+      border-top-color: rgba(255, 255, 255, .24) !important;
+    }
+
+    .sheet-brand {
+      display: grid;
+      grid-template-columns: 42mm 1fr 42mm;
+      align-items: center;
+      justify-content: stretch;
+      min-height: 14mm;
+      gap: 6mm;
+    }
+
+    .sheet-brand .brand-mark {
+      display: block;
+      width: 22mm;
+      height: 15mm;
+      opacity: .28;
+      object-fit: contain;
+    }
+
+    .sheet-brand .brand-logo {
+      display: block;
+      width: 37mm;
+      height: auto;
+      object-fit: contain;
+      justify-self: end;
+    }
+
+    .internal-header-copy {
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      min-width: 0;
+      color: #fff;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      opacity: .88;
+    }
+
+    .internal-header-copy strong {
+      color: #fff;
+      font-size: 10.5px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .internal-header-copy span {
+      display: none;
+    }
+
+    .content {
+      height: calc(297mm - 27mm - 11mm);
+      padding-top: 6mm;
+      padding-bottom: 16mm;
+    }
+
+    .continuation-sheet .content {
+      height: calc(297mm - 27mm - 11mm);
+      padding-top: 6mm;
+      padding-bottom: 16mm;
+    }
+
+    /* Seletores compactos do painel superior */
+    .choice-menu-field {
+      min-width: 190px !important;
+      max-width: 190px !important;
+      width: 190px;
+    }
+
+    .stacked-choice-field {
+      display: grid;
+      gap: 8px;
+      align-self: flex-start;
+    }
+
+    .stacked-choice-item {
+      display: grid;
+      gap: 4px;
+    }
+
+    .form > .choice-menu-field,
+    .form > .choice-menu-field:first-child {
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+
+    .panel,
+    .form {
+      overflow: visible !important;
+    }
+
+    .panel {
+      z-index: 300;
+    }
+
+    .choice-menu {
+      position: relative;
+      width: 100%;
+      z-index: 1;
+    }
+
+    .choice-menu[open] {
+      z-index: 500;
+    }
+
+    .choice-menu summary {
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid #cfd8e5;
+      border-radius: 7px;
+      padding: 8px 10px;
+      background: #fff;
+      color: #172033;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+      list-style: none;
+    }
+
+    .choice-menu summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .choice-menu summary::after {
+      content: "";
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid #526070;
+      flex: 0 0 auto;
+    }
+
+    .choice-menu[open] summary {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+    }
+
+    .choice-list {
+      position: absolute;
+      z-index: 600;
+      top: calc(100% + 6px);
+      left: 0;
+      width: 220px;
+      max-height: 280px;
+      display: grid;
+      grid-template-columns: 1fr !important;
+      gap: 4px;
+      overflow-y: auto;
+      border: 1px solid #cfd8e5;
+      border-radius: 8px;
+      padding: 7px;
+      background: #fff;
+      box-shadow: 0 14px 30px rgba(15, 23, 42, .16);
+    }
+
+    .choice-option {
+      display: block;
+      position: relative;
+    }
+
+    .choice-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .choice-option span {
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 7px 9px;
+      color: #243244;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .choice-option input:checked + span {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 10%, #fff);
+      color: var(--accent);
+    }
+
+    .choice-option:hover span {
+      background: #f1f5f9;
+    }
+
+    .choice-menu-field .segment-grid,
+    .choice-menu-field .art-style-grid {
+      display: grid;
+      grid-template-columns: 1fr !important;
+      width: auto;
+      gap: 4px;
+    }
+
+    .actions {
+      width: 104px;
+      grid-template-columns: 1fr;
+      gap: 6px;
+      padding-top: 0;
+    }
+
+    .actions .button {
+      min-height: 31px;
+      padding: 0 8px;
+    }
+
+    .save-menu {
+      position: relative;
+      z-index: 1;
+    }
+
+    .save-menu[open] {
+      z-index: 500;
+    }
+
+    .save-menu summary {
+      min-height: 31px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 7px;
+      list-style: none;
+    }
+
+    .save-menu summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .save-options {
+      position: absolute;
+      z-index: 650;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 128px;
+      display: grid;
+      gap: 4px;
+      border: 1px solid #cfd8e5;
+      border-radius: 8px;
+      padding: 7px;
+      background: #fff;
+      box-shadow: 0 14px 30px rgba(15, 23, 42, .16);
+    }
+
+    .save-option {
+      min-height: 30px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #243244;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: left;
+      padding: 7px 9px;
+    }
+
+    .save-option:hover {
+      background: #f1f5f9;
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body class="module-auth-locked">
+  <main class="app">
+    <aside class="panel" aria-label="Editor do comunicado">
+      <header class="panel-header">
+<div class="brand">
+          <img class="brand-logo" src="orteconte-logo-white.png" alt="Orteconte Contabilidade">
+          <img class="brand-mark" src="orteconte-symbol-white.png" alt="">
+        </div>
+      </header>
+
+      <form class="form" id="editor">
+        <div class="field choice-menu-field stacked-choice-field">
+          <div class="stacked-choice-item">
+            <span class="group-label">Segmento</span>
+            <details class="choice-menu" id="segmentChoice">
+              <summary><span id="segmentChoiceLabel">Selecionar</span></summary>
+              <div class="segment-grid choice-list" id="segmentGrid"></div>
+            </details>
+          </div>
+          <div class="stacked-choice-item">
+            <span class="group-label">Grafismos</span>
+            <details class="choice-menu" id="extraArtChoice">
+              <summary><span id="extraArtChoiceLabel">Nenhuma</span></summary>
+              <div class="art-style-grid choice-list">
+                <label class="summary-style choice-option">
+                  <input type="radio" name="extraArt" value="none" checked>
+                  <span class="summary-style-card">Nenhuma<small>mais limpo</small></span>
+                </label>
+                <label class="summary-style choice-option">
+                  <input type="radio" name="extraArt" value="calculator">
+                  <span class="summary-style-card">Calculadora<small>rotina contábil</small></span>
+                </label>
+                <label class="summary-style choice-option">
+                  <input type="radio" name="extraArt" value="chart">
+                  <span class="summary-style-card">Gráficos<small>indicadores</small></span>
+                </label>
+                <label class="summary-style choice-option">
+                  <input type="radio" name="extraArt" value="numbers">
+                  <span class="summary-style-card">Números<small>tributos e percentuais</small></span>
+                </label>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <div class="field" id="generalHeaderField" style="display:none">
+          <label for="generalHeaderName">Nome exibido no cabeçalho</label>
+          <input class="input" id="generalHeaderName" maxlength="55" placeholder="Digite como deseja identificar este comunicado">
+        </div>
+
+        <div class="field direct-edit-field">
+          <label for="title">Título da mensagem</label>
+          <input class="input" id="title" maxlength="95">
+        </div>
+
+        <div class="field direct-edit-field">
+          <label for="subtitle">Linha complementar</label>
+          <input class="input" id="subtitle" maxlength="75">
+        </div>
+
+        <div class="field direct-edit-field direct-message-field">
+          <label for="message">Texto do comunicado</label>
+          <div class="format-toolbar" aria-label="Formatação do texto do comunicado">
+            <select class="format-select" id="fontFamily" title="Fonte da letra" aria-label="Fonte da letra">
+              <option value="">Calibri</option>
+              <option value="Arial, Helvetica, sans-serif">Arial</option>
+              <option value="Calibri, Arial, sans-serif">Calibri</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="Tahoma, Arial, sans-serif">Tahoma</option>
+              <option value="'Times New Roman', Times, serif">Times</option>
+              <option value="Verdana, Arial, sans-serif">Verdana</option>
+            </select>
+            <select class="format-select" id="fontSize" title="Tamanho da letra" aria-label="Tamanho da letra">
+              <option value="">11</option>
+              <option value="9px">9</option>
+              <option value="10px">10</option>
+              <option value="11px">11</option>
+              <option value="12px">12</option>
+              <option value="13px">13</option>
+              <option value="14px">14</option>
+              <option value="16px">16</option>
+              <option value="18px">18</option>
+            </select>
+            <button class="format-button" type="button" data-command="bold" title="Negrito">N</button>
+            <button class="format-button" type="button" data-command="italic" title="Itálico"><i>I</i></button>
+            <button class="format-button" type="button" data-command="underline" title="Sublinhado"><u>S</u></button>
+            <button class="format-button" type="button" data-command="justifyLeft" title="Alinhar à esquerda">E</button>
+            <button class="format-button" type="button" data-command="justifyCenter" title="Centralizar">C</button>
+            <button class="format-button" type="button" data-command="justifyRight" title="Alinhar à direita">D</button>
+            <button class="format-button" type="button" data-command="justifyFull" title="Justificar">J</button>
+            <span class="toolbar-divider" aria-hidden="true"></span>
+            <button class="format-button" type="button" data-command="insertUnorderedList" title="Lista com marcadores" aria-label="Lista com marcadores">•</button>
+            <button class="format-button" type="button" data-command="insertOrderedList" title="Lista numerada" aria-label="Lista numerada">1.</button>
+            <button class="format-button" type="button" data-command="outdent" title="Diminuir recuo" aria-label="Diminuir recuo">←</button>
+            <button class="format-button" type="button" data-command="indent" title="Aumentar recuo" aria-label="Aumentar recuo">→</button>
+            <button class="format-button" type="button" data-editor-action="link" title="Inserir link" aria-label="Inserir link">Link</button>
+            <button class="format-button" type="button" data-command="unlink" title="Remover link" aria-label="Remover link">×</button>
+            <button class="format-button" type="button" data-command="removeFormat" title="Limpar formatação" aria-label="Limpar formatação">Tx</button>
+            <span class="toolbar-divider" aria-hidden="true"></span>
+            <button class="format-button" type="button" data-command="undo" title="Desfazer" aria-label="Desfazer">↶</button>
+            <button class="format-button" type="button" data-command="redo" title="Refazer" aria-label="Refazer">↷</button>
+          </div>
+          <div class="rich-editor" id="message" contenteditable="true" role="textbox" aria-multiline="true"></div>
+        </div>
+
+        <div class="field table-tool-field">
+          <div class="insert-tools">
+            <div class="field" style="display:none">
+              <label for="inlineGraphicType">Tipo</label>
+              <select class="select" id="inlineGraphicType">
+                <option value="table">Tabela</option>
+                <option value="chart">Gráfico simples</option>
+                <option value="image">Imagem</option>
+              </select>
+            </div>
+            <div class="field" style="display:none">
+              <label for="inlineGraphicTitle">Título do elemento</label>
+              <input class="input" id="inlineGraphicTitle" maxlength="55">
+            </div>
+            <button class="table-tool-button" id="openInsertMenu" type="button" aria-expanded="false" title="Inserir tabela">
+              <span class="table-tool-icon" aria-hidden="true"></span>
+              <span>Tabela</span>
+              <small aria-hidden="true"></small>
+            </button>
+            <div class="insert-menu" id="tableInsertMenu" hidden>
+              <p class="insert-menu-title" id="tablePickerLabel">Tabela 0x0</p>
+              <div class="table-picker-grid" id="tablePickerGrid" aria-label="Selecionar tamanho da tabela"></div>
+              <button class="insert-menu-action" type="button" id="insertTableManual">Inserir Tabela...</button>
+              <button class="insert-menu-action" type="button" disabled>Desenhar Tabela</button>
+              <button class="insert-menu-action" type="button" disabled>Converter Texto em Tabela...</button>
+              <button class="insert-menu-action" type="button" disabled>Planilha do Excel</button>
+              <button class="insert-menu-action" type="button" disabled>Tabelas Rápidas</button>
+            </div>
+          </div>
+          <div class="table-size-grid" id="inlineTableConfig" style="display:none">
+            <div class="field">
+              <label for="inlineGraphicRows">Linhas</label>
+              <input class="input" id="inlineGraphicRows" type="number" min="1" max="12" placeholder="3">
+            </div>
+            <div class="field">
+              <label for="inlineGraphicCols">Colunas</label>
+              <input class="input" id="inlineGraphicCols" type="number" min="1" max="8" placeholder="3">
+            </div>
+          </div>
+          <input class="input" id="inlineGraphicImageFile" type="file" accept="image/*" style="display:none; margin-top: 8px;">
+          <button class="ghost-button" id="insertInlineGraphic" type="button" style="display:none">Adicionar elemento gráfico</button>
+          <button class="ghost-button" id="removeLastGraphic" type="button">Excluir</button>
+          <div class="two-fields deadline-stack">
+            <div class="field">
+              <label for="deadline">Prazo</label>
+              <input class="input" id="deadline" type="date">
+            </div>
+            <div class="field">
+              <label for="sender">Assinatura</label>
+              <input class="input" id="sender" maxlength="55">
+            </div>
+          </div>
+          <div class="compact-format-toolbar" aria-label="Formatação rápida do texto">
+            <select class="format-select compact-font-size" id="compactFontSize" title="Tamanho da letra" aria-label="Tamanho da letra">
+              <option value="">11</option>
+              <option value="9px">9</option>
+              <option value="10px">10</option>
+              <option value="11px">11</option>
+              <option value="12px">12</option>
+              <option value="13px">13</option>
+              <option value="14px">14</option>
+              <option value="16px">16</option>
+              <option value="18px">18</option>
+              <option value="20px">20</option>
+              <option value="22px">22</option>
+            </select>
+            <button class="format-button" type="button" data-command="bold" title="Negrito">N</button>
+            <button class="format-button" type="button" data-command="italic" title="Itálico"><i>I</i></button>
+            <button class="format-button" type="button" data-command="underline" title="Sublinhado"><u>S</u></button>
+            <button class="format-button" type="button" data-command="strikeThrough" title="Tachado">abc</button>
+            <button class="format-button" type="button" data-command="subscript" title="Subscrito">X₂</button>
+            <button class="format-button" type="button" data-command="superscript" title="Sobrescrito">X²</button>
+            <details class="color-picker-menu" id="textColorMenu">
+              <summary class="format-button color-tool" style="--tool-color:#2563eb" title="Cor do texto">A</summary>
+              <div class="color-palette" aria-label="Escolher cor do texto">
+                <button class="palette-auto" type="button" data-text-color="#111827">
+                  <span class="palette-current" aria-hidden="true"></span>
+                  Automático
+                </button>
+                <p class="palette-heading">Cores do Tema</p>
+                <div class="theme-color-grid">
+                  <button class="color-swatch" style="--swatch-color:#ffffff" type="button" data-text-color="#ffffff" title="Branco"></button>
+                  <button class="color-swatch" style="--swatch-color:#000000" type="button" data-text-color="#000000" title="Preto"></button>
+                  <button class="color-swatch" style="--swatch-color:#6b7280" type="button" data-text-color="#6b7280" title="Cinza"></button>
+                  <button class="color-swatch" style="--swatch-color:#1f2937" type="button" data-text-color="#1f2937" title="Marinho"></button>
+                  <button class="color-swatch" style="--swatch-color:#2563eb" type="button" data-text-color="#2563eb" title="Azul"></button>
+                  <button class="color-swatch" style="--swatch-color:#f97316" type="button" data-text-color="#f97316" title="Laranja"></button>
+                  <button class="color-swatch" style="--swatch-color:#94a3b8" type="button" data-text-color="#94a3b8" title="Azul acinzentado"></button>
+                  <button class="color-swatch" style="--swatch-color:#facc15" type="button" data-text-color="#facc15" title="Amarelo"></button>
+                  <button class="color-swatch" style="--swatch-color:#1d4ed8" type="button" data-text-color="#1d4ed8" title="Azul forte"></button>
+                  <button class="color-swatch" style="--swatch-color:#22c55e" type="button" data-text-color="#22c55e" title="Verde"></button>
+                  <button class="color-swatch" style="--swatch-color:#f8fafc" type="button" data-text-color="#f8fafc"></button>
+                  <button class="color-swatch" style="--swatch-color:#e5e7eb" type="button" data-text-color="#e5e7eb"></button>
+                  <button class="color-swatch" style="--swatch-color:#d1d5db" type="button" data-text-color="#d1d5db"></button>
+                  <button class="color-swatch" style="--swatch-color:#9ca3af" type="button" data-text-color="#9ca3af"></button>
+                  <button class="color-swatch" style="--swatch-color:#bfdbfe" type="button" data-text-color="#bfdbfe"></button>
+                  <button class="color-swatch" style="--swatch-color:#fed7aa" type="button" data-text-color="#fed7aa"></button>
+                  <button class="color-swatch" style="--swatch-color:#dbeafe" type="button" data-text-color="#dbeafe"></button>
+                  <button class="color-swatch" style="--swatch-color:#fef3c7" type="button" data-text-color="#fef3c7"></button>
+                  <button class="color-swatch" style="--swatch-color:#93c5fd" type="button" data-text-color="#93c5fd"></button>
+                  <button class="color-swatch" style="--swatch-color:#bbf7d0" type="button" data-text-color="#bbf7d0"></button>
+                  <button class="color-swatch" style="--swatch-color:#e2e8f0" type="button" data-text-color="#e2e8f0"></button>
+                  <button class="color-swatch" style="--swatch-color:#cbd5e1" type="button" data-text-color="#cbd5e1"></button>
+                  <button class="color-swatch" style="--swatch-color:#94a3b8" type="button" data-text-color="#94a3b8"></button>
+                  <button class="color-swatch" style="--swatch-color:#64748b" type="button" data-text-color="#64748b"></button>
+                  <button class="color-swatch" style="--swatch-color:#60a5fa" type="button" data-text-color="#60a5fa"></button>
+                  <button class="color-swatch" style="--swatch-color:#fb923c" type="button" data-text-color="#fb923c"></button>
+                  <button class="color-swatch" style="--swatch-color:#38bdf8" type="button" data-text-color="#38bdf8"></button>
+                  <button class="color-swatch" style="--swatch-color:#f59e0b" type="button" data-text-color="#f59e0b"></button>
+                  <button class="color-swatch" style="--swatch-color:#2563eb" type="button" data-text-color="#2563eb"></button>
+                  <button class="color-swatch" style="--swatch-color:#16a34a" type="button" data-text-color="#16a34a"></button>
+                  <button class="color-swatch" style="--swatch-color:#cbd5e1" type="button" data-text-color="#cbd5e1"></button>
+                  <button class="color-swatch" style="--swatch-color:#9ca3af" type="button" data-text-color="#9ca3af"></button>
+                  <button class="color-swatch" style="--swatch-color:#6b7280" type="button" data-text-color="#6b7280"></button>
+                  <button class="color-swatch" style="--swatch-color:#374151" type="button" data-text-color="#374151"></button>
+                  <button class="color-swatch" style="--swatch-color:#1e40af" type="button" data-text-color="#1e40af"></button>
+                  <button class="color-swatch" style="--swatch-color:#c2410c" type="button" data-text-color="#c2410c"></button>
+                  <button class="color-swatch" style="--swatch-color:#0369a1" type="button" data-text-color="#0369a1"></button>
+                  <button class="color-swatch" style="--swatch-color:#a16207" type="button" data-text-color="#a16207"></button>
+                  <button class="color-swatch" style="--swatch-color:#1e3a8a" type="button" data-text-color="#1e3a8a"></button>
+                  <button class="color-swatch" style="--swatch-color:#166534" type="button" data-text-color="#166534"></button>
+                </div>
+                <p class="palette-heading">Cores Padrão</p>
+                <div class="standard-color-grid">
+                  <button class="color-swatch" style="--swatch-color:#dc2626" type="button" data-text-color="#dc2626" title="Vermelho"></button>
+                  <button class="color-swatch" style="--swatch-color:#f97316" type="button" data-text-color="#f97316" title="Laranja"></button>
+                  <button class="color-swatch" style="--swatch-color:#facc15" type="button" data-text-color="#facc15" title="Amarelo"></button>
+                  <button class="color-swatch" style="--swatch-color:#22c55e" type="button" data-text-color="#22c55e" title="Verde claro"></button>
+                  <button class="color-swatch" style="--swatch-color:#16a34a" type="button" data-text-color="#16a34a" title="Verde"></button>
+                  <button class="color-swatch" style="--swatch-color:#06b6d4" type="button" data-text-color="#06b6d4" title="Ciano"></button>
+                  <button class="color-swatch" style="--swatch-color:#0ea5e9" type="button" data-text-color="#0ea5e9" title="Azul claro"></button>
+                  <button class="color-swatch" style="--swatch-color:#2563eb" type="button" data-text-color="#2563eb" title="Azul"></button>
+                  <button class="color-swatch" style="--swatch-color:#312e81" type="button" data-text-color="#312e81" title="Índigo"></button>
+                  <button class="color-swatch" style="--swatch-color:#5b22c8" type="button" data-text-color="#5b22c8" title="Roxo"></button>
+                </div>
+                <button class="palette-more" type="button" id="openCustomTextColor">
+                  <span class="palette-icon rainbow" aria-hidden="true"></span>
+                  Mais Cores...
+                </button>
+                <input class="custom-color-input" id="customTextColor" type="color" value="#2563eb" aria-label="Escolher cor personalizada">
+                <button class="palette-gradient" type="button" disabled>
+                  <span class="palette-icon gradient" aria-hidden="true"></span>
+                  Gradiente
+                </button>
+              </div>
+            </details>
+            <button class="format-button color-tool" style="--tool-color:#facc15;color:#344054" type="button" data-command="hiliteColor" data-value="#facc15" title="Realce do texto">A</button>
+            <button class="format-button color-tool" style="--tool-color:#dc2626;color:#dc2626" type="button" data-command="foreColor" data-value="#dc2626" title="Texto vermelho">A</button>
+            <button class="format-button" type="button" data-command="justifyLeft" title="Alinhar à esquerda">E</button>
+            <button class="format-button" type="button" data-command="justifyCenter" title="Centralizar">C</button>
+            <button class="format-button" type="button" data-command="justifyRight" title="Alinhar à direita">D</button>
+            <button class="format-button" type="button" data-command="justifyFull" title="Justificar">J</button>
+          </div>
+          <div id="graphicItemsEditor" style="display:none"></div>
+          <button id="addGraphicItem" type="button" style="display:none"></button>
+        </div>
+
+        <div class="field" style="display:none">
+          <label for="bodyImageFile">Imagem no corpo do texto (opcional)</label>
+          <input class="input" id="bodyImageFile" type="file" accept="image/*">
+          <textarea class="textarea" id="bodyImageCaption" style="min-height: 70px; margin-top: 8px;" placeholder="Legenda opcional para a imagem inserida no corpo do texto."></textarea>
+          <textarea class="textarea" id="bodyImageAfterText" style="min-height: 85px; margin-top: 8px;" placeholder="Continue o texto após esta imagem, se necessário."></textarea>
+          <button class="small-action danger" id="clearBodyImage" type="button" style="margin-top: 8px;">Remover imagem do corpo</button>
+        </div>
+
+        <div class="field" id="deadlineNoteField" style="display:none">
+          <label for="deadlineNote">Texto do card de prazo</label>
+          <textarea class="textarea" id="deadlineNote" style="min-height: 82px;"></textarea>
+        </div>
+
+        <div class="checks">
+          <label class="check-line">
+            <input id="showSummary" type="checkbox">
+            Mostrar bloco de resumo visual
+          </label>
+          <label class="check-line">
+            <input id="showDeadline" type="checkbox">
+            Mostrar card de prazo
+          </label>
+        </div>
+
+        <div class="summary-editor" id="summaryEditor">
+          <div class="field">
+            <span class="group-label">Modelo do resumo</span>
+            <div class="summary-style-grid">
+              <label class="summary-style">
+                <input type="radio" name="summaryStyle" value="indicators" checked>
+                <span class="summary-style-card">Indicadores<small>ícones e pontos-chave</small></span>
+              </label>
+              <label class="summary-style">
+                <input type="radio" name="summaryStyle" value="ledger">
+                <span class="summary-style-card">Balancete<small>linhas de conferência</small></span>
+              </label>
+              <label class="summary-style">
+                <input type="radio" name="summaryStyle" value="calendar">
+                <span class="summary-style-card">Calendário<small>agenda de obrigações</small></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="summaryTitle">Título do resumo</label>
+            <input class="input" id="summaryTitle" maxlength="90">
+          </div>
+
+          <div class="field">
+            <label for="summaryItems">Itens do resumo</label>
+            <textarea class="textarea" id="summaryItems" style="min-height: 96px;"></textarea>
+          </div>
+        </div>
+
+
+
+        <div class="actions">
+          <span class="unsaved-indicator" id="unsavedIndicator" hidden>Alterações ainda não exportadas</span>
+          <button class="button secondary" type="button" id="clearPageButton">Limpar</button>
+          <details class="save-menu" id="saveMenu">
+            <summary class="button primary">Salvar</summary>
+            <div class="save-options">
+              <button class="save-option" type="button" id="saveImageButton">Imagem</button>
+              <button class="save-option" type="button" id="printButton">PDF</button>
+              <button class="save-option" type="button" id="wordButton">Word</button>
+            </div>
+          </details>
+        </div>
+      </form>
+    </aside>
+
+    <section class="stage" aria-label="Pré-visualização do comunicado">
+      <article class="cover-sheet print-page" id="reformaCover" aria-label="Capa Reforma Tributária">
+        <img class="cover-image" src="reforma-tributaria-capa.png" alt="Fique por dentro Reforma Tributária">
+        <div class="cover-overlay" aria-hidden="true"></div>
+      </article>
+
+      <article class="sheet print-page" id="sheet">
+        <header class="sheet-header">
+<div class="sheet-brand">
+            <img class="brand-mark" src="orteconte-header-symbol.png" alt="">
+            <div class="internal-header-copy">
+              <strong id="internalHeaderSegment">Comunicado</strong>
+              <span id="internalHeaderSubject"></span>
+            </div>
+            <img class="brand-logo" src="orteconte-header-logo.png" alt="Orteconte Contabilidade">
+          </div>
+        </header>
+
+        <div class="content">
+          <div class="tag-row">
+            <div class="tag">
+              <span id="segmentName">Pessoal</span>
+            </div>
+          </div>
+
+          <h2 class="headline editable-preview" id="previewTitle" contenteditable="true" spellcheck="true" aria-label="Editar título da mensagem"></h2>
+          <div class="eyebrow editable-preview" id="previewSubtitle" contenteditable="true" spellcheck="true" aria-label="Editar linha complementar"></div>
+
+          <section class="summary" id="summaryBox">
+            <h3 class="summary-title" id="previewSummaryTitle"></h3>
+            <div class="summary-grid" id="previewSummaryItems"></div>
+          </section>
+
+          <section class="body-block">
+            <div class="body-main">
+              <div class="message editable-preview" id="previewMessage" contenteditable="true" spellcheck="true" aria-label="Editar texto do comunicado"></div>
+              <div class="graphic-list" id="graphicList"></div>
+              <div class="message after-graphic-message" id="afterGraphicPreview"></div>
+              <div class="signature" id="previewSignature">
+                Atenciosamente,
+                <strong id="previewSender"></strong>
+              </div>
+            </div>
+
+            <aside class="deadline-card" id="deadlineCard">
+              <div class="deadline-label">Prazo</div>
+              <div class="deadline-date" id="deadlineDate"></div>
+              <div class="deadline-note" id="deadlineNotePreview">Evite rejeição de NF-e e garanta a continuidade do seu negócio.</div>
+            </aside>
+          </section>
+        </div>
+
+        <footer class="sheet-footer">
+          <div class="footer-item"><img class="footer-icon" src="whatsapp-orteconte.png" alt=""> (33) 3339-1000</div>
+          <div class="footer-item">orteconte@orteconte.com.br</div>
+          <div class="footer-item">www.orteconte.com.br</div>
+        </footer>
+      </article>
+      <div class="continuation-pages" id="continuationPages"></div>
+    </section>
+  </main>
+  <div class="print-root" id="printRoot" aria-hidden="true"></div>
+
+  <script src="html2canvas.min.js"></script>
+  <script>
+    window.LuceModuleAuth = {
+      moduleId: "comunica-facil",
+      moduleName: "Comunica Fácil",
+      title: "Acesso seguro",
+      headline: "Comunicados padronizados com sessão própria.",
+      description: "Use suas credenciais Luce para acessar o editor de comunicados e gerar arquivos com segurança.",
+      appSelector: ".app"
+    };
+  </script>
+  <script src="../assets/module-auth.js" defer></script>
+  <script>
+    const segments = {
+      pessoal: { name: "Departamento Pessoal", color: "#5b22c8", dark: "#381096", support: "#5b22c8", icon: "DP", headerStart: "#5b22c8", headerMid: "#381096", headerEnd: "#1d0b59" },
+      fiscal: { name: "Departamento Fiscal", color: "#078b35", dark: "#056525", support: "#078b35", icon: "DF", headerStart: "#078b35", headerMid: "#056525", headerEnd: "#043f18" },
+      contabil: { name: "Departamento Contábil", color: "#e51b23", dark: "#a70d14", support: "#e51b23", icon: "DC", headerStart: "#e51b23", headerMid: "#a70d14", headerEnd: "#681014" },
+      processos: { name: "Departamento Financeiro", color: "#ff6a00", dark: "#c64900", support: "#ff6a00", icon: "FIN", headerStart: "#ff7a1a", headerMid: "#d55500", headerEnd: "#8a3300" },
+      boletim: { name: "Boletim Semanal", color: "#68acd0", dark: "#3b83ad", support: "#68acd0", icon: "BS", headerStart: "#68acd0", headerMid: "#5aa1c8", headerEnd: "#347da7" },
+      reforma: { name: "Reforma Tributária", color: "#27c600", dark: "#5b8ec9", support: "#27c600", icon: "%", headerStart: "#27c600", headerMid: "#5b8ec9", headerEnd: "#1f5e9c" },
+      geral: { name: "Geral", color: "#4880c0", dark: "#3f76b5", support: "#4880c0", icon: "i", headerStart: "#4880c0", headerMid: "#4880c0", headerEnd: "#4880c0" }
+    };
+
+    const examples = {
+      pessoal: {
+        title: "Atualização de rotina do departamento pessoal",
+        subtitle: "Folha de pagamento • Comunicado preventivo",
+        summaryTitle: "Pontos que merecem atenção",
+        summaryItems: "Conferência de admissões e desligamentos\nEnvio de variáveis da folha\nAtualização de benefícios\nPrazo para apontamentos internos"
+      },
+      fiscal: {
+        title: "Prazo para adequação do CClasTrib",
+        subtitle: "Reforma Tributária 2026 • Comunicado importante",
+        summaryTitle: "Resumo do que é obrigatório nesta transição",
+        summaryItems: "Alíquotas de teste do IBS e CBS\nParametrização do cClasTrib\nEvite rejeição de NF-e e NFC-e\nConfiguração direta no seu sistema ERP"
+      },
+      contabil: {
+        title: "Encerramento contábil mensal",
+        subtitle: "Documentos contábeis • Comunicado importante",
+        summaryTitle: "Documentos necessários para fechamento",
+        summaryItems: "Extratos bancários completos\nNotas fiscais de entrada e saída\nComprovantes de despesas\nRelatórios financeiros do período"
+      },
+      processos: {
+        title: "Atualização de rotina financeira",
+        subtitle: "Financeiro • Orientação operacional",
+        summaryTitle: "Pontos de acompanhamento",
+        summaryItems: "Conferência de pagamentos\nOrganização de vencimentos\nRegistro de comprovantes\nAcompanhamento de pendências"
+      },
+      boletim: {
+        title: "Boletim semanal de atualizações",
+        subtitle: "Semana informativa • Orientações gerais",
+        summaryTitle: "Principais destaques da semana",
+        summaryItems: "Atualizações legais relevantes\nPrazos em acompanhamento\nAvisos operacionais\nMateriais de apoio disponíveis"
+      },
+      reforma: {
+        title: "Fique por dentro da Reforma Tributária",
+        subtitle: "Reforma Tributária • Orientação especial",
+        summaryTitle: "Principais pontos da mudança",
+        summaryItems: "Novas regras de consumo\nImpactos em documentos fiscais\nAdequação de sistemas e cadastros\nAcompanhamento preventivo pela Orteconte"
+      },
+      geral: {
+        title: "Atualização informativa",
+        subtitle: "Comunicado geral • Divulgação institucional",
+        summaryTitle: "Informações de apoio",
+        summaryItems: "Orientação geral aos clientes\nAtualização sem impacto crítico\nRegistro para conhecimento\nCanais disponíveis para dúvidas"
+      }
+    };
+
+    const fields = {
+      title: document.querySelector("#title"),
+      subtitle: document.querySelector("#subtitle"),
+      generalHeaderName: document.querySelector("#generalHeaderName"),
+      generalHeaderField: document.querySelector("#generalHeaderField"),
+      summaryTitle: document.querySelector("#summaryTitle"),
+      summaryItems: document.querySelector("#summaryItems"),
+      message: document.querySelector("#message"),
+      fontFamily: document.querySelector("#fontFamily"),
+      fontSize: document.querySelector("#fontSize"),
+      compactFontSize: document.querySelector("#compactFontSize"),
+      inlineGraphicType: document.querySelector("#inlineGraphicType"),
+      inlineGraphicTitle: document.querySelector("#inlineGraphicTitle"),
+      inlineGraphicRows: document.querySelector("#inlineGraphicRows"),
+      inlineGraphicCols: document.querySelector("#inlineGraphicCols"),
+      inlineTableConfig: document.querySelector("#inlineTableConfig"),
+      inlineGraphicImageFile: document.querySelector("#inlineGraphicImageFile"),
+      insertInlineGraphic: document.querySelector("#insertInlineGraphic"),
+      openInsertMenu: document.querySelector("#openInsertMenu"),
+      tableInsertMenu: document.querySelector("#tableInsertMenu"),
+      tablePickerGrid: document.querySelector("#tablePickerGrid"),
+      tablePickerLabel: document.querySelector("#tablePickerLabel"),
+      removeLastGraphic: document.querySelector("#removeLastGraphic"),
+      graphicItemsEditor: document.querySelector("#graphicItemsEditor"),
+      addGraphicItem: document.querySelector("#addGraphicItem"),
+      bodyImageFile: document.querySelector("#bodyImageFile"),
+      bodyImageCaption: document.querySelector("#bodyImageCaption"),
+      bodyImageAfterText: document.querySelector("#bodyImageAfterText"),
+      clearBodyImage: document.querySelector("#clearBodyImage"),
+      deadline: document.querySelector("#deadline"),
+      deadlineNoteField: document.querySelector("#deadlineNoteField"),
+      deadlineNote: document.querySelector("#deadlineNote"),
+      sender: document.querySelector("#sender"),
+      showSummary: document.querySelector("#showSummary"),
+      showDeadline: document.querySelector("#showDeadline"),
+      summaryStyle: () => document.querySelector("input[name='summaryStyle']:checked").value,
+      extraArt: () => document.querySelector("input[name='extraArt']:checked").value
+    };
+
+    const preview = {
+      title: document.querySelector("#previewTitle"),
+      subtitle: document.querySelector("#previewSubtitle"),
+      summaryTitle: document.querySelector("#previewSummaryTitle"),
+      summaryItems: document.querySelector("#previewSummaryItems"),
+      graphicList: document.querySelector("#graphicList"),
+      message: document.querySelector("#previewMessage"),
+      sender: document.querySelector("#previewSender"),
+      segmentName: document.querySelector("#segmentName"),
+      summaryBox: document.querySelector("#summaryBox"),
+      summaryEditor: document.querySelector("#summaryEditor"),
+      reformaCover: document.querySelector("#reformaCover"),
+      continuationPages: document.querySelector("#continuationPages"),
+      deadlineCard: document.querySelector("#deadlineCard"),
+      deadlineDate: document.querySelector("#deadlineDate"),
+      deadlineNote: document.querySelector("#deadlineNotePreview"),
+      internalHeaderSegment: document.querySelector("#internalHeaderSegment"),
+      internalHeaderSubject: document.querySelector("#internalHeaderSubject")
+    };
+
+    const segmentGrid = document.querySelector("#segmentGrid");
+    let graphicItems = [];
+    let bodyImageData = "";
+    let syncingPreviewEdit = false;
+    let documentDirty = false;
+
+    function setDocumentDirty(value) {
+      documentDirty = Boolean(value);
+      const indicator = document.querySelector("#unsavedIndicator");
+      if (indicator) indicator.hidden = !documentDirty;
+    }
+
+    function updateToolbarState() {
+      const root = activeMessageRoot();
+      const statefulCommands = ["bold", "italic", "underline", "strikeThrough", "subscript", "superscript", "justifyLeft", "justifyCenter", "justifyRight", "justifyFull", "insertUnorderedList", "insertOrderedList"];
+      document.querySelectorAll("[data-command]").forEach(button => {
+        const command = button.dataset.command;
+        if (!root || !statefulCommands.includes(command)) {
+          button.classList.remove("is-active");
+          button.removeAttribute("aria-pressed");
+          return;
+        }
+        let active = false;
+        try { active = document.queryCommandState(command); } catch { active = false; }
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+
+    function insertSafeLink() {
+      const root = restoreMessageSelection() || fields.message;
+      root.focus?.();
+      const value = window.prompt("Informe o endereço completo do link (https://):", "https://");
+      if (value === null) return;
+      let parsed;
+      try { parsed = new URL(value); } catch { window.alert("Informe um endereço válido iniciado por http:// ou https://."); return; }
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        window.alert("Somente links HTTP ou HTTPS são permitidos.");
+        return;
+      }
+      document.execCommand("createLink", false, parsed.href);
+      syncFormattedPreviewRoot(root);
+      setDocumentDirty(true);
+      render();
+    }
+
+    function setExportState(button, state, originalLabel) {
+      if (!button) return;
+      button.classList.toggle("is-busy", state === "busy");
+      button.classList.toggle("is-success", state === "success");
+      button.disabled = state === "busy";
+      button.textContent = state === "busy" ? "Gerando..." : state === "success" ? "Documento gerado" : originalLabel;
+    }
+
+    function renderSegmentOptions() {
+      const orderedSegments = Object.entries(segments).sort(([, first], [, second]) =>
+        first.name.localeCompare(second.name, "pt-BR")
+      );
+      segmentGrid.innerHTML = orderedSegments.map(([key, segment], index) => `
+        <label class="segment-option choice-option" style="--swatch:${segment.color}">
+          <input type="radio" name="segment" value="${key}" ${index === 0 ? "checked" : ""}>
+          <span class="segment-card">
+            ${segment.name}
+          </span>
+        </label>
+      `).join("");
+    }
+
+    function selectedSegmentKey() {
+      return document.querySelector("input[name='segment']:checked").value;
+    }
+
+    function displayedSegmentName(segment) {
+      if (selectedSegmentKey() === "geral") {
+        return fields.generalHeaderName.value.trim() || segment.name;
+      }
+      return segment.name;
+    }
+
+    function updateChoiceLabels() {
+      const segment = segments[selectedSegmentKey()];
+      const segmentLabel = document.querySelector("#segmentChoiceLabel");
+      const extraArtLabel = document.querySelector("#extraArtChoiceLabel");
+      const selectedArt = document.querySelector("input[name='extraArt']:checked")?.closest("label")?.querySelector(".summary-style-card");
+      if (segmentLabel) segmentLabel.textContent = displayedSegmentName(segment);
+      if (extraArtLabel && selectedArt) extraArtLabel.textContent = selectedArt.childNodes[0].textContent.trim();
+    }
+
+    function applySegment(segment) {
+      fields.generalHeaderField.style.display = selectedSegmentKey() === "geral" ? "" : "none";
+      document.documentElement.dataset.segment = selectedSegmentKey();
+      document.documentElement.style.setProperty("--accent", segment.color);
+      document.documentElement.style.setProperty("--accent-dark", segment.dark);
+      document.documentElement.style.setProperty("--support", segment.support || segment.color);
+      document.documentElement.style.setProperty("--header-start", segment.headerStart || segment.color);
+      document.documentElement.style.setProperty("--header-mid", segment.headerMid || segment.color);
+      document.documentElement.style.setProperty("--header-end", segment.headerEnd || segment.dark);
+      document.documentElement.style.setProperty("--institutional-text", segment.color);
+      document.documentElement.style.setProperty("--footer-bg", segment.headerMid || segment.color);
+      preview.segmentName.textContent = displayedSegmentName(segment);
+      preview.internalHeaderSegment.textContent = displayedSegmentName(segment);
+    }
+
+    function textToParagraphs(value, markLead = true) {
+      return value
+        .split(/\n{2,}/)
+        .map(block => block.trim())
+        .filter(Boolean)
+        .map((block, index) => `<p class="${markLead && index === 0 ? "lead" : ""}">${escapeHtml(block).replace(/\n/g, "<br>")}</p>`)
+        .join("");
+    }
+
+    function getMessageText() {
+      return fields.message.innerText
+        .replace(/\u00a0/g, " ")
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, "$1")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+    }
+
+    function normalizeImportedText(value) {
+      return value
+        .replace(/\r\n/g, "\n")
+        .replace(/\u00a0/g, " ")
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, "$1")
+        .replace(/[ \t]+\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+    }
+
+    function normalizeMessageEditor() {
+      return;
+    }
+
+    const allowedRichInline = new Set(["B", "STRONG", "I", "EM", "U", "S", "STRIKE", "SUB", "SUP", "BR", "SPAN", "A"]);
+    const allowedRichBlock = new Set(["P", "DIV", "SECTION", "H1", "H2", "H3", "UL", "OL", "LI"]);
+    const allowedRichTable = new Set(["TABLE", "THEAD", "TBODY", "TR", "TH", "TD", "IMG"]);
+    const allowedRichClasses = new Set([
+      "inline-graphic-block",
+      "graphic-box",
+      "is-visible",
+      "graphic-header",
+      "graphic-content",
+      "graphic-table",
+      "graphic-caption",
+      "graphic-image",
+      "graphic-chart",
+      "graphic-bar",
+      "graphic-cell-input",
+      "graphic-header-input",
+      "graphic-caption-input",
+      "graphic-chart-input",
+      "lead",
+      "after-graphic-message",
+      "message",
+      "import-title",
+      "import-subtitle",
+      "import-heading",
+      "import-source"
+    ]);
+
+    function cleanRichNode(node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return document.createTextNode(node.textContent);
+      }
+
+      if (node.nodeType !== Node.ELEMENT_NODE) {
+        return document.createTextNode("");
+      }
+
+      const tag = node.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") {
+        if (node.classList.contains("graphic-cell-input")) {
+          const element = document.createElement("input");
+          element.type = "text";
+          element.value = node.value || node.getAttribute("value") || "";
+          element.setAttribute("value", element.value);
+          element.className = "graphic-cell-input";
+          element.setAttribute("aria-label", node.getAttribute("aria-label") || "Célula da tabela");
+          ["tableId", "row", "col"].forEach(key => {
+            if (node.dataset?.[key]) element.dataset[key] = node.dataset[key];
+          });
+          return element;
+        }
+        const element = document.createElement("span");
+        element.textContent = node.value || node.getAttribute("value") || node.textContent || " ";
+        const classes = [...node.classList || []].filter(className => allowedRichClasses.has(className));
+        if (classes.length) {
+          element.className = classes.join(" ");
+        }
+        return element;
+      }
+
+      const element = document.createElement(
+        allowedRichBlock.has(tag) || allowedRichTable.has(tag)
+          ? tag.toLowerCase()
+          : allowedRichInline.has(tag)
+            ? tag.toLowerCase()
+            : "span"
+      );
+      const computedStyle = node.getAttribute("style") || "";
+      const textAlign = (node.style && node.style.textAlign) || node.getAttribute("align");
+      const fontWeight = (node.style && node.style.fontWeight) || "";
+      const fontStyle = (node.style && node.style.fontStyle) || "";
+      const fontSize = (node.style && node.style.fontSize) || "";
+      const fontFamily = (node.style && node.style.fontFamily) || "";
+      const color = (node.style && node.style.color) || "";
+      const backgroundColor = (node.style && (node.style.backgroundColor || node.style.background)) || "";
+      const verticalAlign = (node.style && node.style.verticalAlign) || "";
+      const textDecoration = (node.style && node.style.textDecoration) || "";
+
+      if ((allowedRichBlock.has(tag) || tag === "SPAN") && ["left", "center", "right", "justify"].includes(textAlign)) {
+        element.style.textAlign = textAlign;
+      } else if (computedStyle.includes("text-align: center")) {
+        element.style.textAlign = "center";
+      } else if (computedStyle.includes("text-align: right")) {
+        element.style.textAlign = "right";
+      } else if (computedStyle.includes("text-align: justify")) {
+        element.style.textAlign = "justify";
+      }
+
+      if (tag === "B" || tag === "STRONG" || /bold|[6-9]00/.test(String(fontWeight))) {
+        element.style.fontWeight = "800";
+      }
+
+      if (tag === "I" || tag === "EM" || fontStyle === "italic" || computedStyle.includes("font-style: italic")) {
+        element.style.fontStyle = "italic";
+      }
+
+      const decorations = [];
+      if (tag === "U" || String(textDecoration).includes("underline") || computedStyle.includes("text-decoration-line: underline")) {
+        decorations.push("underline");
+      }
+      if (tag === "S" || tag === "STRIKE" || String(textDecoration).includes("line-through") || computedStyle.includes("line-through")) {
+        decorations.push("line-through");
+      }
+      if (decorations.length) {
+        element.style.textDecoration = decorations.join(" ");
+      }
+
+      if (tag === "SUB" || verticalAlign === "sub" || computedStyle.includes("vertical-align: sub")) {
+        element.style.verticalAlign = "sub";
+        element.style.fontSize = fontSize || "75%";
+      }
+      if (tag === "SUP" || verticalAlign === "super" || computedStyle.includes("vertical-align: super")) {
+        element.style.verticalAlign = "super";
+        element.style.fontSize = fontSize || "75%";
+      }
+      if (fontSize && !element.style.fontSize) {
+        element.style.fontSize = fontSize;
+      }
+      if (fontFamily) {
+        element.style.fontFamily = fontFamily;
+      }
+      if (color) {
+        element.style.color = color;
+      }
+      if (backgroundColor && backgroundColor !== "transparent") {
+        element.style.backgroundColor = backgroundColor;
+      }
+
+      const classes = [...node.classList || []].filter(className => allowedRichClasses.has(className));
+      if (classes.length) {
+        element.className = classes.join(" ");
+      }
+
+      if (node.dataset?.inlineGraphic) element.dataset.inlineGraphic = node.dataset.inlineGraphic;
+      if (node.dataset?.inlineTableId) element.dataset.inlineTableId = node.dataset.inlineTableId;
+
+      if (tag === "IMG") {
+        element.setAttribute("src", node.getAttribute("src") || "");
+        element.setAttribute("alt", node.getAttribute("alt") || "");
+      }
+
+      if (tag === "A") {
+        const href = node.getAttribute("href") || "";
+        if (/^https?:\/\//i.test(href)) {
+          element.setAttribute("href", href);
+          element.setAttribute("rel", "noopener noreferrer");
+        }
+      }
+
+      [...node.childNodes].forEach(child => element.appendChild(cleanRichNode(child)));
+
+      if (tag === "BR") {
+        return document.createElement("br");
+      }
+
+      return element;
+    }
+
+    function sanitizedMessageFragment() {
+      const source = fields.message.cloneNode(true);
+      const fragment = document.createElement("div");
+      [...source.childNodes].forEach(child => fragment.appendChild(cleanRichNode(child)));
+      return fragment;
+    }
+
+    function sanitizeRichMessage() {
+      const fragment = sanitizedMessageFragment();
+      if (!fragment.textContent.trim()) {
+        return textToParagraphs("Digite o texto do comunicado.");
+      }
+
+      return fragment.innerHTML;
+    }
+
+    function hasRichMessageFormatting() {
+      return !!fields.message.querySelector("b, strong, i, em, u, s, strike, sub, sup, span, [style], [align]");
+    }
+
+    function paginateMessage(value) {
+      const blocks = value
+        .split(/\n{2,}/)
+        .map(block => block.trim())
+        .filter(Boolean);
+      const hasGraphic = hasGraphicContent();
+      const visualItems = graphicItems.length + (bodyImageData ? 1 : 0);
+      const visualPenalty = hasGraphic ? Math.min(1400, 650 + (visualItems * 300)) : 0;
+      const isReforma = selectedSegmentKey() === "reforma";
+      const firstBaseLimit = fields.showSummary.checked
+        ? (isReforma ? 1850 : 1550)
+        : (isReforma ? 2350 : 2150);
+      const firstLimit = Math.max(760, firstBaseLimit - visualPenalty);
+      const nextLimit = Math.max(1150, (isReforma ? 2250 : 2050) - Math.max(0, visualPenalty - 500));
+      const pages = [];
+      let current = "";
+      let limit = firstLimit;
+
+      function splitOversizedBlock(block, maxLength) {
+        if (block.length <= maxLength) return [block];
+
+        const sentenceParts = block
+          .split(/(?<=[.!?;:])\s+/)
+          .map(part => part.trim())
+          .filter(Boolean);
+        const parts = sentenceParts.length > 1 ? sentenceParts : block.split(/\s+/);
+        const chunks = [];
+        let chunk = "";
+
+        parts.forEach(part => {
+          const next = chunk ? `${chunk} ${part}` : part;
+          if (next.length > maxLength && chunk) {
+            chunks.push(chunk);
+            chunk = part;
+          } else if (part.length > maxLength) {
+            for (let start = 0; start < part.length; start += maxLength) {
+              chunks.push(part.slice(start, start + maxLength));
+            }
+            chunk = "";
+          } else {
+            chunk = next;
+          }
+        });
+
+        if (chunk) chunks.push(chunk);
+        return chunks;
+      }
+
+      blocks.forEach(block => {
+        const usableLimit = current ? limit : Math.min(limit, nextLimit);
+        const chunks = splitOversizedBlock(block, usableLimit);
+
+        chunks.forEach(chunk => {
+          const next = current ? `${current}\n\n${chunk}` : chunk;
+          if (next.length > limit && current) {
+            pages.push(current);
+            current = chunk;
+            limit = nextLimit;
+          } else if (chunk.length > limit) {
+            pages.push(chunk);
+            current = "";
+            limit = nextLimit;
+          } else {
+            current = next;
+          }
+        });
+
+        if (pages.length && !current) {
+          limit = nextLimit;
+        }
+      });
+
+      if (current) pages.push(current);
+      return pages.length ? pages : ["Digite o texto do comunicado."];
+    }
+
+    function hasInlineGraphicBlocks() {
+      return !!fields.message.querySelector(".inline-graphic-block");
+    }
+
+    function blockWeight(node) {
+      if (node.nodeType === Node.TEXT_NODE) return node.textContent.trim().length;
+      if (node.nodeType !== Node.ELEMENT_NODE) return 0;
+      if (node.classList.contains("inline-graphic-block")) {
+        const rows = node.querySelectorAll("tr").length;
+        return Math.max(520, 360 + (rows * 95));
+      }
+      const textLength = (node.innerText || node.textContent || "").trim().length;
+      if (node.classList.contains("import-title")) return 160;
+      if (node.classList.contains("import-subtitle")) return 110;
+      if (node.classList.contains("import-heading")) return 95;
+      if (node.classList.contains("import-source")) return Math.max(60, textLength * .55);
+      return Math.max(60, textLength);
+    }
+
+    function mmToPx(value) {
+      return value * 96 / 25.4;
+    }
+
+    function createPaginationMeasurer() {
+      const measurer = document.createElement("div");
+      measurer.className = "message";
+      measurer.style.position = "absolute";
+      measurer.style.left = "-10000px";
+      measurer.style.top = "0";
+      measurer.style.width = "174mm";
+      measurer.style.visibility = "hidden";
+      measurer.style.pointerEvents = "none";
+      measurer.style.whiteSpace = "pre-wrap";
+      document.body.appendChild(measurer);
+      return measurer;
+    }
+
+    function fitsMeasuredPage(measurer, html, maxHeight) {
+      measurer.innerHTML = html;
+      return measurer.scrollHeight <= maxHeight;
+    }
+
+    function splitTextForPage(text, maxLength = 900) {
+      const parts = text
+        .replace(/\s+/g, " ")
+        .trim()
+        .split(/(?<=[.!?;:])\s+/)
+        .filter(Boolean);
+      const source = parts.length > 1 ? parts : text.split(/\s+/).filter(Boolean);
+      const chunks = [];
+      let chunk = "";
+
+      source.forEach(part => {
+        const next = chunk ? `${chunk} ${part}` : part;
+        if (next.length > maxLength && chunk) {
+          chunks.push(chunk);
+          chunk = part;
+        } else {
+          chunk = next;
+        }
+      });
+
+      if (chunk) chunks.push(chunk);
+      return chunks.length ? chunks : [text];
+    }
+
+    function nodeInlineStyleAttribute(node) {
+      const styles = [];
+      const textAlign = node.style && node.style.textAlign;
+      const fontWeight = node.style && node.style.fontWeight;
+      const textDecoration = node.style && node.style.textDecoration;
+
+      if (textAlign) styles.push(`text-align: ${textAlign}`);
+      if (fontWeight) styles.push(`font-weight: ${fontWeight}`);
+      if (textDecoration) styles.push(`text-decoration: ${textDecoration}`);
+
+      return styles.length ? ` style="${styles.join("; ")}"` : "";
+    }
+
+    function splitOversizedCleanNode(node, measurer, limit) {
+      const html = node.outerHTML || escapeHtml(node.textContent || "");
+      if (fitsMeasuredPage(measurer, html, limit) || node.classList?.contains("inline-graphic-block")) {
+        return [html];
+      }
+
+      const tag = node.tagName ? node.tagName.toLowerCase() : "p";
+      if (!["p", "div", "span", "section"].includes(tag)) {
+        return [html];
+      }
+
+      const text = (node.innerText || node.textContent || "").trim();
+      if (!text) return [html];
+
+      const classAttr = node.className ? ` class="${escapeHtml(node.className)}"` : "";
+      const styleAttr = nodeInlineStyleAttribute(node);
+      return splitTextForPage(text).map(chunk =>
+        `<p${classAttr}${styleAttr}>${escapeHtml(chunk)}</p>`
+      );
+    }
+
+    function paginationBlocks(measurer, limit) {
+      const fragment = sanitizedMessageFragment();
+      const blocks = [];
+
+      function addNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent.trim();
+          if (text) blocks.push(`<p>${escapeHtml(text)}</p>`);
+          return;
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+        const isGraphic = node.classList.contains("inline-graphic-block");
+        const isSimpleWrapper = node.tagName === "DIV"
+          && !isGraphic
+          && !node.className
+          && node.children.length
+          && !node.textContent.trim().replace([...node.children].map(child => child.textContent).join(""), "").trim();
+
+        if (isSimpleWrapper) {
+          [...node.childNodes].forEach(addNode);
+          return;
+        }
+
+        splitOversizedCleanNode(node, measurer, limit).forEach(html => blocks.push(html));
+      }
+
+      [...fragment.childNodes].forEach(addNode);
+      return blocks;
+    }
+
+    function paginateEditorHtml() {
+      const firstLimit = mmToPx(fields.showSummary.checked ? 118 : 150);
+      const nextLimit = mmToPx(205);
+      const pages = [];
+      let current = "";
+      const measurer = createPaginationMeasurer();
+      let limit = firstLimit;
+      const blocks = paginationBlocks(measurer, nextLimit);
+
+      blocks.forEach(html => {
+        const next = current + html;
+
+        if (current && !fitsMeasuredPage(measurer, next, limit)) {
+          pages.push(current);
+          current = html;
+          limit = nextLimit;
+        } else {
+          current = next;
+        }
+      });
+
+      measurer.remove();
+      if (current) pages.push(current);
+      return pages.length ? pages : [textToParagraphs("Digite o texto do comunicado.")];
+    }
+
+    function inlineGraphicExportHtml(node) {
+      const clone = node.cloneNode(true);
+      clone.querySelectorAll("input, textarea").forEach(field => {
+        const value = field.value || field.getAttribute("value") || field.textContent || "";
+        const replacement = document.createElement("span");
+        replacement.textContent = value || " ";
+        replacement.className = field.className || "";
+        field.replaceWith(replacement);
+      });
+      clone.querySelectorAll("[contenteditable]").forEach(element => element.removeAttribute("contenteditable"));
+      clone.removeAttribute("contenteditable");
+      return clone.outerHTML;
+    }
+
+    function nodeText(node) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const values = [...node.querySelectorAll("input, textarea")]
+          .map(field => field.value || field.getAttribute("value") || "")
+          .filter(Boolean);
+        if (values.length) {
+          return `${node.innerText || node.textContent || ""}\n${values.join("\n")}`.replace(/\u00a0/g, " ").trim();
+        }
+      }
+      return (node.innerText || node.textContent || "").replace(/\u00a0/g, " ").trim();
+    }
+
+    function extractInlineDocumentFlow() {
+      const introParts = [];
+      const flows = [];
+      let activeFlow = null;
+
+      [...fields.message.childNodes].forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains("inline-graphic-block")) {
+          if (activeFlow) flows.push(activeFlow);
+          activeFlow = {
+            graphicHtml: inlineGraphicExportHtml(node),
+            afterParts: []
+          };
+          return;
+        }
+
+        const text = nodeText(node);
+        if (!text) return;
+
+        if (activeFlow) {
+          activeFlow.afterParts.push(text);
+        } else {
+          introParts.push(text);
+        }
+      });
+
+      if (activeFlow) flows.push(activeFlow);
+
+      return {
+        introText: normalizeImportedText(introParts.join("\n\n")),
+        flows: flows.map(flow => ({
+          graphicHtml: flow.graphicHtml,
+          afterText: normalizeImportedText(flow.afterParts.join("\n\n"))
+        }))
+      };
+    }
+
+    function inlineGraphicFlowPages(flows) {
+      const pages = [];
+
+      flows.forEach(flow => {
+        const chunks = splitFlowText(flow.afterText, 780);
+        pages.push(`${flow.graphicHtml}${chunks[0] ? `<div class="message after-graphic-message">${textToParagraphs(chunks[0], false)}</div>` : ""}`);
+        chunks.slice(1).forEach(chunk => {
+          pages.push(`<div class="message">${textToParagraphs(chunk, false)}</div>`);
+        });
+      });
+
+      return pages;
+    }
+
+    function pageArtHtml(style) {
+      if (style === "calculator") {
+        return `<div class="page-art art-calculator" aria-hidden="true">${"<span></span>".repeat(16)}</div>`;
+      }
+      if (style === "chart") {
+        return `<div class="page-art art-chart" aria-hidden="true"><span></span><span></span><span></span><span></span></div>`;
+      }
+      if (style === "numbers") {
+        return `<div class="page-art art-numbers" aria-hidden="true"></div>`;
+      }
+      return `<div class="page-art none" aria-hidden="true"></div>`;
+    }
+
+    function signatureHtml() {
+      return `
+        <div class="signature">
+          Atenciosamente,
+          <strong>${escapeHtml(fields.sender.value || "Orteconte Contabilidade")}</strong>
+        </div>
+      `;
+    }
+
+    function currentGraphicHtml() {
+      return preview.graphicList.innerHTML || "";
+    }
+
+    function afterGraphicHtml() {
+      return "";
+    }
+
+    function splitFlowText(value, limit = 850) {
+      const text = (value || "").trim();
+      if (!text) return [];
+      const blocks = text.split(/\n{2,}/).map(block => block.trim()).filter(Boolean);
+      const pages = [];
+      let current = "";
+
+      blocks.forEach(block => {
+        const next = current ? `${current}\n\n${block}` : block;
+        if (next.length > limit && current) {
+          pages.push(current);
+          current = block;
+        } else if (block.length > limit) {
+          const words = block.split(/\s+/);
+          let chunk = "";
+          words.forEach(word => {
+            const candidate = chunk ? `${chunk} ${word}` : word;
+            if (candidate.length > limit && chunk) {
+              pages.push(chunk);
+              chunk = word;
+            } else {
+              chunk = candidate;
+            }
+          });
+          current = chunk;
+        } else {
+          current = next;
+        }
+      });
+
+      if (current) pages.push(current);
+      return pages;
+    }
+
+    function bodyImageBoxOnlyHtml() {
+      if (!bodyImageData) return "";
+      return `
+        <section class="graphic-box is-visible">
+          <div class="graphic-content"><div class="graphic-image"><img src="${escapeHtml(bodyImageData)}" alt="Imagem do comunicado"></div></div>
+          <div class="graphic-caption ${fields.bodyImageCaption.value.trim() ? "is-visible" : ""}">${escapeHtml(fields.bodyImageCaption.value.trim())}</div>
+        </section>
+      `;
+    }
+
+    function graphicBoxOnlyHtml(item) {
+      return `
+        <section class="graphic-box is-visible">
+          <div class="graphic-header">${escapeHtml(item.title || "Elemento gráfico")}</div>
+          <div class="graphic-content">${graphicContentHtml(item)}</div>
+          <div class="graphic-caption ${item.caption ? "is-visible" : ""}">${escapeHtml(item.caption || "")}</div>
+        </section>
+      `;
+    }
+
+    function visualFlowPages() {
+      const pages = [];
+
+      if (bodyImageData) {
+        const chunks = splitFlowText(fields.bodyImageAfterText.value, 760);
+        pages.push(`${bodyImageBoxOnlyHtml()}${chunks[0] ? `<div class="message after-graphic-message">${textToParagraphs(chunks[0], false)}</div>` : ""}`);
+        chunks.slice(1).forEach(chunk => {
+          pages.push(`<div class="message">${textToParagraphs(chunk, false)}</div>`);
+        });
+      }
+
+      graphicItems.forEach(item => {
+        const chunks = splitFlowText(item.afterText, item.type === "table" ? 620 : 760);
+        pages.push(`${graphicBoxOnlyHtml(item)}${chunks[0] ? `<div class="message after-graphic-message">${textToParagraphs(chunks[0], false)}</div>` : ""}`);
+        chunks.slice(1).forEach(chunk => {
+          pages.push(`<div class="message">${textToParagraphs(chunk, false)}</div>`);
+        });
+      });
+
+      return pages;
+    }
+
+    function renderContinuationPages(textPages, flowPages = []) {
+      const segment = segments[selectedSegmentKey()];
+      const artStyle = fields.extraArt();
+      const segmentName = displayedSegmentName(segment);
+      const continuationPages = [
+        ...textPages.map(pageText => (
+          typeof pageText === "string"
+            ? { kind: "text", html: `<div class="message">${textToParagraphs(pageText, false)}</div>` }
+            : pageText
+        )),
+        ...flowPages.map(html => ({ kind: "flow", html }))
+      ];
+
+      preview.continuationPages.innerHTML = continuationPages.map((page, index) => `
+        <article class="sheet print-page continuation-sheet">
+          <header class="sheet-header">
+<div class="sheet-brand">
+              <img class="brand-mark" src="orteconte-header-symbol.png" alt="">
+              <div class="internal-header-copy">
+                <strong>${escapeHtml(segmentName)}</strong>
+                <span></span>
+              </div>
+              <img class="brand-logo" src="orteconte-header-logo.png" alt="Orteconte Contabilidade">
+            </div>
+          </header>
+          <div class="content">
+            <div class="tag-row">
+              <div class="tag">
+                <span>${escapeHtml(segmentName)}</span>
+              </div>
+            </div>
+            <section class="body-block">
+              <div class="body-main">
+                ${page.html}
+                ${index === continuationPages.length - 1 ? signatureHtml() : ""}
+              </div>
+            </section>
+          </div>
+          ${pageArtHtml(artStyle)}
+          <footer class="sheet-footer">
+            <div class="footer-item"><img class="footer-icon" src="whatsapp-orteconte.png" alt=""> (33) 3339-1000</div>
+            <div class="footer-item">orteconte@orteconte.com.br</div>
+            <div class="footer-item">www.orteconte.com.br</div>
+          </footer>
+        </article>
+      `).join("");
+    }
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[character]));
+    }
+
+    function formatDate(value) {
+      if (!value) return "";
+      const [year, month, day] = value.split("-");
+      return `${day}/${month}/${year}`;
+    }
+
+    function renderSummaryItems() {
+      const style = fields.summaryStyle();
+      const iconSets = {
+        indicators: ["%", "?", "!", "?"],
+        ledger: ["R$", "NF", "?", "?"],
+        calendar: ["01", "10", "20", "31"]
+      };
+      const icons = iconSets[style] || iconSets.indicators;
+      const items = fields.summaryItems.value
+        .split("\n")
+        .map(item => item.trim())
+        .filter(Boolean)
+        .slice(0, 4);
+
+      preview.summaryItems.innerHTML = items.map((item, index) => `
+        <div class="summary-item">
+          <div class="summary-icon">${icons[index] || "•"}</div>
+          <div>${escapeHtml(item)}</div>
+        </div>
+      `).join("");
+    }
+
+    function clampNumber(value, min, max, fallback) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return fallback;
+      return Math.min(max, Math.max(min, Math.round(number)));
+    }
+
+    function createGraphicItem(type = "table") {
+      return {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+        type,
+        title: type === "table" ? "Tabela" : type === "chart" ? "Gráfico" : "Imagem",
+        data: "",
+        caption: "",
+        afterText: "",
+        rows: 3,
+        cols: 2,
+        table: [["Item", "Descrição"], ["1", "Informação principal"], ["2", "Informação complementar"]]
+      };
+    }
+
+    function collectGraphicItemsFromDom() {
+      graphicItems = [...fields.graphicItemsEditor.querySelectorAll(".graphic-item-editor")].map(editor => {
+        const id = editor.dataset.id;
+        const existing = graphicItems.find(item => item.id === id) || createGraphicItem();
+        const type = editor.querySelector("[data-field='type']").value;
+        const rows = clampNumber(editor.querySelector("[data-field='rows']")?.value, 1, 12, existing.rows || 3);
+        const cols = clampNumber(editor.querySelector("[data-field='cols']")?.value, 1, 8, existing.cols || 2);
+        const table = [...editor.querySelectorAll(".table-editor tr")].map(row =>
+          [...row.querySelectorAll("input")].map(input => input.value.trim())
+        );
+
+        return {
+          ...existing,
+          type,
+          title: editor.querySelector("[data-field='title']").value.trim(),
+          data: editor.querySelector("[data-field='data']")?.value.trim() || existing.data || "",
+          caption: editor.querySelector("[data-field='caption']").value.trim(),
+          afterText: editor.querySelector("[data-field='afterText']").value.trim(),
+          rows,
+          cols,
+          table: table.length ? table : existing.table
+        };
+      });
+    }
+
+    function tableEditorHtml(item) {
+      const rows = clampNumber(item.rows, 1, 12, 3);
+      const cols = clampNumber(item.cols, 1, 8, 2);
+      const source = item.table && item.table.length ? item.table : [["Item", "Descrição"], ["1", "Informação principal"], ["2", "Informação complementar"]];
+      const cell = (rowIndex, colIndex) => source[rowIndex]?.[colIndex] || "";
+
+      return `
+        <div class="table-builder is-visible">
+          <div class="table-size-grid">
+            <div class="field">
+              <label>Linhas da tabela</label>
+              <input class="input" data-field="rows" type="number" min="1" max="12" value="${rows}">
+            </div>
+            <div class="field">
+              <label>Colunas da tabela</label>
+              <input class="input" data-field="cols" type="number" min="1" max="8" value="${cols}">
+            </div>
+          </div>
+          <div class="table-editor">
+            <table>
+              <thead>
+                <tr>${Array.from({ length: cols }, (_, colIndex) => `<th><input type="text" value="${escapeHtml(cell(0, colIndex))}"></th>`).join("")}</tr>
+              </thead>
+              <tbody>
+                ${Array.from({ length: Math.max(0, rows - 1) }, (_, bodyIndex) => `
+                  <tr>${Array.from({ length: cols }, (_, colIndex) => `<td><input type="text" value="${escapeHtml(cell(bodyIndex + 1, colIndex))}"></td>`).join("")}</tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function graphicItemEditorHtml(item, index) {
+      const isTable = item.type === "table";
+      const isImage = item.type === "image";
+      const isChart = item.type === "chart";
+
+      return `
+        <div class="graphic-item-editor" data-id="${item.id}">
+          <div class="graphic-item-head">
+            <strong>Elemento gráfico ${index + 1}</strong>
+            <button class="small-action danger" type="button" data-action="remove-graphic">Remover</button>
+          </div>
+          <div class="two-fields">
+            <div class="field">
+              <label>Tipo</label>
+              <select class="select" data-field="type">
+                <option value="table" ${isTable ? "selected" : ""}>Tabela</option>
+                <option value="chart" ${isChart ? "selected" : ""}>Gráfico</option>
+                <option value="image" ${isImage ? "selected" : ""}>Imagem</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Título</label>
+              <input class="input" data-field="title" maxlength="55" value="${escapeHtml(item.title || "")}">
+            </div>
+          </div>
+          ${isTable ? tableEditorHtml(item) : `
+            <div class="field">
+              <label>${isChart ? "Dados do gráfico" : "URL da imagem"}</label>
+              <textarea class="textarea" data-field="data" style="min-height: 95px;" placeholder="${isChart ? "Use Nome;Valor, uma linha por item." : "Cole a URL da imagem ou selecione um arquivo abaixo."}">${escapeHtml(item.data || "")}</textarea>
+            </div>
+            ${isImage ? `<div class="field"><label>Arquivo de imagem</label><input class="input" type="file" accept="image/*" data-action="load-graphic-image"></div>` : ""}
+          `}
+          <div class="field">
+            <label>Texto abaixo do elemento gráfico (opcional)</label>
+            <textarea class="textarea" data-field="caption" style="min-height: 70px;">${escapeHtml(item.caption || "")}</textarea>
+          </div>
+          <div class="field">
+            <label>Continuação do texto após este elemento (opcional)</label>
+            <textarea class="textarea" data-field="afterText" style="min-height: 85px;" placeholder="Digite aqui o texto que deve continuar logo após este elemento.">${escapeHtml(item.afterText || "")}</textarea>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGraphicItemsEditor() {
+      fields.graphicItemsEditor.innerHTML = graphicItems.map(graphicItemEditorHtml).join("");
+    }
+
+    function graphicContentHtml(item) {
+      if (item.type === "table") {
+        const header = item.table?.[0]?.some(Boolean) ? item.table[0] : ["Item", "Descrição"];
+        const body = (item.table || []).slice(1).filter(row => row.some(Boolean));
+        return `
+          <table class="graphic-table">
+            <thead><tr>${header.map(cell => `<th>${escapeHtml(cell || " ")}</th>`).join("")}</tr></thead>
+            <tbody>${body.map(row => `<tr>${header.map((_, index) => `<td>${escapeHtml(row[index] || " ")}</td>`).join("")}</tr>`).join("")}</tbody>
+          </table>
+        `;
+      }
+
+      if (item.type === "chart") {
+        const rows = (item.data || "Fiscal;70\nContábil;45\nPessoal;55")
+          .split("\n")
+          .map(row => row.split(";").map(cell => cell.trim()))
+          .filter(row => row[0]);
+        const values = rows.map(row => Math.max(1, Number(row[1]) || 1));
+        const max = Math.max(...values, 1);
+        return `
+          <div class="graphic-chart">
+            ${rows.map((row, index) => {
+              const value = values[index];
+              const height = Math.max(12, Math.round((value / max) * 100));
+              return `<div class="graphic-bar"><span style="height:${height}%"></span><div>${escapeHtml(row[0])}</div></div>`;
+            }).join("")}
+          </div>
+        `;
+      }
+
+      return item.data
+        ? `<div class="graphic-image"><img src="${escapeHtml(item.data)}" alt="Imagem inserida"></div>`
+        : `<div class="graphic-image">Selecione um arquivo ou cole a URL da imagem.</div>`;
+    }
+
+    function graphicBoxHtml(item) {
+      return `
+        <section class="graphic-box is-visible">
+          <div class="graphic-header">${escapeHtml(item.title || "Elemento gráfico")}</div>
+          <div class="graphic-content">${graphicContentHtml(item)}</div>
+          <div class="graphic-caption ${item.caption ? "is-visible" : ""}">${escapeHtml(item.caption || "")}</div>
+        </section>
+        ${item.afterText ? `<div class="message after-graphic-message">${textToParagraphs(item.afterText, false)}</div>` : ""}
+      `;
+    }
+
+    function bodyImageHtml() {
+      if (!bodyImageData) return "";
+      return `
+        <section class="graphic-box is-visible">
+          <div class="graphic-content"><div class="graphic-image"><img src="${escapeHtml(bodyImageData)}" alt="Imagem do comunicado"></div></div>
+          <div class="graphic-caption ${fields.bodyImageCaption.value.trim() ? "is-visible" : ""}">${escapeHtml(fields.bodyImageCaption.value.trim())}</div>
+        </section>
+        ${fields.bodyImageAfterText.value.trim() ? `<div class="message after-graphic-message">${textToParagraphs(fields.bodyImageAfterText.value.trim(), false)}</div>` : ""}
+      `;
+    }
+
+    function hasGraphicContent() {
+      return !!bodyImageData || graphicItems.length > 0;
+    }
+
+    function renderGraphic() {
+      collectGraphicItemsFromDom();
+      const html = `${bodyImageHtml()}${graphicItems.map(graphicBoxHtml).join("")}`;
+      preview.graphicList.innerHTML = html;
+      preview.graphicList.classList.toggle("is-visible", !!html);
+    }
+
+    function syncPreviewTitle() {
+      fields.title.value = preview.title.textContent.trim();
+      preview.internalHeaderSubject.textContent = "";
+    }
+
+    function syncPreviewSubtitle() {
+      fields.subtitle.value = preview.subtitle.textContent.trim();
+      preview.subtitle.classList.toggle("is-placeholder", !fields.subtitle.value);
+    }
+
+    function syncPreviewMessage() {
+      fields.message.innerHTML = preview.message.innerHTML.trim();
+    }
+
+    function refreshEditablePreviewState() {
+      preview.title.setAttribute("contenteditable", "true");
+      preview.subtitle.setAttribute("contenteditable", "true");
+      preview.message.setAttribute("contenteditable", "true");
+      preview.continuationPages.querySelectorAll(".message").forEach(message => {
+        message.setAttribute("contenteditable", "true");
+        message.setAttribute("spellcheck", "true");
+      });
+    }
+
+    function syncPreviewTableInput(input) {
+      if (!input?.classList?.contains("graphic-cell-input")) return false;
+      const { tableId, row, col } = input.dataset;
+      if (!tableId || row === undefined || col === undefined) return false;
+      const selector = `.graphic-cell-input[data-table-id="${CSS.escape(tableId)}"][data-row="${CSS.escape(row)}"][data-col="${CSS.escape(col)}"]`;
+      fields.message.querySelectorAll(selector).forEach(sourceInput => {
+        sourceInput.value = input.value;
+        sourceInput.setAttribute("value", input.value);
+      });
+      document.querySelectorAll(selector).forEach(peerInput => {
+        if (peerInput !== input && !fields.message.contains(peerInput)) {
+          peerInput.value = input.value;
+          peerInput.setAttribute("value", input.value);
+        }
+      });
+      return true;
+    }
+
+    function render() {
+      if (syncingPreviewEdit) return;
+      const segment = segments[selectedSegmentKey()];
+      const summaryStyle = fields.summaryStyle();
+      updateChoiceLabels();
+      applySegment(segment);
+      preview.title.textContent = fields.title.value || "Título do comunicado";
+      const subtitleText = fields.subtitle.value.trim();
+      preview.subtitle.textContent = subtitleText || "Linha complementar";
+      preview.subtitle.classList.toggle("is-placeholder", !subtitleText);
+      preview.summaryTitle.textContent = fields.summaryTitle.value || "Resumo";
+      preview.internalHeaderSubject.textContent = "";
+      renderGraphic();
+      normalizeMessageEditor();
+      const messageText = getMessageText() || "Digite o texto do comunicado.";
+      const inlineMode = hasInlineGraphicBlocks();
+      let messagePages = [];
+      let flowPages = visualFlowPages();
+
+      if (inlineMode || hasRichMessageFormatting()) {
+        const htmlPages = paginateEditorHtml();
+        messagePages = htmlPages;
+        preview.message.innerHTML = htmlPages[0] || sanitizeRichMessage();
+        renderContinuationPages(htmlPages.slice(1).map(html => ({
+          kind: "html",
+          html: `<div class="message">${html}</div>`
+        })), flowPages);
+      } else {
+        messagePages = paginateMessage(messageText);
+        preview.message.innerHTML = messagePages.length === 1
+          ? sanitizeRichMessage()
+          : textToParagraphs(messagePages[0]);
+        renderContinuationPages(messagePages.slice(1), flowPages);
+      }
+      preview.sender.textContent = fields.sender.value || "Orteconte Contabilidade";
+      preview.graphicList.style.display = "none";
+      document.querySelector("#afterGraphicPreview").innerHTML = "";
+      document.querySelector("#previewSignature").style.display = messagePages.length === 1 && flowPages.length === 0 ? "" : "none";
+      preview.summaryBox.style.display = fields.showSummary.checked ? "" : "none";
+      preview.summaryEditor.classList.toggle("is-visible", fields.showSummary.checked);
+      fields.summaryTitle.disabled = !fields.showSummary.checked;
+      fields.summaryItems.disabled = !fields.showSummary.checked;
+      preview.summaryBox.classList.remove("style-indicators", "style-ledger", "style-calendar");
+      preview.summaryBox.classList.add(`style-${summaryStyle}`);
+      preview.reformaCover.classList.toggle("is-visible", selectedSegmentKey() === "reforma");
+      fields.deadlineNoteField.style.display = fields.showDeadline.checked ? "" : "none";
+      preview.deadlineCard.style.display = fields.showDeadline.checked && fields.deadline.value ? "" : "none";
+      preview.deadlineDate.textContent = formatDate(fields.deadline.value);
+      preview.deadlineNote.textContent = fields.deadlineNote.value || "Inclua aqui a orientação relacionada ao prazo.";
+      renderSummaryItems();
+      refreshEditablePreviewState();
+    }
+
+    function fillExample() {
+      const key = selectedSegmentKey();
+      const example = examples[key];
+      fields.title.value = example.title;
+      fields.subtitle.value = example.subtitle;
+      fields.summaryTitle.value = example.summaryTitle;
+      fields.summaryItems.value = example.summaryItems;
+      render();
+    }
+
+    function generatePdf() {
+      render();
+      const printRoot = document.querySelector("#printRoot");
+      const pages = [...document.querySelectorAll(".print-page")]
+        .filter(page => getComputedStyle(page).display !== "none")
+        .map(page => page.cloneNode(true));
+
+      printRoot.replaceChildren(...pages);
+      document.body.classList.add("printing-pdf");
+
+      const cleanPrint = () => {
+        document.body.classList.remove("printing-pdf");
+        printRoot.replaceChildren();
+        window.removeEventListener("afterprint", cleanPrint);
+      };
+
+      window.addEventListener("afterprint", cleanPrint);
+      window.print();
+    }
+
+    function visiblePrintPages() {
+      render();
+      return [...document.querySelectorAll(".print-page")]
+        .filter(page => getComputedStyle(page).display !== "none")
+        .map(page => page.cloneNode(true));
+    }
+
+    function blobToDataUrl(blob) {
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => resolve("");
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    async function inlineImages(root) {
+      const images = [...root.querySelectorAll("img")];
+      await Promise.all(images.map(async image => {
+        const src = image.getAttribute("src") || "";
+        if (!src || src.startsWith("data:")) return;
+
+        try {
+          const url = new URL(src, window.location.href).href;
+          const response = await fetch(url);
+          if (!response.ok) return;
+          const dataUrl = await blobToDataUrl(await response.blob());
+          if (dataUrl) image.setAttribute("src", dataUrl);
+        } catch (error) {
+          image.setAttribute("src", src);
+        }
+      }));
+    }
+
+    function downloadBlob(blob, filename) {
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1200);
+    }
+
+    function exportFilename(extension) {
+      const title = (fields.title.value || "comunicado")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/gi, "-")
+        .replace(/(^-|-$)/g, "")
+        .toLowerCase();
+      return `${title || "comunicado"}.${extension}`;
+    }
+
+    function exportImageCss() {
+      const css = [...document.querySelectorAll("style")]
+        .map(style => style.textContent)
+        .join("\n");
+      return css
+        .replace(/color-mix\([^;{}]+?\)/g, "var(--accent)")
+        .replace(/color-mix\([^;{}]+?\)/g, "#4880c0")
+        .replace(/@media\s+print\s*{[\s\S]*?}\s*}/g, "");
+    }
+
+    function exportRootVariables() {
+      const computed = getComputedStyle(document.documentElement);
+      return [
+        "--paper",
+        "--ink",
+        "--accent",
+        "--accent-dark",
+        "--support",
+        "--header-start",
+        "--header-mid",
+        "--header-end",
+        "--header-fixed-start",
+        "--header-fixed-mid",
+        "--header-fixed-end",
+        "--footer-bg",
+        "--institutional-text"
+      ].map(name => `${name}: ${computed.getPropertyValue(name).trim()};`).join("\n");
+    }
+
+    function imageFrameHtml(pageHtml, css) {
+      return `<!DOCTYPE html>
+        <html>
+          <head>
+<meta charset="utf-8">
+            <base href="${escapeHtml(location.href)}">
+            <style>
+              :root {
+                ${exportRootVariables()}
+              }
+              ${css}
+              html, body {
+                margin: 0;
+                padding: 0;
+                width: 794px;
+                min-height: 1123px;
+                overflow: hidden;
+                background: #ffffff;
+              }
+              .print-page {
+                display: block !important;
+                position: relative !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                min-height: 297mm !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                transform: none !important;
+                overflow: hidden !important;
+              }
+              .sheet-header {
+                display: block !important;
+              }
+              .sheet-footer {
+                display: grid !important;
+                position: absolute !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+              }
+            </style>
+          </head>
+          <body>${pageHtml}</body>
+        </html>`;
+    }
+
+    async function saveAsImage() {
+      render();
+      const pages = visiblePrintPages();
+      const firstPage = pages[0];
+      if (!firstPage) return;
+      if (typeof html2canvas !== "function") {
+        alert("Não foi possível carregar o gerador de imagem. Recarregue a página e tente novamente.");
+        return;
+      }
+      firstPage.querySelectorAll("[contenteditable]").forEach(element => element.removeAttribute("contenteditable"));
+      firstPage.querySelectorAll("input, textarea").forEach(field => {
+        const span = document.createElement("span");
+        span.textContent = field.value || field.getAttribute("value") || " ";
+        span.className = field.className || "";
+        field.replaceWith(span);
+      });
+      await inlineImages(firstPage);
+      const frame = document.createElement("iframe");
+      frame.setAttribute("aria-hidden", "true");
+      frame.style.position = "fixed";
+      frame.style.left = "-10000px";
+      frame.style.top = "0";
+      frame.style.width = "794px";
+      frame.style.height = "1123px";
+      frame.style.border = "0";
+      document.body.appendChild(frame);
+
+      try {
+        const frameDocument = frame.contentDocument;
+        frameDocument.open();
+        frameDocument.write(imageFrameHtml(firstPage.outerHTML, exportImageCss()));
+        frameDocument.close();
+        await new Promise(resolve => {
+          const images = [...frameDocument.images];
+          if (!images.length) return resolve();
+          let pending = images.length;
+          images.forEach(image => {
+            const done = () => {
+              pending -= 1;
+              if (pending <= 0) resolve();
+            };
+            if (image.complete) done();
+            else {
+              image.onload = done;
+              image.onerror = done;
+            }
+          });
+        });
+        const target = frameDocument.querySelector(".print-page");
+        const canvas = await html2canvas(target, {
+          backgroundColor: "#ffffff",
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          width: 794,
+          height: 1123,
+          windowWidth: 794,
+          windowHeight: 1123
+        });
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+        if (!blob) throw new Error("O arquivo PNG não pôde ser criado.");
+        downloadBlob(blob, exportFilename("png"));
+      } catch (error) {
+        console.error(error);
+        alert(`Não foi possível gerar o PNG: ${error.message || "erro desconhecido"}`);
+      } finally {
+        frame.remove();
+      }
+    }
+
+    async function generateWord() {
+      const pages = visiblePrintPages();
+      const wrapper = document.createElement("div");
+      wrapper.className = "word-export";
+      wrapper.replaceChildren(...pages);
+      await inlineImages(wrapper);
+
+      const styles = [...document.querySelectorAll("style")]
+        .map(style => style.textContent)
+        .join("\n");
+      const title = (fields.title.value || "comunicado-orteconte")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/gi, "-")
+        .replace(/(^-|-$)/g, "")
+        .toLowerCase();
+      const html = `
+        <!DOCTYPE html>
+        <html xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:w="urn:schemas-microsoft-com:office:word"
+              xmlns="http://www.w3.org/TR/REC-html40">
+          <head>
+<meta charset="utf-8">
+            <title>${escapeHtml(fields.title.value || "Comunicado")}</title>
+            <!--[if gte mso 9]>
+            <xml>
+              <w:WordDocument>
+                <w:View>Print</w:View>
+                <w:Zoom>100</w:Zoom>
+                <w:DoNotOptimizeForBrowser/>
+              </w:WordDocument>
+            </xml>
+            <![endif]-->
+            <style>
+              @page WordSection1 { size: 210mm 297mm; margin: 0; }
+              div.WordSection1 { page: WordSection1; }
+              ${styles}
+              html, body { margin: 0; padding: 0; background: #fff; }
+              .panel, .app, .print-root { display: none !important; }
+              .word-export { display: block !important; }
+              .word-export .print-page {
+                display: block !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                min-height: 297mm !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                page-break-after: always;
+              }
+              .word-export .print-page:last-child { page-break-after: auto; }
+            </style>
+          </head>
+          <body>
+            <div class="WordSection1">${wrapper.innerHTML}</div>
+          </body>
+        </html>
+      `;
+
+      const blob = new Blob(["\ufeff", html], { type: "application/msword;charset=utf-8" });
+      downloadBlob(blob, `${title || "comunicado-orteconte"}.doc`);
+    }
+
+    function loadImageFile(file, callback) {
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        callback(reader.result);
+        render();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function addGraphicItem(type = "table") {
+      collectGraphicItemsFromDom();
+      graphicItems.push(createGraphicItem(type));
+      renderGraphicItemsEditor();
+      render();
+    }
+
+    function handleGraphicEditorChange(event) {
+      const editor = event.target.closest(".graphic-item-editor");
+      if (!editor) return;
+
+      if (event.target.matches("[data-action='load-graphic-image']")) {
+        const item = graphicItems.find(entry => entry.id === editor.dataset.id);
+        loadImageFile(event.target.files && event.target.files[0], dataUrl => {
+          const dataField = editor.querySelector("[data-field='data']");
+          if (dataField) dataField.value = dataUrl;
+          if (item) item.data = dataUrl;
+        });
+        return;
+      }
+
+      if (event.target.matches("[data-field='type'], [data-field='rows'], [data-field='cols']")) {
+        collectGraphicItemsFromDom();
+        renderGraphicItemsEditor();
+        render();
+      }
+    }
+
+    let savedMessageRange = null;
+
+    function editableMessageRoots() {
+      return [
+        fields.message,
+        preview.message,
+        ...preview.continuationPages.querySelectorAll(".message")
+      ].filter(Boolean);
+    }
+
+    function activeMessageRoot() {
+      const selection = window.getSelection();
+      if (!selection || !selection.rangeCount) return null;
+      return rangeRoot(selection.getRangeAt(0));
+    }
+
+    function rangeRoot(range) {
+      return editableMessageRoots().find(root => root.contains(range.commonAncestorContainer));
+    }
+
+    function saveMessageSelection() {
+      const selection = window.getSelection();
+      if (!selection || !selection.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      if (rangeRoot(range)) {
+        savedMessageRange = range.cloneRange();
+      }
+    }
+
+    function restoreMessageSelection() {
+      if (!savedMessageRange) {
+        fields.message.focus();
+        return null;
+      }
+      const root = rangeRoot(savedMessageRange);
+      if (!root || !document.body.contains(root)) {
+        savedMessageRange = null;
+        fields.message.focus();
+        return fields.message;
+      }
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(savedMessageRange);
+      return root;
+    }
+
+    function syncFormattedPreviewRoot(root) {
+      if (root === fields.message) return;
+      if (root === preview.message) {
+        syncingPreviewEdit = true;
+        syncPreviewMessage();
+        syncingPreviewEdit = false;
+        return;
+      }
+      const pages = [...preview.continuationPages.querySelectorAll(".message")];
+      const pageIndex = pages.indexOf(root);
+      if (pageIndex < 0) return;
+      const currentPages = paginateEditorHtml();
+      currentPages[pageIndex + 1] = root.innerHTML;
+      fields.message.innerHTML = currentPages.join("");
+    }
+
+    function selectedEditableBlocks(root, range) {
+      const blocks = [];
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
+        acceptNode(node) {
+          if (!["P", "DIV", "SECTION", "LI", "H1", "H2", "H3"].includes(node.tagName)) {
+            return NodeFilter.FILTER_SKIP;
+          }
+          return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+        }
+      });
+
+      let node = walker.currentNode;
+      if (range.intersectsNode(node) && ["P", "DIV", "SECTION", "LI", "H1", "H2", "H3"].includes(node.tagName)) {
+        blocks.push(node);
+      }
+      while ((node = walker.nextNode())) {
+        blocks.push(node);
+      }
+
+      if (!blocks.length) {
+        let container = range.startContainer.nodeType === Node.ELEMENT_NODE
+          ? range.startContainer
+          : range.startContainer.parentElement;
+        while (container && container !== root && !["P", "DIV", "SECTION", "LI", "H1", "H2", "H3"].includes(container.tagName)) {
+          container = container.parentElement;
+        }
+        blocks.push(container && container !== root ? container : root);
+      }
+
+      return [...new Set(blocks)];
+    }
+
+    function applyAlignmentFallback(command, root) {
+      const alignments = {
+        justifyLeft: "left",
+        justifyCenter: "center",
+        justifyRight: "right",
+        justifyFull: "justify"
+      };
+      const textAlign = alignments[command];
+      if (!textAlign) return false;
+      const selection = window.getSelection();
+      if (!selection || !selection.rangeCount) return false;
+      const range = selection.getRangeAt(0);
+      if (rangeRoot(range) !== root) return false;
+      selectedEditableBlocks(root, range).forEach(block => {
+        block.style.textAlign = textAlign;
+      });
+      return true;
+    }
+
+    function applyTextFormat(command, value = null) {
+      const root = restoreMessageSelection() || fields.message;
+      root.focus?.();
+      let applied = false;
+      try {
+        applied = document.execCommand(command, false, value);
+        if (command === "hiliteColor") {
+          document.execCommand("backColor", false, value);
+        }
+      } catch (error) {
+        applied = false;
+      }
+      if (!applied || command.startsWith("justify")) {
+        applyAlignmentFallback(command, root);
+      }
+      syncFormattedPreviewRoot(root);
+      saveMessageSelection();
+      render();
+    }
+
+    function applyInlineStyleToSelection(styleMap) {
+      const root = restoreMessageSelection() || fields.message;
+      root.focus?.();
+      const selection = window.getSelection();
+      if (!selection || !selection.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      if (!rangeRoot(range)) return;
+      const span = document.createElement("span");
+      Object.assign(span.style, styleMap);
+      if (range.collapsed) {
+        span.appendChild(document.createTextNode("\u200b"));
+        range.insertNode(span);
+        range.setStart(span.firstChild, 1);
+        range.collapse(true);
+      } else {
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        range.selectNodeContents(span);
+        range.collapse(false);
+      }
+      selection.removeAllRanges();
+      selection.addRange(range);
+      syncFormattedPreviewRoot(root);
+      saveMessageSelection();
+      render();
+    }
+
+    function insertHtmlAtSelection(html) {
+      fields.message.focus();
+      restoreMessageSelection();
+      const selection = window.getSelection();
+      const range = selection && selection.rangeCount
+        ? selection.getRangeAt(0)
+        : document.createRange();
+      const container = document.createElement("div");
+      container.innerHTML = html;
+      const fragment = document.createDocumentFragment();
+      let lastNode = null;
+
+      [...container.childNodes].forEach(node => {
+        lastNode = fragment.appendChild(node);
+      });
+
+      if (!selection || !selection.rangeCount) {
+        range.selectNodeContents(fields.message);
+        range.collapse(false);
+      }
+
+      range.deleteContents();
+      range.insertNode(fragment);
+
+      if (lastNode) {
+        const nextRange = document.createRange();
+        nextRange.setStartAfter(lastNode);
+        nextRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(nextRange);
+        saveMessageSelection();
+      }
+    }
+
+    function pastedHtmlToEditorHtml(html) {
+      const container = document.createElement("div");
+      container.innerHTML = html;
+      container.querySelectorAll("script, style, meta, link, iframe, button, input, textarea, select").forEach(node => node.remove());
+      container.querySelectorAll("a").forEach(link => {
+        const href = link.getAttribute("href") || "";
+        if (!/^https?:\/\//i.test(href)) link.removeAttribute("href");
+        link.removeAttribute("target");
+        link.setAttribute("rel", "noopener noreferrer");
+      });
+      container.querySelectorAll("table").forEach(table => {
+        table.className = "graphic-table";
+        table.removeAttribute("style");
+        table.querySelectorAll("*").forEach(child => {
+          child.removeAttribute("style");
+          child.removeAttribute("class");
+          child.removeAttribute("width");
+          child.removeAttribute("height");
+        });
+      });
+      const cleaned = document.createElement("div");
+      [...container.childNodes].forEach(child => cleaned.appendChild(cleanRichNode(child)));
+      return cleaned.innerHTML;
+    }
+
+    function isMainTitleLine(line) {
+      return line.length > 6 && line === line.toUpperCase() && /[A-Z??]/.test(line) && !/^\d/.test(line);
+    }
+
+    function isNumberedHeading(line) {
+      return /^\d+(\.\d+)*\.\s+\S/.test(line);
+    }
+
+    function paragraphHtml(text, className = "") {
+      const classAttr = className ? ` class="${className}"` : "";
+      return `<p${classAttr}>${escapeHtml(text).replace(/\n/g, "<br>")}</p>`;
+    }
+
+    function consumeAliquotTable(lines, startIndex) {
+      const compact = [];
+      let index = startIndex;
+
+      while (index < lines.length) {
+        const line = lines[index].trim();
+        if (/^Fonte:/i.test(line)) break;
+        if (line) compact.push(line);
+        index += 1;
+      }
+
+      const headerIndex = compact.findIndex(line => /^Ano$/i.test(line));
+      const ibsIndex = compact.findIndex(line => /^Alíquota do IBS$/i.test(line));
+      const cbsIndex = compact.findIndex(line => /^Alíquota da CBS$/i.test(line));
+
+      if (headerIndex === -1 || ibsIndex === -1 || cbsIndex === -1) return null;
+
+      const rows = [];
+      let cursor = Math.max(headerIndex, ibsIndex, cbsIndex) + 1;
+      while (cursor < compact.length) {
+        const year = compact[cursor] || "";
+        const ibs = compact[cursor + 1] || "";
+        const cbs = compact[cursor + 2] || "";
+        if (!year || !ibs || !cbs) break;
+        rows.push([year, ibs, cbs]);
+        cursor += 3;
+      }
+
+      if (!rows.length) return null;
+
+      const table = `
+        <div class="inline-graphic-block graphic-box is-visible" data-inline-graphic="table" contenteditable="false">
+          <div class="graphic-header"><span>Tabela de alíquotas</span></div>
+          <div class="graphic-content">
+            <table class="graphic-table">
+              <thead><tr><th>Ano</th><th>Alíquota do IBS</th><th>Alíquota da CBS</th></tr></thead>
+              <tbody>${rows.map(row => `<tr>${row.map(cell => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("")}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      return { html: table, nextIndex: index };
+    }
+
+    function plainTextToEditorHtml(value) {
+      const lines = normalizeImportedText(value)
+        .split("\n")
+        .map(line => line.trim());
+      const html = [];
+      let paragraph = [];
+      let titleCount = 0;
+
+      function flushParagraph() {
+        if (!paragraph.length) return;
+        html.push(paragraphHtml(paragraph.join(" ")));
+        paragraph = [];
+      }
+
+      for (let index = 0; index < lines.length; index += 1) {
+        const line = lines[index];
+
+        if (!line) {
+          flushParagraph();
+          continue;
+        }
+
+        if (/^Ano$/i.test(line) && lines.slice(index, index + 8).some(item => /^Alíquota do IBS$/i.test(item.trim()))) {
+          flushParagraph();
+          const table = consumeAliquotTable(lines, index);
+          if (table) {
+            html.push(table.html);
+            index = table.nextIndex - 1;
+            continue;
+          }
+        }
+
+        if (/^Fonte:/i.test(line)) {
+          flushParagraph();
+          html.push(paragraphHtml(line, "import-source"));
+          continue;
+        }
+
+        if (titleCount < 2 && isMainTitleLine(line)) {
+          flushParagraph();
+          html.push(paragraphHtml(line, titleCount === 0 ? "import-title" : "import-subtitle"));
+          titleCount += 1;
+          continue;
+        }
+
+        if (isNumberedHeading(line)) {
+          flushParagraph();
+          html.push(paragraphHtml(line, "import-heading"));
+          continue;
+        }
+
+        if (/^[IVXLCDM]+ -\s+/.test(line) || /^[a-z]\)\s*/i.test(line)) {
+          flushParagraph();
+          html.push(paragraphHtml(line));
+          continue;
+        }
+
+        paragraph.push(line);
+      }
+
+      flushParagraph();
+      return html.join("");
+    }
+
+    function handleMessagePaste(event) {
+      const clipboard = event.clipboardData;
+      const html = clipboard && clipboard.getData("text/html");
+      const text = clipboard && clipboard.getData("text/plain");
+      if (!html && !text) return;
+
+      event.preventDefault();
+      const imported = html && /<table[\s>]/i.test(html)
+        ? pastedHtmlToEditorHtml(html)
+        : plainTextToEditorHtml(text || "");
+      insertHtmlAtSelection(imported);
+      render();
+    }
+
+    function inlineTableHtml(rows, cols, title) {
+      const safeRows = clampNumber(rows, 1, 12, 3);
+      const safeCols = clampNumber(cols, 1, 8, 3);
+      const tableId = `table-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      return `
+        <div class="inline-graphic-block inline-table-block" data-inline-graphic="table" data-inline-table-id="${tableId}" contenteditable="false">
+          <table class="graphic-table">
+            <thead>
+              <tr>${Array.from({ length: safeCols }, (_, index) => `<th><input class="graphic-cell-input" type="text" value="" data-table-id="${tableId}" data-row="0" data-col="${index}" aria-label="Cabeçalho da coluna ${index + 1}"></th>`).join("")}</tr>
+            </thead>
+            <tbody>
+              ${Array.from({ length: Math.max(0, safeRows - 1) }, (_, rowIndex) => `
+                <tr>${Array.from({ length: safeCols }, (_, colIndex) => `<td><input class="graphic-cell-input" type="text" value="" data-table-id="${tableId}" data-row="${rowIndex + 1}" data-col="${colIndex}" aria-label="Célula ${rowIndex + 1}, ${colIndex + 1}"></td>`).join("")}</tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+        <p><br></p>
+      `;
+    }
+    function inlineChartHtml(title) {
+      return `
+        <div class="inline-graphic-block graphic-box is-visible" data-inline-graphic="chart" contenteditable="false">
+          <div class="graphic-header"><input class="graphic-header-input" type="text" value="${escapeHtml(title || "Gráfico")}" aria-label="Título do gráfico"></div>
+          <div class="graphic-content">
+            <div class="graphic-chart">
+              <div class="graphic-bar"><span style="height:80%"></span><input class="graphic-chart-input" type="text" value="Indicador 1" aria-label="Indicador 1"></div>
+              <div class="graphic-bar"><span style="height:55%"></span><input class="graphic-chart-input" type="text" value="Indicador 2" aria-label="Indicador 2"></div>
+              <div class="graphic-bar"><span style="height:68%"></span><input class="graphic-chart-input" type="text" value="Indicador 3" aria-label="Indicador 3"></div>
+            </div>
+          </div>
+          <div class="graphic-caption is-visible"><input class="graphic-caption-input" type="text" value="Legenda opcional" aria-label="Legenda do gráfico"></div>
+        </div>
+        <p><br></p>
+      `;
+    }
+
+    function inlineImageHtml(title, src = "") {
+      return `
+        <div class="inline-graphic-block graphic-box is-visible" data-inline-graphic="image" contenteditable="false">
+          <div class="graphic-header"><input class="graphic-header-input" type="text" value="${escapeHtml(title || "Imagem")}" aria-label="Título da imagem"></div>
+          <div class="graphic-content">
+            <div class="graphic-image">${src ? `<img src="${escapeHtml(src)}" alt="Imagem inserida">` : "Selecione uma imagem para inserir."}</div>
+          </div>
+          <div class="graphic-caption is-visible"><input class="graphic-caption-input" type="text" value="Legenda opcional" aria-label="Legenda da imagem"></div>
+        </div>
+        <p><br></p>
+      `;
+    }
+
+    function insertHtmlAtEnd(html) {
+      fields.message.focus();
+      const selection = window.getSelection();
+      const container = document.createElement("div");
+      container.innerHTML = html;
+      const nodes = [...container.childNodes];
+      let lastNode = null;
+
+      nodes.forEach(node => {
+        lastNode = fields.message.appendChild(node);
+      });
+
+      const trailingParagraph = lastNode;
+      if (trailingParagraph) {
+        const newRange = document.createRange();
+        newRange.selectNodeContents(trailingParagraph);
+        newRange.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      }
+
+      render();
+    }
+
+    function closeInsertMenu() {
+      fields.tableInsertMenu.hidden = true;
+      fields.openInsertMenu.setAttribute("aria-expanded", "false");
+    }
+
+    function setTablePickerSelection(rows = 0, cols = 0) {
+      [...fields.tablePickerGrid.querySelectorAll(".table-picker-cell")].forEach(cell => {
+        const cellRow = Number(cell.dataset.row);
+        const cellCol = Number(cell.dataset.col);
+        cell.classList.toggle("is-selected", cellRow <= rows && cellCol <= cols);
+      });
+      fields.tablePickerLabel.textContent = rows && cols ? `Tabela ${cols}x${rows}` : "Tabela 0x0";
+    }
+
+    function buildTablePicker() {
+      fields.tablePickerGrid.innerHTML = Array.from({ length: 8 }, (_, rowIndex) =>
+        Array.from({ length: 10 }, (_, colIndex) => {
+          const rows = rowIndex + 1;
+          const cols = colIndex + 1;
+          return `<button class="table-picker-cell" type="button" data-row="${rows}" data-col="${cols}" aria-label="Inserir tabela ${rows} por ${cols}"></button>`;
+        }).join("")
+      ).join("");
+    }
+
+    function openInsertMenu() {
+      fields.inlineGraphicType.value = "table";
+      fields.tableInsertMenu.hidden = !fields.tableInsertMenu.hidden;
+      fields.openInsertMenu.setAttribute("aria-expanded", String(!fields.tableInsertMenu.hidden));
+      setTablePickerSelection();
+    }
+
+    function insertTableFromPicker(rows, cols) {
+      fields.inlineGraphicRows.value = rows;
+      fields.inlineGraphicCols.value = cols;
+      insertInlineGraphic();
+      closeInsertMenu();
+    }
+
+    function insertInlineGraphic() {
+      const type = fields.inlineGraphicType.value;
+      const title = fields.inlineGraphicTitle.value.trim() || "Elemento gráfico";
+
+      if (type === "image") {
+        const file = fields.inlineGraphicImageFile.files && fields.inlineGraphicImageFile.files[0];
+        if (file) {
+          loadImageFile(file, dataUrl => insertHtmlAtEnd(inlineImageHtml(title, dataUrl)));
+        } else {
+          insertHtmlAtEnd(inlineImageHtml(title));
+        }
+        return;
+      }
+
+      if (type === "chart") {
+        insertHtmlAtEnd(inlineChartHtml(title));
+        return;
+      }
+
+      insertHtmlAtEnd(inlineTableHtml(fields.inlineGraphicRows.value, fields.inlineGraphicCols.value, title));
+    }
+
+    function removeLastInlineGraphic() {
+      const graphics = fields.message.querySelectorAll(".inline-graphic-block");
+      const lastGraphic = graphics[graphics.length - 1];
+      if (!lastGraphic) return;
+
+      const next = lastGraphic.nextSibling;
+      lastGraphic.remove();
+      if (next && next.nodeType === Node.ELEMENT_NODE && next.tagName === "P" && !next.textContent.trim()) {
+        next.remove();
+      }
+      render();
+    }
+
+    function clearPage() {
+      fields.title.value = "";
+      fields.subtitle.value = "";
+      fields.generalHeaderName.value = "";
+      fields.summaryTitle.value = "";
+      fields.summaryItems.value = "";
+      fields.message.innerHTML = "";
+      fields.inlineGraphicTitle.value = "";
+      fields.inlineGraphicRows.value = "";
+      fields.inlineGraphicCols.value = "";
+      fields.inlineGraphicImageFile.value = "";
+      fields.deadline.value = "";
+      fields.deadlineNote.value = "";
+      fields.sender.value = "";
+      fields.showSummary.checked = false;
+      fields.showDeadline.checked = false;
+      bodyImageData = "";
+      graphicItems = [];
+      fields.bodyImageFile.value = "";
+      fields.bodyImageCaption.value = "";
+      fields.bodyImageAfterText.value = "";
+      renderGraphicItemsEditor();
+      refreshInlineGraphicControls();
+      setDocumentDirty(true);
+      render();
+    }
+
+    function refreshInlineGraphicControls() {
+      const isImage = fields.inlineGraphicType.value === "image";
+      fields.inlineGraphicImageFile.style.display = isImage ? "" : "none";
+      fields.inlineTableConfig.style.display = "none";
+      if (fields.inlineGraphicType.value !== "table") closeInsertMenu();
+    }
+
+    renderSegmentOptions();
+    renderGraphicItemsEditor();
+    buildTablePicker();
+    document.querySelectorAll(".choice-menu").forEach(menu => {
+      menu.addEventListener("toggle", () => {
+        if (!menu.open) return;
+        document.querySelectorAll(".choice-menu").forEach(otherMenu => {
+          if (otherMenu !== menu) otherMenu.removeAttribute("open");
+        });
+      });
+    });
+    document.querySelector("#editor").addEventListener("input", () => { setDocumentDirty(true); render(); });
+    document.querySelector("#editor").addEventListener("change", event => {
+      if (event.target.matches("input[name='segment'], input[name='extraArt']")) {
+        event.target.closest("details")?.removeAttribute("open");
+      }
+      setDocumentDirty(true);
+      render();
+    });
+    preview.title.addEventListener("input", () => {
+      syncingPreviewEdit = true;
+      syncPreviewTitle();
+      syncingPreviewEdit = false;
+      setDocumentDirty(true);
+    });
+    preview.title.addEventListener("blur", render);
+    preview.subtitle.addEventListener("input", () => {
+      syncingPreviewEdit = true;
+      syncPreviewSubtitle();
+      syncingPreviewEdit = false;
+      setDocumentDirty(true);
+    });
+    preview.subtitle.addEventListener("blur", render);
+    preview.message.addEventListener("input", event => {
+      if (syncPreviewTableInput(event.target)) return;
+      syncingPreviewEdit = true;
+      syncPreviewMessage();
+      syncingPreviewEdit = false;
+      setDocumentDirty(true);
+    });
+    preview.message.addEventListener("blur", render);
+    preview.continuationPages.addEventListener("input", event => {
+      syncPreviewTableInput(event.target);
+      setDocumentDirty(true);
+    });
+    fields.message.addEventListener("paste", handleMessagePaste);
+    fields.message.addEventListener("keyup", saveMessageSelection);
+    fields.message.addEventListener("mouseup", saveMessageSelection);
+    fields.message.addEventListener("focus", saveMessageSelection);
+    document.addEventListener("selectionchange", () => {
+      if (activeMessageRoot()) {
+        saveMessageSelection();
+        updateToolbarState();
+      }
+    });
+    preview.message.addEventListener("keyup", saveMessageSelection);
+    preview.message.addEventListener("mouseup", saveMessageSelection);
+    preview.message.addEventListener("focus", saveMessageSelection);
+    preview.continuationPages.addEventListener("keyup", saveMessageSelection);
+    preview.continuationPages.addEventListener("mouseup", saveMessageSelection);
+    preview.continuationPages.addEventListener("focusin", saveMessageSelection);
+    fields.inlineGraphicType.addEventListener("change", refreshInlineGraphicControls);
+    fields.openInsertMenu.addEventListener("click", openInsertMenu);
+    fields.tablePickerGrid.addEventListener("mouseover", event => {
+      const cell = event.target.closest(".table-picker-cell");
+      if (!cell) return;
+      setTablePickerSelection(Number(cell.dataset.row), Number(cell.dataset.col));
+    });
+    fields.tablePickerGrid.addEventListener("click", event => {
+      const cell = event.target.closest(".table-picker-cell");
+      if (!cell) return;
+      insertTableFromPicker(Number(cell.dataset.row), Number(cell.dataset.col));
+    });
+    document.querySelector("#insertTableManual").addEventListener("click", () => {
+      insertTableFromPicker(3, 3);
+    });
+    document.addEventListener("click", event => {
+      if (fields.tableInsertMenu.hidden) return;
+      if (event.target.closest("#tableInsertMenu") || event.target.closest("#openInsertMenu")) return;
+      closeInsertMenu();
+    });
+    fields.insertInlineGraphic.addEventListener("click", insertInlineGraphic);
+    fields.removeLastGraphic.addEventListener("click", removeLastInlineGraphic);
+    fields.addGraphicItem.addEventListener("click", () => addGraphicItem());
+    fields.graphicItemsEditor.addEventListener("click", event => {
+      const removeButton = event.target.closest("[data-action='remove-graphic']");
+      if (!removeButton) return;
+      const editor = removeButton.closest(".graphic-item-editor");
+      graphicItems = graphicItems.filter(item => item.id !== editor.dataset.id);
+      renderGraphicItemsEditor();
+      render();
+    });
+    fields.graphicItemsEditor.addEventListener("change", handleGraphicEditorChange);
+    fields.bodyImageFile.addEventListener("change", () => {
+      loadImageFile(fields.bodyImageFile.files && fields.bodyImageFile.files[0], dataUrl => {
+        bodyImageData = dataUrl;
+      });
+    });
+    fields.clearBodyImage.addEventListener("click", () => {
+      bodyImageData = "";
+      fields.bodyImageFile.value = "";
+      fields.bodyImageCaption.value = "";
+      fields.bodyImageAfterText.value = "";
+      render();
+    });
+    document.querySelectorAll("[data-command]").forEach(button => {
+      button.addEventListener("mousedown", event => event.preventDefault());
+      button.addEventListener("click", () => {
+        applyTextFormat(button.dataset.command, button.dataset.value || null);
+        setDocumentDirty(true);
+        updateToolbarState();
+      });
+    });
+    document.querySelectorAll("[data-editor-action='link']").forEach(button => {
+      button.addEventListener("mousedown", event => event.preventDefault());
+      button.addEventListener("click", insertSafeLink);
+    });
+    document.querySelectorAll("[data-text-color]").forEach(button => {
+      button.addEventListener("mousedown", event => event.preventDefault());
+      button.addEventListener("click", () => {
+        const color = button.dataset.textColor;
+        document.querySelector("#textColorMenu")?.removeAttribute("open");
+        applyTextFormat("foreColor", color);
+      });
+    });
+    document.querySelector("#openCustomTextColor")?.addEventListener("mousedown", event => event.preventDefault());
+    document.querySelector("#openCustomTextColor")?.addEventListener("click", () => {
+      document.querySelector("#customTextColor")?.click();
+    });
+    document.querySelector("#customTextColor")?.addEventListener("input", event => {
+      document.querySelector("#textColorMenu")?.removeAttribute("open");
+      applyTextFormat("foreColor", event.target.value);
+    });
+    fields.fontFamily.addEventListener("change", () => {
+      if (fields.fontFamily.value) applyInlineStyleToSelection({ fontFamily: fields.fontFamily.value });
+    });
+    fields.fontSize.addEventListener("change", () => {
+      if (fields.fontSize.value) applyInlineStyleToSelection({ fontSize: fields.fontSize.value });
+    });
+    fields.compactFontSize.addEventListener("mousedown", saveMessageSelection);
+    fields.compactFontSize.addEventListener("change", () => {
+      if (fields.compactFontSize.value) applyInlineStyleToSelection({ fontSize: fields.compactFontSize.value });
+      fields.compactFontSize.value = "";
+    });
+    document.querySelector("#printButton").addEventListener("click", event => {
+      document.querySelector("#saveMenu")?.removeAttribute("open");
+      const button = event.currentTarget;
+      setExportState(button, "busy", "PDF");
+      requestAnimationFrame(() => {
+        generatePdf();
+        setDocumentDirty(false);
+        setExportState(button, "success", "PDF");
+        setTimeout(() => setExportState(button, "idle", "PDF"), 1400);
+      });
+    });
+    document.querySelector("#wordButton").addEventListener("click", async event => {
+      document.querySelector("#saveMenu")?.removeAttribute("open");
+      const button = event.currentTarget;
+      setExportState(button, "busy", "Word");
+      try {
+        await generateWord();
+        setDocumentDirty(false);
+        setExportState(button, "success", "Word");
+      } catch (error) {
+        console.error(error);
+        window.alert("Não foi possível gerar o documento do Word.");
+      } finally {
+        setTimeout(() => setExportState(button, "idle", "Word"), 1400);
+      }
+    });
+    document.querySelector("#saveImageButton").addEventListener("click", async event => {
+      document.querySelector("#saveMenu")?.removeAttribute("open");
+      const button = event.currentTarget;
+      setExportState(button, "busy", "Imagem");
+      try {
+        await saveAsImage();
+        setDocumentDirty(false);
+        setExportState(button, "success", "Imagem");
+      } catch (error) {
+        console.error(error);
+        window.alert("Não foi possível gerar a imagem.");
+      } finally {
+        setTimeout(() => setExportState(button, "idle", "Imagem"), 1400);
+      }
+    });
+    document.addEventListener("keydown", event => {
+      const modifier = event.ctrlKey || event.metaKey;
+      if (!modifier) return;
+      if (event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        document.querySelector("#saveMenu")?.setAttribute("open", "");
+      }
+    });
+    window.addEventListener("beforeunload", event => {
+      if (!documentDirty) return;
+      event.preventDefault();
+      event.returnValue = "";
+    });
+    document.querySelector("#clearPageButton").addEventListener("click", clearPage);
+    refreshInlineGraphicControls();
+    render();
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+

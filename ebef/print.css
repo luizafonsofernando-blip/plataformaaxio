@@ -1,0 +1,7 @@
+.print-report{display:none}
+@media print{
+  body:has(.print-report) main{display:none}
+  .print-report{display:block}
+  .print-report thead{display:table-header-group}
+  .print-report tr{break-inside:avoid}
+}

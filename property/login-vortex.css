@@ -1,0 +1,112 @@
+body:has(.login-screen) {
+  background: #f4f7fb;
+}
+
+.login-screen {
+  position: relative;
+  min-height: 100vh;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.08fr) minmax(390px, .92fr);
+  align-items: stretch;
+  place-items: stretch !important;
+  gap: 0;
+  padding: 0 !important;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(112deg, rgba(7, 17, 61, .96), rgba(10, 31, 99, .9) 48%, rgba(23, 75, 255, .82)),
+    #07113d !important;
+}
+
+.login-screen::before {
+  content: "Luce Property\A Gestão imobiliaria com leitura executiva, dados consistentes e operação controlada.\A\A Organize carteira, contratos, receita e histórico em um ambiente conectado a plataforma Luce.";
+  white-space: pre-line;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+  padding: clamp(48px, 8vw, 100px);
+  color: #fff;
+  font-size: clamp(1rem, 1.6vw, 1.18rem);
+  line-height: 1.7;
+  max-width: 780px;
+  background:
+    url("/assets/logo-luce-oficial.png") left clamp(48px, 8vw, 100px) top clamp(34px, 5vw, 62px) / min(250px, 38vw) auto no-repeat,
+    radial-gradient(circle at 26% 34%, rgba(39, 200, 255, .26), transparent 24rem),
+    linear-gradient(135deg, rgba(255, 255, 255, .08), transparent 42%);
+}
+
+.login-screen::after {
+  content: "";
+  position: absolute;
+  left: clamp(36px, 7vw, 96px);
+  bottom: clamp(28px, 5vw, 64px);
+  width: min(360px, 34vw);
+  height: 1px;
+  background: linear-gradient(90deg, rgba(39, 200, 255, .9), transparent);
+  opacity: .75;
+}
+
+.luce-black-hole-bg {
+  display: none !important;
+}
+
+.login-panel {
+  position: relative;
+  z-index: 2;
+  align-self: center;
+  justify-self: center;
+  width: min(430px, calc(100% - 40px)) !important;
+  margin: 32px;
+  background: rgba(255, 255, 255, .97) !important;
+  border: 1px solid rgba(214, 224, 240, .92) !important;
+  border-radius: 8px !important;
+  padding: clamp(28px, 4vw, 42px) !important;
+  box-shadow: 0 32px 80px rgba(7, 17, 61, .18) !important;
+  color: #07113d;
+  text-align: left !important;
+  backdrop-filter: blur(18px);
+}
+
+.login-panel h1,
+.login-panel h2 {
+  color: #07113d !important;
+  letter-spacing: 0;
+}
+
+.login-panel input,
+.login-panel select {
+  border-radius: 8px !important;
+  border-color: #cbd5e1 !important;
+}
+
+.login-panel button[type="submit"],
+.login-panel .primary,
+.login-panel button:not([type]) {
+  border-radius: 8px !important;
+  background: linear-gradient(135deg, #07113d, #174bff) !important;
+  color: #fff !important;
+}
+
+@media (max-width: 900px) {
+  .login-screen {
+    grid-template-columns: 1fr;
+  }
+
+  .login-screen::before {
+    min-height: auto;
+    padding: 120px 24px 26px;
+    background:
+      url("/assets/logo-luce-oficial.png") left 24px top 32px / 190px auto no-repeat,
+      radial-gradient(circle at 22% 28%, rgba(39, 200, 255, .24), transparent 18rem);
+  }
+
+  .login-screen::after {
+    display: none;
+  }
+
+  .login-panel {
+    margin: 0 auto 28px;
+    width: calc(100% - 32px) !important;
+  }
+}

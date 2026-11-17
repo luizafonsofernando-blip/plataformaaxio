@@ -1,0 +1,273 @@
+:root {
+  --auth-navy: #07162d;
+  --auth-deep: #10213a;
+  --auth-blue: #1f62d1;
+  --auth-cyan: #35bceb;
+  --auth-violet: #4d83ec;
+  --auth-line: rgba(224, 234, 246, .9);
+  --auth-muted: #64748b;
+  --auth-glow: linear-gradient(135deg, var(--auth-blue), var(--auth-cyan));
+}
+
+.login-screen,
+.module-login-screen {
+  height: 100vh !important;
+  min-height: 100vh !important;
+  display: grid !important;
+  grid-template-columns: minmax(300px, 1fr) minmax(320px, 460px) !important;
+  gap: 24px !important;
+  align-items: stretch !important;
+  padding: 24px !important;
+  color: #17263a !important;
+  background:
+    radial-gradient(circle at 72% 32%, rgba(38, 126, 255, .2), transparent 30%),
+    radial-gradient(circle at 18% 78%, rgba(68, 199, 255, .12), transparent 28%),
+    linear-gradient(180deg, #020817 0%, #08275a 55%, #030918 100%) !important;
+  overflow: hidden !important;
+}
+
+body.authenticated .login-screen,
+body.module-authenticated .module-login-screen {
+  display: none !important;
+}
+
+.login-screen::before,
+.login-screen::after {
+  display: none !important;
+}
+
+.luce-auth-story {
+  position: relative !important;
+  inset: auto !important;
+  min-height: calc(100vh - 56px) !important;
+  max-height: calc(100vh - 56px) !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(28px, 5vw, 64px) !important;
+  background: transparent !important;
+  color: #fff !important;
+  isolation: isolate;
+  overflow: hidden !important;
+  pointer-events: auto !important;
+}
+
+.luce-auth-story::before {
+  content: "";
+  position: absolute;
+  inset: 12% -12% auto auto;
+  width: min(58vw, 680px);
+  height: min(58vw, 680px);
+  background:
+    linear-gradient(120deg, transparent 38%, rgba(39, 200, 255, .32), transparent 54%),
+    linear-gradient(25deg, rgba(23, 75, 255, .18), transparent 48%);
+  clip-path: polygon(0 44%, 52% 0, 100% 13%, 52% 49%, 100% 82%, 47% 100%);
+  filter: blur(.2px);
+  opacity: .72;
+  z-index: -1;
+}
+
+.luce-auth-copy {
+  max-width: 720px !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.luce-auth-copy small {
+  color: #9fe8ff !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  letter-spacing: 2.8px !important;
+  text-transform: uppercase !important;
+  text-shadow: 0 10px 30px rgba(0,0,0,.28) !important;
+}
+
+.luce-auth-copy h2 {
+  margin: 12px 0 0 !important;
+  color: #fff !important;
+  font-family: "Montserrat", Arial, sans-serif !important;
+  font-size: clamp(2.2rem, 4vw, 4.5rem) !important;
+  line-height: 1.04 !important;
+  text-shadow: 0 18px 44px rgba(0,0,0,.34) !important;
+}
+
+.luce-auth-copy p {
+  max-width: 540px;
+  color: rgba(255,255,255,.9) !important;
+  line-height: 1.7 !important;
+  text-shadow: 0 12px 32px rgba(0,0,0,.24) !important;
+}
+
+.luce-auth-points {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 720px;
+  margin: 28px 0 0;
+}
+
+.luce-auth-points span {
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.34);
+  border-radius: 12px;
+  background: rgba(255,255,255,.13);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 14px 34px rgba(0,0,0,.18);
+}
+
+.luce-auth-signature {
+  color: rgba(255,255,255,.82);
+  font-size: 12px;
+  letter-spacing: .5px;
+  opacity: 1;
+  font-weight: 700;
+  text-shadow: 0 12px 28px rgba(0,0,0,.24);
+}
+
+.login-card {
+  position: relative !important;
+  z-index: 2 !important;
+  align-self: center !important;
+  justify-self: center !important;
+  width: min(430px, 100%) !important;
+  display: grid !important;
+  gap: 16px !important;
+  padding: 34px 32px 32px !important;
+  color: #17263a !important;
+  background: rgba(255,255,255,.97) !important;
+  border: 1px solid var(--auth-line) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 34px 90px rgba(0,0,0,.28) !important;
+  backdrop-filter: blur(16px) !important;
+  max-height: calc(100vh - 48px) !important;
+  overflow: visible !important;
+}
+
+.login-logo {
+  display: grid !important;
+  justify-items: center !important;
+  text-align: center !important;
+  gap: 8px !important;
+}
+
+.login-logo img {
+  display: none !important;
+}
+
+.login-logo h1 {
+  color: var(--auth-navy) !important;
+  text-align: center !important;
+  font-size: 26px !important;
+  font-weight: 850 !important;
+  line-height: 1.15 !important;
+  letter-spacing: .04em !important;
+  text-transform: uppercase !important;
+  margin: 0 !important;
+}
+
+.login-card label {
+  display: grid !important;
+  gap: 7px !important;
+  color: var(--auth-deep) !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  letter-spacing: .7px !important;
+  text-transform: uppercase !important;
+}
+
+.login-card input {
+  min-height: 46px !important;
+  padding: 0 13px !important;
+  color: #151a2d !important;
+  background: #fff !important;
+  border: 1px solid #dce4f2 !important;
+  border-radius: 10px !important;
+  outline: none !important;
+  -webkit-text-fill-color: #151a2d !important;
+}
+
+.login-card input.filled:not(.missing):not(.draft-missing),
+.login-card input:-webkit-autofill,
+.login-card input:-webkit-autofill:hover,
+.login-card input:-webkit-autofill:focus,
+.login-card input:-webkit-autofill,
+.login-card input:-webkit-autofill:hover,
+.login-card input:-webkit-autofill:focus {
+  color: #151a2d !important;
+  background: #fff !important;
+  border-color: #dce4f2 !important;
+  -webkit-text-fill-color: #151a2d !important;
+  box-shadow: 0 0 0 1000px #fff inset !important;
+  caret-color: #151a2d !important;
+}
+
+.login-card input:focus,
+.login-card input.filled:not(.missing):not(.draft-missing):focus {
+  border-color: var(--auth-blue) !important;
+  box-shadow: 0 0 0 3px rgba(31, 95, 191, .12) !important;
+}
+
+.login-card .btn,
+.login-card button[type="submit"] {
+  min-height: 46px !important;
+  border-radius: 10px !important;
+  font-weight: 900 !important;
+}
+
+.login-card .btn:not(.primary) {
+  color: #151a2d !important;
+  background: #fff !important;
+  border: 1px solid #dce4f2 !important;
+  box-shadow: none !important;
+}
+
+.login-card .btn.primary,
+.login-card button[type="submit"] {
+  color: #fff !important;
+  background: var(--auth-glow) !important;
+  border: 0 !important;
+  box-shadow: 0 16px 34px rgba(31, 98, 209, .22) !important;
+}
+
+.login-error {
+  min-height: 18px;
+  color: #be3141 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+@media (max-width: 860px) {
+  .login-screen,
+  .module-login-screen {
+    height: auto !important;
+    min-height: 100vh !important;
+    grid-template-columns: 1fr !important;
+    padding: 18px !important;
+    overflow: auto !important;
+  }
+
+  .luce-auth-story {
+    min-height: auto !important;
+    max-height: none !important;
+    padding: 22px !important;
+  }
+
+  .luce-auth-copy h2 {
+    font-size: 1.75rem !important;
+  }
+
+  .luce-auth-points {
+    grid-template-columns: 1fr;
+  }
+}
+
+.module-auth-locked main,
+.module-auth-locked .app-shell,
+.module-auth-locked .app,
+.module-auth-locked .review-app,
+.module-auth-locked > header,
+.module-auth-locked .site-header {
+  display: none !important;
+}

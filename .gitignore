@@ -1,0 +1,8 @@
+supabase/.temp/
+output/
+.env
+.env.*
+node_modules/
+.vercel/
+.luce-public/
+*.log

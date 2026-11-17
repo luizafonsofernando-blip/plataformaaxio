@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-labelledby="title">
+  <title id="title">Luce</title>
+  <defs>
+    <linearGradient id="markBlue" x1="60" y1="18" x2="146" y2="154" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0b5cf0"/>
+      <stop offset=".42" stop-color="#4ed8ff"/>
+      <stop offset=".72" stop-color="#1244d7"/>
+      <stop offset="1" stop-color="#06155f"/>
+    </linearGradient>
+    <linearGradient id="markDark" x1="52" y1="44" x2="122" y2="158" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1d68ff"/>
+      <stop offset="1" stop-color="#020a3c"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.04 0 0 0 0 0.38 0 0 0 0 1 0 0 0 .45 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <g filter="url(#glow)">
+    <path d="M74 22 140 61 74 78Z" fill="url(#markBlue)"/>
+    <path d="M74 78 150 102 150 133 74 98Z" fill="url(#markDark)"/>
+    <path d="M74 22 74 98 34 78 34 42Z" fill="url(#markBlue)"/>
+    <path d="M74 78 132 150 88 129 34 78Z" fill="#06145f"/>
+    <path d="M74 78 150 38 148 66Z" fill="#5ddcff"/>
+    <path d="M74 78 134 100 100 105Z" fill="#ffffff" opacity=".84"/>
+  </g>
+</svg>

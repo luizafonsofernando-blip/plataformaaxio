@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="apple-touch-icon" href="/assets/favicon.svg">
+<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>Radar Sindical Inteligente | Luce</title>
+<link rel="stylesheet" href="../assets/auth-luce.css">
+    <link rel="stylesheet" href="radar.css">
+    <link rel="stylesheet" href="../assets/luce-auth-premium.css">
+  </head>
+  <body class="module-auth-locked">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="../">
+          <img src="../app/logo-luce-symbol.svg" alt="Luce">
+          <span><strong>Radar Sindical</strong><small>Inteligente</small></span>
+        </a>
+        <nav id="nav"></nav>
+        <div class="guardrail">
+          <strong>Controle humano</strong>
+          <span>Nenhuma CCT extraída por IA é aplicada automaticamente.</span>
+        </div>
+        <button class="button secondary" type="button" onclick="window.LuceModuleSession?.logout()">Sair</button>
+      </aside>
+      <main>
+        <header class="topbar">
+<div>
+            <h1>Radar Sindical Inteligente</h1>
+            <p>Monitoramento de CCTs, clientes, vínculos, alertas e PDFs do Mediador.</p>
+          </div>
+          <button class="button secondary" data-view-button="upload">Importar CCT</button>
+        </header>
+        <section id="view" class="content"></section>
+      </main>
+    </div>
+    <script>
+      window.LuceModuleAuth = {
+        moduleId: "radar-sindical",
+        moduleName: "Radar Sindical",
+        title: "Acesso seguro",
+        headline: "Monitoramento sindical com sessão própria.",
+        description: "Use suas credenciais Luce. Este acesso não abre outros módulos automaticamente."
+      };
+    </script>
+    <script src="../assets/module-auth.js" defer></script>
+    <script src="radar.js"></script>
+  </body>
+</html>
+
+

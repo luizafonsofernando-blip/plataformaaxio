@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 150" role="img" aria-labelledby="title">
+  <title id="title">Luce Sistemas</title>
+  <defs>
+    <linearGradient id="markBlue" x1="38" y1="20" x2="138" y2="126" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0b5cf0"/>
+      <stop offset=".42" stop-color="#39c8ff"/>
+      <stop offset=".72" stop-color="#123ed0"/>
+      <stop offset="1" stop-color="#06155f"/>
+    </linearGradient>
+    <linearGradient id="markDark" x1="46" y1="28" x2="124" y2="132" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#123fdd"/>
+      <stop offset="1" stop-color="#020a3c"/>
+    </linearGradient>
+    <filter id="softGlow" x="-30%" y="-35%" width="160%" height="170%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.05 0 0 0 0 0.38 0 0 0 0 1 0 0 0 .38 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <g filter="url(#softGlow)">
+    <path d="M58 22 126 62 58 78Z" fill="url(#markBlue)"/>
+    <path d="M58 78 142 104 142 132 58 96Z" fill="url(#markDark)"/>
+    <path d="M58 22 58 96 28 80 28 34Z" fill="url(#markBlue)"/>
+    <path d="M58 78 118 136 80 121 28 80Z" fill="#06145f"/>
+    <path d="M58 78 146 42 145 65Z" fill="#56d6ff"/>
+    <path d="M58 78 130 102 100 104Z" fill="#ffffff" opacity=".82"/>
+  </g>
+  <text x="194" y="99" fill="#07113d" font-family="Montserrat, Arial, sans-serif" font-size="74" font-weight="800" letter-spacing="12">LUCE</text>
+  <text x="198" y="136" fill="#5d6b82" font-family="Montserrat, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="10">SISTEMAS</text>
+</svg>

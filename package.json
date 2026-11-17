@@ -1,0 +1,23 @@
+{
+  "name": "plataforma-luce",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check:orthography": "node scripts/check-orthography.js",
+    "check:js": "node --check app/app.js",
+    "check:sentinela": "node --check sentinela/sentinela.js && node --check sentinela/sentinela-compliance.js && node --check sentinela/sentinela-assisted.js && node --check api/sentinela/index.js && node --check server-assets/sentinela-upload.mjs && node --check server-assets/sentinela-compliance.mjs && node --check server-assets/sentinela-assisted.mjs && node --test tests/sentinela.test.mjs tests/sentinela-compliance.test.mjs tests/sentinela-assisted.test.mjs",
+    "check:comunicados": "node --test tests/comunicados.test.mjs",
+    "check": "node scripts/check-orthography.js && node --check script.js && node --check property/assets/property-ui.js && node --check app/app.js && node --check sentinela/sentinela.js && node --check sentinela/sentinela-compliance.js && node --check sentinela/sentinela-assisted.js && node --check api/sentinela/index.js && node --check server-assets/sentinela-upload.mjs && node --check server-assets/sentinela-compliance.mjs && node --check server-assets/sentinela-assisted.mjs && node --test tests/sentinela.test.mjs tests/sentinela-compliance.test.mjs tests/sentinela-assisted.test.mjs tests/comunicados.test.mjs tests/landing.test.mjs tests/property-ui.test.mjs tests/radar-legislativo-integration.test.mjs tests/contratos-integration.test.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.115.0",
+    "fast-xml-parser": "5.11.1",
+    "formidable": "^3.5.4",
+    "jszip": "^3.10.1",
+    "lucide": "0.544.0",
+    "pdfjs-dist": "^6.1.200",
+    "pptxgenjs": "4.0.1",
+    "xlsx": "npm:@e965/xlsx@^0.20.3"
+  }
+}

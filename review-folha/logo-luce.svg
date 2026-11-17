@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" role="img" aria-labelledby="title">
+  <title id="title">Luce Sistemas</title>
+  <rect width="420" height="120" fill="none"/>
+  <g fill="#ffffff">
+    <path d="M52 24h16v58h44v14H52z"/>
+    <path d="M130 24h16v43c0 11 7 17 19 17s19-6 19-17V24h16v44c0 20-14 31-35 31s-35-11-35-31z"/>
+    <path d="M221 60c0-22 17-38 41-38 15 0 28 6 35 17l-12 9c-5-7-13-11-23-11-15 0-25 10-25 23s10 24 25 24c10 0 18-4 23-12l12 9c-7 11-20 18-35 18-24 0-41-17-41-39z"/>
+    <path d="M316 24h62v14h-46v16h41v13h-41v16h48v13h-64z"/>
+  </g>
+  <text x="54" y="113" fill="#8fc8ff" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" letter-spacing="12">SISTEMAS</text>
+</svg>
