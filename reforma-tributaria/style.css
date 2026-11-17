@@ -1,0 +1,29 @@
+:root { color-scheme: light; font-family: Arial, Helvetica, sans-serif; color: #142440; background: #f5f7fa; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input { font: inherit; }
+.topbar { min-height: 64px; display: flex; align-items: center; gap: 20px; padding: 0 28px; border-bottom: 1px solid #dce4ed; background: white; }
+.brand { color: #0b3370; font-size: 23px; font-weight: 800; text-decoration: none; }
+.product { border-left: 1px solid #cad5e3; padding-left: 20px; font-weight: 600; }
+.topbar button { margin-left: auto; border: 1px solid #cad5e3; background: white; padding: 9px 15px; cursor: pointer; }
+button { border-radius: 5px; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #58a6e7; outline-offset: 2px; }
+.login-view { min-height: calc(100vh - 64px); display: grid; place-items: center; padding: 28px; }
+.login-panel { width: min(100%, 390px); background: white; border: 1px solid #dce4ed; padding: 28px; box-shadow: 0 12px 30px #14244012; }
+h1 { font-size: 26px; margin: 0 0 24px; }
+.eyebrow { margin: 0 0 9px; color: #2468ab; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+form { display: grid; gap: 10px; }
+label { font-size: 14px; font-weight: 600; }
+input { width: 100%; padding: 11px; margin-bottom: 8px; border: 1px solid #b9c8d8; border-radius: 4px; }
+form button { border: 0; padding: 12px; background: #0b3370; color: white; font-weight: 700; cursor: pointer; }
+form button:hover { background: #15549a; }
+.message { min-height: 20px; color: #9b2d31; font-size: 14px; }
+.workspace { max-width: 1060px; margin: 0 auto; padding: 34px 28px; }
+.page-heading { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+.phase { color: #795d18; background: #f7edcf; padding: 7px 10px; font-size: 13px; border-radius: 4px; }
+table { width: 100%; border-collapse: collapse; background: white; border: 1px solid #dce4ed; }
+th, td { padding: 15px 17px; border-bottom: 1px solid #e5eaf0; text-align: left; }
+th { font-size: 12px; color: #4b627c; text-transform: uppercase; }
+.status { color: #795d18; }
+[hidden] { display: none !important; }
+@media (max-width: 600px) { .topbar { padding: 0 16px; gap: 12px; } .product { padding-left: 12px; font-size: 14px; } .workspace { padding: 24px 16px; } .page-heading { display: block; } .phase { display: inline-block; margin-bottom: 12px; } }
