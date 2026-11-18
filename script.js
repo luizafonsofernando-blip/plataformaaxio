@@ -82,10 +82,10 @@ const modules = [
     initials: "RT",
     icon: "RF",
     name: "Reforma Tributária",
-    href: "https://luce-rtc-visual-preview.vercel.app/",
-    status: "Prévia visual · sem cálculos",
-    description: "Conheça a interface em desenvolvimento. Esta prévia não salva dados nem calcula tributos.",
-    benefits: ["Interface para avaliação", "Sem dados persistidos", "Cálculos pendentes de homologação"],
+    href: "https://luce-rtc-beta.vercel.app/",
+    status: "Beta restrita",
+    description: "Cadastre empresas, salve cenários e teste o motor oficial do Regime Regular, com avisos de simulação.",
+    benefits: ["Acesso administrativo", "Rascunhos persistidos", "Cálculo de teste"],
   },
 ];
 
