@@ -12,6 +12,7 @@ import audit from "../../api/rtc/audit.js";
 import report from "../../api/rtc/report.js";
 import localLogin from "../../api/rtc/local-login.js";
 import drafts from "../../api/rtc/drafts.js";
+import codeLookup from "../../api/rtc/code.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const routes = new Map([
@@ -21,6 +22,7 @@ const routes = new Map([
   ["/api/rtc/audit", audit], ["/api/rtc/report", report],
   ["/api/rtc/local-login", localLogin],
   ["/api/rtc/drafts", drafts],
+  ["/api/rtc/code", codeLookup],
 ]);
 const staticFiles = new Map([
   ["/reforma-tributaria/", ["index.html", "text/html; charset=utf-8"]],

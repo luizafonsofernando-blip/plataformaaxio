@@ -16,6 +16,11 @@ test("gateway authenticates and only forwards allowlisted read requests", async 
     assert.equal((await fetch(`${base}/admin`, { headers: { authorization: "Bearer secret-for-tests" } })).status, 404);
     assert.equal((await fetch(`${base}/api/calculadora/dados-abertos/versao`, { method: "POST", headers: { authorization: "Bearer secret-for-tests" } })).status, 405);
     assert.equal((await fetch(`${base}/api/calculadora/dados-abertos/versao`, { headers: { authorization: "Bearer secret-for-tests" } })).status, 200);
-    assert.deepEqual(forwarded, ["http://regular.internal:8080/api/calculadora/dados-abertos/versao"]);
+    const ncm = await fetch(`${base}/api/calculadora/dados-abertos/ncm?ncm=12345678&data=2026-11-17`, { headers: { authorization: "Bearer secret-for-tests" } });
+    assert.equal(ncm.status, 200);
+    const invalid = await fetch(`${base}/api/calculadora/dados-abertos/ncm?ncm=123&data=2026-11-17`, { headers: { authorization: "Bearer secret-for-tests" } });
+    assert.equal(invalid.status, 400);
+    assert.deepEqual(forwarded, ["http://regular.internal:8080/api/calculadora/dados-abertos/versao",
+      "http://regular.internal:8080/api/calculadora/dados-abertos/ncm?ncm=12345678&data=2026-11-17"]);
   } finally { await new Promise((resolve) => gateway.close(resolve)); }
 });

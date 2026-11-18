@@ -7,7 +7,8 @@ if (Test-Path -LiteralPath $linked) {
 }
 $names = @(
   '20261118001814_create_luce_rtc_foundation.sql',
-  '20261118003754_create_luce_rtc_reports.sql'
+  '20261118003754_create_luce_rtc_reports.sql',
+  '20261118010000_create_luce_rtc_simulation_drafts.sql'
 )
 foreach ($name in $names) {
   $source = Join-Path $root "supabase\migrations\$name"

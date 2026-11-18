@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { fetchRegularClassifications, RtcEngineError, validOperationDate } from "../server-assets/rtc-official.mjs";
+import { fetchRegularClassifications, fetchRegularCode, RtcEngineError, validOperationDate } from "../server-assets/rtc-official.mjs";
 import handler from "../api/rtc/classifications.js";
+import codeHandler from "../api/rtc/code.js";
 
 const config = { RTC_REGULAR_ENGINE_URL: "https://engine.example/", RTC_REGULAR_ENGINE_TOKEN: "test-token" };
 const originalFetch = globalThis.fetch;
@@ -41,6 +42,25 @@ test("connector checks pinned official version before returning classifications"
   assert.equal(calls[0].url, "https://engine.example/api/calculadora/dados-abertos/versao");
   assert.equal(calls[1].url, "https://engine.example/api/calculadora/dados-abertos/situacoes-tributarias/cbs-ibs?data=2026-11-17");
   assert.ok(calls.every((call) => call.token === "Bearer test-token"));
+});
+
+test("NCM and NBS lookups require exact code, date and pinned official version", async () => {
+  await assert.rejects(fetchRegularCode("ncm", "123", "2026-11-17", config), (error) => error.code === "invalid_code");
+  await assert.rejects(fetchRegularCode("nbs", "123456789", "2026-02-30", config), (error) => error.code === "invalid_date");
+  const calls = [];
+  globalThis.fetch = async (url, options) => {
+    calls.push(String(url));
+    assert.equal(options.headers.authorization, "Bearer test-token");
+    return new Response(JSON.stringify(calls.length % 2 === 1
+      ? { versaoApp: "1.6.1", versaoDb: "teste" }
+      : { capitulo: "01", tributadoPeloImpostoSeletivo: false }));
+  };
+  const ncm = await fetchRegularCode("ncm", "12345678", "2026-11-17", config);
+  const nbs = await fetchRegularCode("nbs", "123456789", "2026-11-17", config);
+  assert.equal(ncm.code, "12345678");
+  assert.equal(nbs.engineVersion, "1.6.1");
+  assert.equal(calls[1], "https://engine.example/api/calculadora/dados-abertos/ncm?ncm=12345678&data=2026-11-17");
+  assert.equal(calls[3], "https://engine.example/api/calculadora/dados-abertos/nbs?nbs=123456789&data=2026-11-17");
 });
 
 test("connector rejects a version mismatch and never queries the catalog", async () => {
@@ -95,4 +115,18 @@ test("catalog API denies a signed-in user without RTC permission", async () => {
   await handler({ method: "GET", headers: { host: "localhost:3000", authorization: "Bearer session" }, query: { data: "2026-11-17" } }, response);
   assert.equal(response.statusCode, 403);
   assert.equal(response.body.code, "module_forbidden");
+});
+
+test("NCM/NBS API denies anonymous and unauthorized users", async () => {
+  const response = () => ({ statusCode: 200, setHeader() { return this; },
+    status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } });
+  const request = { method: "GET", headers: { host: "localhost:3000" }, query: { tipo: "ncm", codigo: "12345678", data: "2026-11-17" } };
+  const anonymous = response();
+  await codeHandler(request, anonymous);
+  assert.equal(anonymous.statusCode, 401);
+  globalThis.fetch = async () => new Response(JSON.stringify({ app_metadata: { role: "user", status: "approved", allowed_modules: ["property"] } }));
+  const forbidden = response();
+  await codeHandler({ ...request, headers: { ...request.headers, authorization: "Bearer session" } }, forbidden);
+  assert.equal(forbidden.statusCode, 403);
+  assert.equal(forbidden.body.code, "module_forbidden");
 });

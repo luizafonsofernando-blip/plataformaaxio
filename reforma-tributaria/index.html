@@ -36,6 +36,10 @@
         <span class="phase">Beta · cálculos pendentes de homologação</span>
       </div>
       <p id="workspaceMessage" class="message" role="status"></p>
+      <div class="overview" aria-label="Resumo do ambiente">
+        <div><strong id="companyCount">0</strong><span>Empresas acessíveis</span></div>
+        <div><strong id="draftCount">0</strong><span>Rascunhos da empresa</span></div>
+      </div>
       <table>
         <thead><tr><th>Motor oficial</th><th>Estado</th></tr></thead>
         <tbody id="engines"></tbody>
@@ -65,14 +69,16 @@
               <div><label for="draftName">Cenário</label><input id="draftName" maxlength="120" required></div>
               <div><label for="draftEngine">Regime</label><select id="draftEngine"><option value="regular">Regime Regular</option><option value="simples">Simples Nacional</option></select></div>
               <div><label for="draftDate">Data da operação</label><input id="draftDate" type="date" required></div>
-              <div><label for="draftDescription">Descrição do item</label><input id="draftDescription" maxlength="180" required></div>
-              <div><label for="draftAmount">Valor da operação (R$)</label><input id="draftAmount" type="number" min="0" max="1000000000" step="0.01" required></div>
-              <div><label for="draftNcm">NCM (opcional)</label><input id="draftNcm" inputmode="numeric" pattern="[0-9]{8}" maxlength="8"></div>
-              <div><label for="draftNbs">NBS (opcional)</label><input id="draftNbs" inputmode="numeric" pattern="[0-9]{9}" maxlength="9"></div>
+              <div id="draftItems" class="draft-items" aria-label="Itens da operação"></div>
+              <button id="addDraftItem" type="button">Adicionar item</button>
               <button type="submit">Salvar rascunho</button>
               <button id="newDraft" type="button">Novo cenário</button>
             </form>
             <p id="draftMessage" class="message" role="status"></p>
+            <div class="draft-filters">
+              <div><label for="draftRegimeFilter">Filtrar por regime</label><select id="draftRegimeFilter"><option value="">Todos</option><option value="regular">Regime Regular</option><option value="simples">Simples Nacional</option></select></div>
+              <div><label for="draftMonthFilter">Filtrar por mês da operação</label><input id="draftMonthFilter" type="month"></div>
+            </div>
             <div class="table-scroll"><table><thead><tr><th>Cenário</th><th>Empresa</th><th>Regime</th><th>Alterado em</th><th>Ações</th></tr></thead><tbody id="draftRows"></tbody></table></div>
           </section>
           <section id="historySection" class="subsection" hidden aria-labelledby="historyTitle">
@@ -124,6 +130,18 @@
           <thead><tr><th>Código</th><th>Atividade</th><th>Anexo</th><th>Disponibilidade</th></tr></thead>
           <tbody id="simplesRows"></tbody>
         </table>
+      </section>
+      <section class="catalog" aria-labelledby="codeTitle">
+        <h2 id="codeTitle">Consulta de NCM e NBS</h2>
+        <form id="codeForm" class="catalog-form">
+          <div><label for="codeKind">Tipo</label><select id="codeKind"><option value="ncm">NCM</option><option value="nbs">NBS</option></select></div>
+          <div><label for="codeValue">Código</label><input id="codeValue" inputmode="numeric" pattern="[0-9]{8,9}" required></div>
+          <div><label for="codeDate">Data da operação</label><input id="codeDate" type="date" required></div>
+          <button type="submit">Consultar</button>
+        </form>
+        <p id="codeMessage" class="message" role="status"></p>
+        <p id="codeSource" class="source" hidden></p>
+        <pre id="codeResult" hidden></pre>
       </section>
     </section>
   </main>

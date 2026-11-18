@@ -81,6 +81,33 @@ export async function fetchRegularClassifications(date, config = process.env) {
   };
 }
 
+export async function fetchRegularCode(kind, code, date, config = process.env) {
+  if (!validOperationDate(date)) throw new RtcEngineError("invalid_date", 400);
+  if (!["ncm", "nbs"].includes(kind) || !new RegExp(`^\\d{${kind === "ncm" ? 8 : 9}}$`).test(String(code || ""))) {
+    throw new RtcEngineError("invalid_code", 400);
+  }
+  const endpoint = String(config.RTC_REGULAR_ENGINE_URL || "").trim();
+  const token = String(config.RTC_REGULAR_ENGINE_TOKEN || "").trim();
+  if (!endpoint || !token) throw new RtcEngineError("engine_not_configured", 503);
+  let base;
+  try { base = new URL(endpoint); }
+  catch { throw new RtcEngineError("engine_not_configured", 503); }
+  if (!validEngineBase(base, config)) throw new RtcEngineError("engine_not_configured", 503);
+  const signal = AbortSignal.timeout(8_000);
+  const prefix = new URL("/api/calculadora/dados-abertos/", base);
+  const version = await getJson(new URL("versao", prefix), token, signal);
+  if (version?.versaoApp !== EXPECTED_REGULAR_VERSION) throw new RtcEngineError("engine_version_mismatch", 503);
+  const lookup = new URL(kind, prefix);
+  lookup.searchParams.set(kind, code);
+  lookup.searchParams.set("data", date);
+  const details = await getJson(lookup, token, signal);
+  if (!details || typeof details !== "object" || Array.isArray(details)
+    || typeof details.capitulo !== "string") throw new RtcEngineError("engine_invalid_response", 502);
+  return { source: "ReceitaFederal/calculadora-rtc-regime-regular", engineVersion: version.versaoApp,
+    databaseVersion: String(version.versaoDb || ""), queriedAt: new Date().toISOString(),
+    operationDate: date, kind, code, details };
+}
+
 export async function fetchSimplesActivities(date, config = process.env) {
   if (!validOperationDate(date)) throw new RtcEngineError("invalid_date", 400);
   const endpoint = String(config.RTC_SIMPLES_ENGINE_URL || "").trim();

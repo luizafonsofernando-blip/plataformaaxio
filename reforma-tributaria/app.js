@@ -9,6 +9,12 @@ let organizations = [];
 let selectedCompanyId = null;
 let currentCompanies = [];
 let currentDraft = null;
+let draftList = [];
+let draftEpoch = 0;
+let autoSaveTimer;
+let saveQueue = Promise.resolve();
+let autoSaveBlocked = false;
+let pendingDraftId = null;
 
 async function rtcRequest(path, options = {}) {
   const token = readSession()?.access_token;
@@ -23,7 +29,7 @@ async function rtcRequest(path, options = {}) {
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const messages = { module_disabled: "O módulo Beta está temporariamente indisponível.", store_not_configured: "Cadastro ainda não configurado.", store_unavailable: "Cadastro temporariamente indisponível.", bootstrap_forbidden: "Somente o administrador principal pode criar organizações.", invalid_cnpj: "CNPJ inválido.", invalid_name: "Informe um nome válido.", company_exists: "Esta empresa já está cadastrada nesta organização.", company_write_forbidden: "Seu perfil não permite cadastrar empresas.", organization_forbidden: "Você não possui acesso a esta organização.", invalid_draft: "Revise os dados do rascunho.", draft_conflict: "Este rascunho foi alterado. Recarregue-o antes de salvar.", draft_write_forbidden: "Seu perfil não permite salvar rascunhos.", engine_not_configured: "O motor oficial ainda não está configurado.", engine_version_mismatch: "A versão do motor não corresponde à versão homologada.", engine_unavailable: "O motor oficial está indisponível.", engine_timeout: "A consulta excedeu o tempo permitido.", invalid_date: "Informe uma data válida.", engine_invalid_response: "O motor retornou uma resposta incompatível." };
+    const messages = { module_disabled: "O módulo Beta está temporariamente indisponível.", store_not_configured: "Cadastro ainda não configurado.", store_unavailable: "Cadastro temporariamente indisponível.", bootstrap_forbidden: "Somente o administrador principal pode criar organizações.", invalid_cnpj: "CNPJ inválido.", invalid_name: "Informe um nome válido.", company_exists: "Esta empresa já está cadastrada nesta organização.", company_write_forbidden: "Seu perfil não permite cadastrar empresas.", organization_forbidden: "Você não possui acesso a esta organização.", invalid_draft: "Revise os dados do rascunho.", draft_conflict: "Este rascunho foi alterado. Recarregue-o antes de salvar.", draft_write_forbidden: "Seu perfil não permite salvar rascunhos.", invalid_code: "Informe um NCM de 8 dígitos ou NBS de 9 dígitos.", engine_not_configured: "O motor oficial ainda não está configurado.", engine_version_mismatch: "A versão do motor não corresponde à versão homologada.", engine_unavailable: "O motor oficial está indisponível.", engine_timeout: "A consulta excedeu o tempo permitido.", invalid_date: "Informe uma data válida.", engine_invalid_response: "O motor retornou uma resposta incompatível." };
     throw new Error(messages[data.code] || "Não foi possível concluir a operação.");
   }
   return data;
@@ -33,16 +39,19 @@ async function loadCompanies() {
   const organization = organizations.find((item) => item.id === document.getElementById("organizationSelect").value);
   const form = document.getElementById("companyForm");
   form.hidden = !organization || organization.role !== "admin";
+  document.getElementById("draftForm").hidden = !organization || organization.role === "viewer";
   document.getElementById("draftForm").querySelector('button[type="submit"]').disabled = !organization || organization.role === "viewer";
   document.getElementById("auditSection").hidden = !organization || organization.role !== "admin";
   document.getElementById("historySection").hidden = true;
   document.getElementById("analysisDetail").hidden = true;
   selectedCompanyId = null;
+  cancelAutoSave();
   currentDraft = null;
   currentCompanies = [];
   if (!organization) return;
   const data = await rtcRequest(`/api/rtc/companies?organization_id=${encodeURIComponent(organization.id)}`);
   currentCompanies = data.companies;
+  document.getElementById("companyCount").textContent = String(currentCompanies.length);
   const select = document.getElementById("draftCompany");
   select.replaceChildren(...currentCompanies.map((company) => {
     const option = document.createElement("option");
@@ -71,7 +80,10 @@ async function loadCompanies() {
   }));
   document.getElementById("registryMessage").textContent = data.companies.length ? "" : "Nenhuma empresa cadastrada nesta organização.";
   if (currentCompanies.length) await loadDrafts();
-  else document.getElementById("draftRows").replaceChildren();
+  else {
+    draftList = [];
+    renderDrafts();
+  }
 }
 
 async function loadDrafts() {
@@ -79,7 +91,18 @@ async function loadDrafts() {
   const companyId = document.getElementById("draftCompany").value;
   if (!companyId) return;
   const data = await rtcRequest(`/api/rtc/drafts?${new URLSearchParams({ organization_id: organizationId, company_id: companyId })}`);
-  document.getElementById("draftRows").replaceChildren(...data.drafts.map((draft) => {
+  if (companyId !== document.getElementById("draftCompany").value) return;
+  draftList = data.drafts;
+  renderDrafts();
+}
+
+function renderDrafts() {
+  document.getElementById("draftCount").textContent = String(draftList.length);
+  const regime = document.getElementById("draftRegimeFilter").value;
+  const month = document.getElementById("draftMonthFilter").value;
+  const visible = draftList.filter((draft) => (!regime || draft.engine === regime)
+    && (!month || draft.operation_date.startsWith(month)));
+  document.getElementById("draftRows").replaceChildren(...visible.map((draft) => {
     const row = document.createElement("tr");
     for (const value of [draft.title, currentCompanies.find((item) => item.id === draft.company_id)?.legal_name || "-",
       draft.engine === "regular" ? "Regime Regular" : "Simples Nacional", new Date(draft.updated_at).toLocaleString("pt-BR")]) {
@@ -94,64 +117,169 @@ async function loadDrafts() {
     edit.disabled = !draft.editable;
     if (!draft.editable) edit.title = "Somente o criador pode editar este rascunho.";
     edit.addEventListener("click", () => {
-      currentDraft = draft;
-      document.getElementById("draftName").value = draft.title;
-      document.getElementById("draftEngine").value = draft.engine;
-      document.getElementById("draftDate").value = draft.operation_date;
-      document.getElementById("draftDescription").value = draft.scenario.items[0]?.description || "";
-      document.getElementById("draftAmount").value = ((draft.scenario.items[0]?.amount_cents || 0) / 100).toFixed(2);
-      document.getElementById("draftNcm").value = draft.scenario.items[0]?.ncm || "";
-      document.getElementById("draftNbs").value = draft.scenario.items[0]?.nbs || "";
+      loadDraftIntoForm(draft, true);
       document.getElementById("draftMessage").textContent = "Rascunho carregado. Nenhum cálculo fiscal foi executado.";
     });
     actions.append(edit);
+    const duplicate = document.createElement("button");
+    duplicate.type = "button";
+    duplicate.textContent = "Duplicar";
+    duplicate.disabled = document.getElementById("draftForm").querySelector('button[type="submit"]').disabled;
+    duplicate.addEventListener("click", async () => {
+      loadDraftIntoForm(draft, false);
+      document.getElementById("draftName").value = `${draft.title} (cópia)`.slice(0, 120);
+      await queueDraftSave(false);
+    });
+    actions.append(duplicate);
     row.append(actions);
     return row;
   }));
 }
 
+function cancelAutoSave() {
+  clearTimeout(autoSaveTimer);
+  draftEpoch += 1;
+  autoSaveBlocked = false;
+  pendingDraftId = null;
+}
+
+function addDraftItem(item = {}) {
+  const container = document.getElementById("draftItems");
+  if (container.childElementCount >= 50) return;
+  const row = document.createElement("div");
+  row.className = "draft-item";
+  const fields = [
+    ["description", "Descrição", "text", item.description || "", "180"],
+    ["amount", "Valor (R$)", "number", ((item.amount_cents || 0) / 100).toFixed(2), ""],
+    ["ncm", "NCM", "text", item.ncm || "", "8"],
+    ["nbs", "NBS", "text", item.nbs || "", "9"],
+  ];
+  for (const [name, labelText, type, value, maxlength] of fields) {
+    const wrapper = document.createElement("div");
+    const label = document.createElement("label");
+    label.textContent = labelText;
+    const input = document.createElement("input");
+    input.dataset.field = name;
+    input.type = type;
+    input.value = value;
+    if (maxlength) input.maxLength = Number(maxlength);
+    if (name === "description" || name === "amount") input.required = true;
+    if (name === "amount") { input.min = "0"; input.max = "1000000000"; input.step = "0.01"; }
+    if (name === "ncm") input.pattern = "[0-9]{8}";
+    if (name === "nbs") input.pattern = "[0-9]{9}";
+    label.append(input);
+    wrapper.append(label);
+    row.append(wrapper);
+  }
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.textContent = "Remover";
+  remove.addEventListener("click", () => {
+    if (container.childElementCount > 1) row.remove();
+    document.getElementById("addDraftItem").disabled = container.childElementCount >= 50;
+    scheduleAutoSave();
+  });
+  row.append(remove);
+  container.append(row);
+  document.getElementById("addDraftItem").disabled = container.childElementCount >= 50;
+}
+
+function loadDraftIntoForm(draft, editing) {
+  cancelAutoSave();
+  currentDraft = editing ? draft : null;
+  document.getElementById("draftName").value = draft.title;
+  document.getElementById("draftEngine").value = draft.engine;
+  document.getElementById("draftDate").value = draft.operation_date;
+  document.getElementById("draftItems").replaceChildren();
+  for (const item of draft.scenario.items) addDraftItem(item);
+}
+
+function draftItemsFromForm() {
+  return [...document.querySelectorAll("#draftItems .draft-item")].map((row) => {
+    const field = (name) => row.querySelector(`[data-field="${name}"]`).value.trim();
+    const amount = field("amount");
+    if (!/^\d{1,10}(?:\.\d{1,2})?$/.test(amount)) throw new Error("Informe valores com até duas casas decimais.");
+    const [whole, fraction = ""] = amount.split(".");
+    const item = { description: field("description"), amount_cents: Number(whole) * 100 + Number(fraction.padEnd(2, "0")) };
+    if (field("ncm")) item.ncm = field("ncm");
+    if (field("nbs")) item.nbs = field("nbs");
+    return item;
+  });
+}
+
+function queueDraftSave(automatic) {
+  const form = document.getElementById("draftForm");
+  if (!form.checkValidity() || !document.getElementById("draftCompany").value) {
+    if (!automatic) form.reportValidity();
+    return Promise.resolve();
+  }
+  const epoch = draftEpoch;
+  saveQueue = saveQueue.catch(() => {}).then(async () => {
+    if (epoch !== draftEpoch || automatic && (!currentDraft || autoSaveBlocked)) return;
+    const message = document.getElementById("draftMessage");
+    const button = form.querySelector('button[type="submit"]');
+    button.disabled = true;
+    try {
+      const body = {
+        id: currentDraft?.id || (pendingDraftId ||= crypto.randomUUID()),
+        organization_id: document.getElementById("organizationSelect").value,
+        company_id: document.getElementById("draftCompany").value,
+        title: document.getElementById("draftName").value.trim(),
+        engine: document.getElementById("draftEngine").value,
+        operation_date: document.getElementById("draftDate").value,
+        scenario: { items: draftItemsFromForm() },
+        ...(currentDraft ? { version: currentDraft.version } : {}),
+      };
+      message.textContent = automatic ? "Salvando alterações..." : "Salvando rascunho...";
+      const data = await rtcRequest("/api/rtc/drafts", { method: currentDraft ? "PATCH" : "POST", body: JSON.stringify(body) });
+      if (epoch !== draftEpoch) return;
+      currentDraft = data.draft;
+      pendingDraftId = null;
+      autoSaveBlocked = false;
+      message.textContent = "Rascunho salvo sem resultado fiscal.";
+      await loadDrafts();
+    } catch (error) {
+      if (epoch === draftEpoch) {
+        autoSaveBlocked = true;
+        message.textContent = error.message;
+      }
+    } finally {
+      const organization = organizations.find((item) => item.id === document.getElementById("organizationSelect").value);
+      button.disabled = !organization || organization.role === "viewer";
+    }
+  });
+  return saveQueue;
+}
+
+function scheduleAutoSave() {
+  clearTimeout(autoSaveTimer);
+  if (currentDraft && !autoSaveBlocked) autoSaveTimer = setTimeout(() => queueDraftSave(true), 1200);
+}
+
 document.getElementById("draftCompany").addEventListener("change", () => {
+  cancelAutoSave();
   currentDraft = null;
   loadDrafts().catch((error) => { document.getElementById("draftMessage").textContent = error.message; });
 });
 document.getElementById("newDraft").addEventListener("click", () => {
+  cancelAutoSave();
   currentDraft = null;
+  const companyId = document.getElementById("draftCompany").value;
   document.getElementById("draftForm").reset();
+  document.getElementById("draftCompany").value = companyId;
+  document.getElementById("draftItems").replaceChildren();
+  addDraftItem();
   document.getElementById("draftMessage").textContent = "Novo cenário. Nenhum cálculo fiscal será executado.";
 });
-document.getElementById("draftForm").addEventListener("submit", async (event) => {
+document.getElementById("addDraftItem").addEventListener("click", () => { addDraftItem(); scheduleAutoSave(); });
+document.getElementById("draftForm").addEventListener("input", scheduleAutoSave);
+document.getElementById("draftRegimeFilter").addEventListener("change", renderDrafts);
+document.getElementById("draftMonthFilter").addEventListener("change", renderDrafts);
+document.getElementById("draftForm").addEventListener("submit", (event) => {
   event.preventDefault();
-  const form = event.currentTarget;
-  const button = form.querySelector('button[type="submit"]');
-  const message = document.getElementById("draftMessage");
-  const amount = Number(document.getElementById("draftAmount").value);
-  const amountCents = Math.round(amount * 100);
-  if (!Number.isSafeInteger(amountCents) || amountCents < 0 || amountCents > 1_000_000_000_00) {
-    message.textContent = "Informe um valor válido.";
-    return;
-  }
-  button.disabled = true;
-  try {
-    const item = { description: document.getElementById("draftDescription").value.trim(), amount_cents: amountCents };
-    if (document.getElementById("draftNcm").value) item.ncm = document.getElementById("draftNcm").value;
-    if (document.getElementById("draftNbs").value) item.nbs = document.getElementById("draftNbs").value;
-    const body = {
-      id: currentDraft?.id || crypto.randomUUID(),
-      organization_id: document.getElementById("organizationSelect").value,
-      company_id: document.getElementById("draftCompany").value,
-      title: document.getElementById("draftName").value.trim(),
-      engine: document.getElementById("draftEngine").value,
-      operation_date: document.getElementById("draftDate").value,
-      scenario: { items: [item] },
-      ...(currentDraft ? { version: currentDraft.version } : {}),
-    };
-    const data = await rtcRequest("/api/rtc/drafts", { method: currentDraft ? "PATCH" : "POST", body: JSON.stringify(body) });
-    currentDraft = data.draft;
-    message.textContent = "Rascunho salvo sem resultado fiscal.";
-    await loadDrafts();
-  } catch (error) { message.textContent = error.message; }
-  finally { button.disabled = false; }
+  queueDraftSave(false);
 });
+addDraftItem();
 
 async function loadHistory(company) {
   const organizationId = document.getElementById("organizationSelect").value;
@@ -444,9 +572,37 @@ document.getElementById("simplesForm").addEventListener("submit", async (event) 
   } catch (error) { message.textContent = error.message; }
   finally { button.disabled = false; }
 });
+document.getElementById("codeForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const kind = document.getElementById("codeKind").value;
+  const code = document.getElementById("codeValue").value.trim();
+  const date = document.getElementById("codeDate").value;
+  const message = document.getElementById("codeMessage");
+  const result = document.getElementById("codeResult");
+  const source = document.getElementById("codeSource");
+  result.hidden = true;
+  source.hidden = true;
+  if (!new RegExp(`^\\d{${kind === "ncm" ? 8 : 9}}$`).test(code)) {
+    message.textContent = "Informe um NCM de 8 dígitos ou NBS de 9 dígitos.";
+    return;
+  }
+  const button = event.currentTarget.querySelector('button[type="submit"]');
+  button.disabled = true;
+  message.textContent = "Consultando o motor oficial...";
+  try {
+    const data = await rtcRequest(`/api/rtc/code?${new URLSearchParams({ tipo: kind, codigo: code, data: date })}`);
+    source.textContent = `Fonte: ${data.source} | motor ${data.engineVersion} | base ${data.databaseVersion || "não informada"} | consulta ${new Date(data.queriedAt).toLocaleString("pt-BR")}`;
+    source.hidden = false;
+    result.textContent = JSON.stringify(data.details, null, 2);
+    result.hidden = false;
+    message.textContent = "Dados de referência do motor. O enquadramento tributário exige análise adicional; valores de Imposto Seletivo podem ser de homologação.";
+  } catch (error) { message.textContent = error.message; }
+  finally { button.disabled = false; }
+});
 const now = new Date();
 document.getElementById("operationDate").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 document.getElementById("simplesDate").value = document.getElementById("operationDate").value;
+document.getElementById("codeDate").value = document.getElementById("operationDate").value;
 
 const session = readSession();
 if (session?.access_token) loadStatus(session.access_token).catch((error) => showLogin(error.message));

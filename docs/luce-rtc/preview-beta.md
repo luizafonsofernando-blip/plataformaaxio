@@ -21,6 +21,14 @@ O código está na branch `feat/luce-rtc-on-current-portal`; não há push ou UR
 - URLs e tokens dos motores RTC **ausentes** até homologação oficial; nenhum cálculo fiscal deve ser habilitado.
 - Teste de login, criação de organização, empresa e rascunho, listagem, edição com `version`, acesso cruzado negado, `viewer` sem escrita, auditoria e erro de conflito. Repetir em dois navegadores/usuários e confirmar que não há registros em produção.
 
+## Operação e rollback
+
+O botão de salvamento automático funciona apenas depois do primeiro salvamento manual de um rascunho. Erros de conflito interrompem o autosave e exigem recarregar o registro, sem sobrescrever a versão mais recente. A duplicação cria um novo identificador; o limite atual é de 50 itens e 32 KB de cenário por rascunho.
+
+Em caso de falha no Preview, definir `RTC_BETA_ENABLED=0` para negar login e APIs RTC e promover um novo Preview com essa variável. Não apagar registros nem reverter migrations para desabilitar o módulo. O catálogo público pode continuar exibindo a entrada de homologação, mas sem acesso à API. Verificar a proteção de Preview da Vercel antes de compartilhar a URL.
+
+As consultas de CST/cClassTrib, atividades do Simples, NCM e NBS exigem gateway autenticado e versão oficial fixada. Sem motor ativo, retornam indisponibilidade. NCM/NBS não determinam automaticamente o enquadramento; parâmetros de Imposto Seletivo presentes nas fontes podem ser de homologação. Cálculo, XML e DANFSe ainda não estão habilitados.
+
 ## Estado dos testes
 
 Os testes PGlite executam SQL real e verificam isolamento por empresa, impossibilidade de escrita do papel `authenticated`, auditoria atômica, incremento de versão e conflito por versão antiga. Os testes de API cobrem autenticação ausente e desligamento da Beta. O teste HTTP contra Supabase Beta real continua pendente até existir projeto isolado autorizado. A ausência de Docker não impede o Preview, mas a ausência de banco Beta impede a validação persistente de ponta a ponta.

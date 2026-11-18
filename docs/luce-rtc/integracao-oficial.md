@@ -12,6 +12,8 @@ Versões inspecionadas em 17/11/2026, sem executar código de terceiros:
 
 `GET /api/rtc/classifications?data=AAAA-MM-DD` exige sessão Supabase ativa e permissão `reforma-tributaria` verificada no servidor. O backend valida a data, consulta a versão da calculadora regular e só então solicita CST/cClassTrib ao endpoint documentado na release `1.6.1`. O retorno inclui fonte, versão da aplicação, versão da base, data da operação e horário da consulta. Respostas inválidas, versões divergentes, indisponibilidade e ausência de configuração são erros explícitos; não há dados substitutos.
 
+`GET /api/rtc/code?tipo=ncm|nbs&codigo=...&data=AAAA-MM-DD` segue a mesma proteção e consulta `/dados-abertos/ncm` ou `/dados-abertos/nbs` do Regime Regular. Exige 8 dígitos para NCM, 9 para NBS e data válida. O gateway permite apenas essas rotas de leitura com token; a consulta fica indisponível sem motor. O retorno é dado de referência do motor, não cálculo nem enquadramento tributário homologado.
+
 O navegador nunca acessa o motor diretamente. O backend usa `RTC_REGULAR_ENGINE_URL` e `RTC_REGULAR_ENGINE_TOKEN`, que devem existir somente no ambiente do servidor. A URL precisa ser HTTPS e apontar para um gateway privado que **valide o token** antes de encaminhar a chamada ao serviço oficial. Não basta publicar a calculadora diretamente na internet: o código oficial não foi tratado como mecanismo de autenticação da Luce.
 
 Há limite de tempo, tamanho de resposta e frequência por usuário/IP conforme o helper do portal. A versão é fixada em `1.6.1` nesta integração; uma atualização exige revisão do contrato, testes de regressão e homologação, não troca automática da URL. O status da configuração não equivale a motor operacional.

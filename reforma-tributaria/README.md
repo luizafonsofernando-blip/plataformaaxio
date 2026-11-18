@@ -1,6 +1,6 @@
 # Luce Reforma Tributária
 
-Fundação Beta do módulo em desenvolvimento. Esta versão permite autenticação pelo endpoint existente do Portal Luce, cadastro de empresas e rascunhos de simulação (um item por cenário), histórico de análises já registradas e prontidão dos motores. Também oferece consulta de CST e cClassTrib por data, exclusivamente quando o motor oficial do Regime Regular estiver implantado, autenticado e com versão `1.6.1` confirmada. Rascunhos não são cálculos nem resultados fiscais. Ainda não executa cálculos, valida XML ou gera DANFSe.
+Fundação Beta do módulo em desenvolvimento. Esta versão permite autenticação pelo endpoint existente do Portal Luce, cadastro de empresas e rascunhos de simulação com múltiplos itens, duplicação, filtros e salvamento automático após o primeiro salvamento, histórico de análises já registradas e prontidão dos motores. Também oferece consultas de CST/cClassTrib e NCM/NBS por data, exclusivamente quando o motor oficial do Regime Regular estiver implantado, autenticado e com versão `1.6.1` confirmada. Rascunhos não são cálculos nem resultados fiscais. Ainda não executa cálculos, valida XML ou gera DANFSe.
 
 ## Acesso
 

@@ -18,6 +18,9 @@ test('RTC draft validates dates, items and exact cent amounts', () => {
   assert.throws(() => validateDraft({ ...input, operation_date: '2026-02-30' }), /invalid_draft/);
   assert.throws(() => validateDraft({ ...input, scenario: { items: [{ description: 'x', amount_cents: 1.2 }] } }), /invalid_draft/);
   assert.throws(() => validateDraft({ ...input, scenario: { items: [] } }), /invalid_draft/);
+  const second = { description: 'Serviço', amount_cents: 54321, nbs: '123456789' };
+  assert.equal(validateDraft({ ...input, scenario: { items: [...input.scenario.items, second] } }).scenario.items.length, 2);
+  assert.throws(() => validateDraft({ ...input, scenario: { items: Array(51).fill(second) } }), /invalid_draft/);
 });
 
 test('RTC draft API rejects anonymous requests and honors the server kill switch', async () => {

@@ -6,6 +6,8 @@ import { resolve } from "node:path";
 const ROUTES = new Map([
   ["/api/calculadora/dados-abertos/versao", "RTC_REGULAR_UPSTREAM"],
   ["/api/calculadora/dados-abertos/situacoes-tributarias/cbs-ibs", "RTC_REGULAR_UPSTREAM"],
+  ["/api/calculadora/dados-abertos/ncm", "RTC_REGULAR_UPSTREAM"],
+  ["/api/calculadora/dados-abertos/nbs", "RTC_REGULAR_UPSTREAM"],
   ["/api/versao", "RTC_SIMPLES_UPSTREAM"],
   ["/api/calculadora/simples-nacional/atividades", "RTC_SIMPLES_UPSTREAM"],
   ["/health/ready", "RTC_DANFSE_UPSTREAM"],
@@ -30,7 +32,11 @@ export function createGateway(config = process.env, fetchImpl = fetch) {
     catch { response.writeHead(400).end(); return; }
     const upstreamVariable = ROUTES.get(input.pathname);
     if (!upstreamVariable) { response.writeHead(404).end(); return; }
-    if (input.searchParams.size && (input.searchParams.size !== 1 || !/^\d{4}-\d{2}-\d{2}$/.test(input.searchParams.get("data") || ""))) {
+    const codeType = input.pathname.endsWith("/ncm") ? "ncm" : input.pathname.endsWith("/nbs") ? "nbs" : null;
+    const validDate = /^\d{4}-\d{2}-\d{2}$/.test(input.searchParams.get("data") || "");
+    const validCode = codeType && new RegExp(`^\\d{${codeType === "ncm" ? 8 : 9}}$`).test(input.searchParams.get(codeType) || "");
+    if (codeType ? input.searchParams.size !== 2 || !validDate || !validCode
+      : input.searchParams.size && (input.searchParams.size !== 1 || !validDate)) {
       response.writeHead(400).end(); return;
     }
     const base = config[upstreamVariable];
