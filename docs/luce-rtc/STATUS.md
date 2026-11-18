@@ -12,7 +12,7 @@ Data: 18/11/2026. Branch: `feat/luce-rtc-on-current-portal`.
 
 ## Preparado, nao operacional neste ambiente
 
-- Previa visual isolada em `infra/rtc-preview/dist/`: somente HTML, CSS, JS e configuracao de cabeçalhos; sem API, banco, gravacao ou calculo. O build normal do Portal exclui essa pagina. Projeto Vercel separado criado com SSO, mas sem deployment: o primeiro deploy exigiria Production. Ainda nao foi publicada nem inspecionada visualmente em navegador.
+- Previa visual isolada em `infra/rtc-preview/dist/`: somente HTML, CSS, JS e configuracao de cabeçalhos; sem API, banco, gravacao ou calculo. O build normal do Portal exclui essa pagina. Projeto Vercel separado publicado em `https://luce-rtc-visual-preview.vercel.app` com SSO para todas as URLs; CLI confirmou estado Ready. Nao foi inspecionada visualmente em navegador autenticado.
 - Adaptadores de leitura dos catalogos oficiais de CST/cClassTrib, NCM/NBS e atividades do Simples. Exigem gateway autenticado, motores iniciados e versoes fixadas. Respostas simuladas sao usadas somente nos testes automatizados.
 - Gateway local e scripts para fontes oficiais Regular, Simples e DANFSe. Java, Go e conteineres nao foram executados neste ambiente.
 - Vercel Preview com flag `RTC_BETA_ENABLED` e bloqueio do projeto Supabase principal. Nao ha Preview publicado nem projeto Supabase Beta hospedado autorizado.
@@ -22,6 +22,6 @@ Data: 18/11/2026. Branch: `feat/luce-rtc-on-current-portal`.
 - Os dois projetos gratuitos Supabase estao ocupados: producao e homologacao do e-BEF. Nenhum deles foi modificado pelo RTC. PGlite cobre SQL/RLS localmente, mas nao substitui Auth, PostgREST ou Storage reais.
 - Sem banco Beta isolado nao foi possivel validar login, rascunhos e uploads de ponta a ponta por HTTP, nem realizar teste visual autenticado no navegador.
 - Nenhum calculo fiscal, aliquota, base de calculo, memoria, XML ou DANFSe deve ser apresentado como homologado. Os motores oficiais ainda exigem execucao e casos de referencia revisados por profissional fiscal.
-- Nada foi enviado ao GitHub, Vercel ou Supabase hospedado nesta etapa. Nao usar a base principal para contornar a falta de ambiente Beta.
+- Nenhum push ao GitHub nem mudanca no Supabase hospedado. Somente a previa estatica isolada foi enviada a Vercel; o Portal Luce e a Beta funcional nao foram publicados. Nao usar a base principal para contornar a falta de ambiente Beta.
 
 Ver `preview-beta.md`, `homologacao-local.md` e `integracao-oficial.md` para configuracao, testes e rollback.

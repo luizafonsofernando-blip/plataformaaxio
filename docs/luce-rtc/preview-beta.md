@@ -1,9 +1,9 @@
 # RTC Beta: preparo do Preview isolado
 
-Nenhuma migration hospedada, variável Vercel ou deploy foi alterado nesta rodada.
+Nenhuma migration hospedada ou variável Vercel foi alterada. Apenas a prévia visual isolada foi publicada; a Beta funcional e o Portal Luce não foram publicados nesta rodada.
 O código bloqueia os endpoints RTC em `VERCEL_ENV=production`, mesmo com `RTC_BETA_ENABLED=1`.
 
-Em 18/11/2026 foi criado o projeto Vercel isolado `luce-rtc-visual-preview` e ativado SSO (`prod_deployment_urls_and_all_previews`). O dry-run mostrou somente os quatro arquivos estáticos esperados. **Não houve deployment:** a Vercel exigiu que o primeiro deployment do projeto seja Production antes de aceitar Preview. A configuração SSO observada protege URLs de deployment e previews, mas não comprova proteção da URL de domínio de produção; verificar proteção **All Deployments** antes de qualquer primeiro deploy. Essa ação depende de autorização específica do usuário para o primeiro deploy de produção do novo projeto. Não usar o projeto `lucesistemas` como atalho.
+Em 18/11/2026 foi criado o projeto Vercel isolado `luce-rtc-visual-preview`. A proteção SSO foi configurada e confirmada como `all` (todas as URLs). O dry-run mostrou somente os quatro arquivos estáticos esperados. A Vercel exigiu que o primeiro deployment desse projeto fosse Production; após autorização do usuário, ele foi publicado em `https://luce-rtc-visual-preview.vercel.app` (`dpl_4CGBn64UxCBxW498AMM2WH6ciUfC`). A CLI confirmou `Ready` e `vercel_authentication`. Não houve push ou alteração no projeto `lucesistemas`; a prévia não é um módulo funcional do Portal.
 
 ## Duas modalidades separadas
 
