@@ -40,6 +40,25 @@
         <thead><tr><th>Motor oficial</th><th>Estado</th></tr></thead>
         <tbody id="engines"></tbody>
       </table>
+      <section class="registry" aria-labelledby="registryTitle">
+        <h2 id="registryTitle">Empresas</h2>
+        <p id="registryMessage" class="message" role="status"></p>
+        <form id="organizationForm" class="inline-form" hidden>
+          <div><label for="organizationName">Nova organização</label><input id="organizationName" name="name" maxlength="160" required></div>
+          <button type="submit">Criar organização</button>
+        </form>
+        <div id="registryContent" hidden>
+          <label for="organizationSelect">Organização</label>
+          <select id="organizationSelect"></select>
+          <form id="companyForm" class="inline-form" hidden>
+            <div><label for="companyCnpj">CNPJ</label><input id="companyCnpj" name="cnpj" inputmode="numeric" required></div>
+            <div><label for="companyName">Razão social</label><input id="companyName" name="legal_name" maxlength="180" required></div>
+            <div><label for="companyTradeName">Nome fantasia</label><input id="companyTradeName" name="trade_name" maxlength="180"></div>
+            <button type="submit">Cadastrar empresa</button>
+          </form>
+          <table><thead><tr><th>CNPJ</th><th>Razão social</th><th>Nome fantasia</th></tr></thead><tbody id="companyRows"></tbody></table>
+        </div>
+      </section>
       <section class="catalog" aria-labelledby="catalogTitle">
         <h2 id="catalogTitle">Consulta de CST e cClassTrib</h2>
         <form id="catalogForm" class="catalog-form">

@@ -5,6 +5,61 @@ const loginMessage = document.getElementById("loginMessage");
 const workspaceMessage = document.getElementById("workspaceMessage");
 const logout = document.getElementById("logout");
 let catalog = [];
+let organizations = [];
+
+async function rtcRequest(path, options = {}) {
+  const token = readSession()?.access_token;
+  const response = await fetch(path, {
+    ...options, cache: "no-store",
+    headers: { authorization: `Bearer ${token || ""}`, ...(options.body ? { "content-type": "application/json" } : {}) },
+  });
+  if (response.status === 401 || response.status === 403 && ["module_forbidden", "account_suspended"].includes((await response.clone().json().catch(() => ({}))).code)) {
+    sessionStorage.removeItem(STORAGE_KEY);
+    showLogin("Sua sessão expirou ou não possui acesso a este módulo.");
+    throw new Error("Sessão inválida.");
+  }
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const messages = { store_not_configured: "Cadastro ainda não configurado.", store_unavailable: "Cadastro temporariamente indisponível.", bootstrap_forbidden: "Somente o administrador principal pode criar organizações.", invalid_cnpj: "CNPJ inválido.", invalid_name: "Informe um nome válido.", company_exists: "Esta empresa já está cadastrada nesta organização.", company_write_forbidden: "Seu perfil não permite cadastrar empresas.", organization_forbidden: "Você não possui acesso a esta organização." };
+    throw new Error(messages[data.code] || "Não foi possível concluir a operação.");
+  }
+  return data;
+}
+
+async function loadCompanies() {
+  const organization = organizations.find((item) => item.id === document.getElementById("organizationSelect").value);
+  const form = document.getElementById("companyForm");
+  form.hidden = !organization || organization.role !== "admin";
+  if (!organization) return;
+  const data = await rtcRequest(`/api/rtc/companies?organization_id=${encodeURIComponent(organization.id)}`);
+  const body = document.getElementById("companyRows");
+  body.replaceChildren(...data.companies.map((company) => {
+    const row = document.createElement("tr");
+    for (const value of [company.cnpj, company.legal_name, company.trade_name || "-"]) {
+      const cell = document.createElement("td");
+      cell.textContent = value;
+      row.append(cell);
+    }
+    return row;
+  }));
+  document.getElementById("registryMessage").textContent = data.companies.length ? "" : "Nenhuma empresa cadastrada nesta organização.";
+}
+
+async function loadOrganizations() {
+  const data = await rtcRequest("/api/rtc/organizations");
+  organizations = data.organizations;
+  const select = document.getElementById("organizationSelect");
+  select.replaceChildren(...organizations.map((organization) => {
+    const option = document.createElement("option");
+    option.value = organization.id;
+    option.textContent = organization.name;
+    return option;
+  }));
+  document.getElementById("organizationForm").hidden = !data.canBootstrap;
+  document.getElementById("registryContent").hidden = !organizations.length;
+  if (organizations.length) await loadCompanies();
+  else document.getElementById("registryMessage").textContent = "Nenhuma organização vinculada a este usuário.";
+}
 
 function renderCatalog(filter = "") {
   const term = filter.trim().toLocaleLowerCase("pt-BR");
@@ -74,7 +129,45 @@ async function loadStatus(token) {
   workspace.hidden = false;
   logout.hidden = false;
   workspaceMessage.textContent = "Nenhum cálculo está disponível antes da homologação dos motores oficiais.";
+  loadOrganizations().catch((error) => { document.getElementById("registryMessage").textContent = error.message; });
 }
+
+document.getElementById("organizationSelect").addEventListener("change", () => {
+  loadCompanies().catch((error) => { document.getElementById("registryMessage").textContent = error.message; });
+});
+
+document.getElementById("organizationForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = form.querySelector("button");
+  button.disabled = true;
+  try {
+    const data = await rtcRequest("/api/rtc/organizations", { method: "POST", body: JSON.stringify({ name: form.elements.namedItem("name").value }) });
+    form.reset();
+    await loadOrganizations();
+    document.getElementById("organizationSelect").value = data.organization.id;
+    await loadCompanies();
+  } catch (error) { document.getElementById("registryMessage").textContent = error.message; }
+  finally { button.disabled = false; }
+});
+
+document.getElementById("companyForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = form.querySelector("button");
+  button.disabled = true;
+  try {
+    await rtcRequest("/api/rtc/companies", { method: "POST", body: JSON.stringify({
+      organization_id: document.getElementById("organizationSelect").value,
+      cnpj: form.elements.namedItem("cnpj").value,
+      legal_name: form.elements.namedItem("legal_name").value,
+      trade_name: form.elements.namedItem("trade_name").value,
+    }) });
+    form.reset();
+    await loadCompanies();
+  } catch (error) { document.getElementById("registryMessage").textContent = error.message; }
+  finally { button.disabled = false; }
+});
 
 document.getElementById("loginForm").addEventListener("submit", async (event) => {
   event.preventDefault();
