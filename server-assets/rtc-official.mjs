@@ -160,9 +160,18 @@ export async function calculateRegularOperation(operation, config = process.env)
   try { base = new URL(endpoint); }
   catch { throw new RtcEngineError("engine_not_configured", 503); }
   if (!validEngineBase(base, config)) throw new RtcEngineError("engine_not_configured", 503);
-  const signal = AbortSignal.timeout(20_000);
-  const version = await getJson(new URL("/api/calculadora/dados-abertos/versao", base), token, signal, config);
+  let version;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      version = await getJson(new URL("/api/calculadora/dados-abertos/versao", base), token,
+        AbortSignal.timeout(30_000), config);
+      break;
+    } catch (error) {
+      if (!(error instanceof RtcEngineError) || error.status !== 503 || attempt === 1) throw error;
+    }
+  }
   if (version?.versaoApp !== EXPECTED_REGULAR_VERSION) throw new RtcEngineError("engine_version_mismatch", 503);
+  const signal = AbortSignal.timeout(30_000);
   let response;
   try {
     response = await fetch(new URL("/api/calculadora/observabilidade/regime-geral", base), {

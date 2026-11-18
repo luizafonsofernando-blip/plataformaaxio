@@ -91,6 +91,20 @@ test("regular calculation preserves official item states and simulation warning"
   await assert.rejects(calculateRegularOperation({ itens: [] }, config), (error) => error.code === "invalid_operation");
 });
 
+test("regular calculation retries a temporarily cold official engine", async () => {
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls += 1;
+    if (calls === 1) return new Response(null, { status: 503 });
+    return new Response(JSON.stringify(calls === 2
+      ? { versaoApp: "1.6.1", versaoDb: "test" }
+      : { objetos: [{ estadoItem: "CALCULADO" }], total: {} }));
+  };
+  const result = await calculateRegularOperation({ itens: [{ numero: 1 }] }, config);
+  assert.equal(result.output.objetos[0].estadoItem, "CALCULADO");
+  assert.equal(calls, 3);
+});
+
 test("calculation API rejects anonymous users before invoking the engine", async () => {
   let called = false;
   globalThis.fetch = async () => { called = true; throw new Error("unexpected"); };

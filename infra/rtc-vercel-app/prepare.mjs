@@ -38,7 +38,7 @@ for (const name of ["index.html", "style.css", "app.js", "example-operation.json
 await writeFile(join(output, "vercel.json"), JSON.stringify({
   buildCommand: "node build.mjs",
   outputDirectory: "public",
-  functions: { "api/**/*.js": { includeFiles: "server-assets/rtc-*.mjs" } },
+  functions: { "api/**/*.js": { includeFiles: "server-assets/rtc-*.mjs", maxDuration: 90 } },
   redirects: [{ source: "/", destination: "/reforma-tributaria/", permanent: false }],
   headers: [{ source: "/(.*)", headers: [
     { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests" },
