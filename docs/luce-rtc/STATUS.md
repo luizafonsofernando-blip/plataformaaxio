@@ -12,7 +12,7 @@ Data: 18/11/2026. Branch: `feat/luce-rtc-on-current-portal`.
 
 ## Preparado, nao operacional neste ambiente
 
-- Previa visual isolada em `infra/rtc-preview/dist/`: somente HTML, CSS, JS e configuracao de cabeçalhos; sem API, banco, gravacao ou calculo. O build normal do Portal exclui essa pagina. Ainda nao foi publicada nem inspecionada visualmente em navegador.
+- Previa visual isolada em `infra/rtc-preview/dist/`: somente HTML, CSS, JS e configuracao de cabeçalhos; sem API, banco, gravacao ou calculo. O build normal do Portal exclui essa pagina. Projeto Vercel separado criado com SSO, mas sem deployment: o primeiro deploy exigiria Production. Ainda nao foi publicada nem inspecionada visualmente em navegador.
 - Adaptadores de leitura dos catalogos oficiais de CST/cClassTrib, NCM/NBS e atividades do Simples. Exigem gateway autenticado, motores iniciados e versoes fixadas. Respostas simuladas sao usadas somente nos testes automatizados.
 - Gateway local e scripts para fontes oficiais Regular, Simples e DANFSe. Java, Go e conteineres nao foram executados neste ambiente.
 - Vercel Preview com flag `RTC_BETA_ENABLED` e bloqueio do projeto Supabase principal. Nao ha Preview publicado nem projeto Supabase Beta hospedado autorizado.
