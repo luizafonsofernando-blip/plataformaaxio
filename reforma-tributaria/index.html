@@ -79,6 +79,19 @@
           </table>
         </div>
       </section>
+      <section class="catalog" aria-labelledby="simplesTitle">
+        <h2 id="simplesTitle">Atividades do Simples Nacional</h2>
+        <form id="simplesForm" class="catalog-form">
+          <div><label for="simplesDate">Data da operação</label><input id="simplesDate" type="date" required></div>
+          <button type="submit">Consultar</button>
+        </form>
+        <p id="simplesMessage" class="message" role="status"></p>
+        <p id="simplesSource" class="source" hidden></p>
+        <table id="simplesResults" hidden>
+          <thead><tr><th>Código</th><th>Atividade</th><th>Anexo</th><th>Disponibilidade</th></tr></thead>
+          <tbody id="simplesRows"></tbody>
+        </table>
+      </section>
     </section>
   </main>
   <script src="app.js" defer></script>

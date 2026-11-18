@@ -1,5 +1,6 @@
 const MAX_RESPONSE_BYTES = 5_000_000;
 const EXPECTED_REGULAR_VERSION = "1.6.1";
+const EXPECTED_SIMPLES_VERSION = "0.0.6";
 
 export class RtcEngineError extends Error {
   constructor(code, status) {
@@ -65,6 +66,38 @@ export async function fetchRegularClassifications(date, config = process.env) {
   }
   return {
     source: "ReceitaFederal/calculadora-rtc-regime-regular",
+    engineVersion: version.versaoApp,
+    databaseVersion: String(version.versaoDb || ""),
+    queriedAt: new Date().toISOString(),
+    operationDate: date,
+    rows,
+  };
+}
+
+export async function fetchSimplesActivities(date, config = process.env) {
+  if (!validOperationDate(date)) throw new RtcEngineError("invalid_date", 400);
+  const endpoint = String(config.RTC_SIMPLES_ENGINE_URL || "").trim();
+  const token = String(config.RTC_SIMPLES_ENGINE_TOKEN || "").trim();
+  if (!endpoint || !token) throw new RtcEngineError("engine_not_configured", 503);
+  let base;
+  try { base = new URL(endpoint); }
+  catch { throw new RtcEngineError("engine_not_configured", 503); }
+  if (base.protocol !== "https:" || base.username || base.password || base.search || base.hash || base.pathname !== "/") {
+    throw new RtcEngineError("engine_not_configured", 503);
+  }
+  const signal = AbortSignal.timeout(8_000);
+  const prefix = new URL("/api/", base);
+  const version = await getJson(new URL("versao", prefix), token, signal);
+  if (version?.versaoApp !== EXPECTED_SIMPLES_VERSION) throw new RtcEngineError("engine_version_mismatch", 503);
+  const catalogUrl = new URL("calculadora/simples-nacional/atividades", prefix);
+  catalogUrl.searchParams.set("data", date);
+  const rows = await getJson(catalogUrl, token, signal);
+  if (!Array.isArray(rows) || rows.some((row) => typeof row?.codigo !== "string" || typeof row?.descricao !== "string"
+    || typeof row?.disponivel !== "boolean" || !Array.isArray(row?.tpDocsAdmissiveis))) {
+    throw new RtcEngineError("engine_invalid_response", 502);
+  }
+  return {
+    source: "ReceitaFederal/calculadora-rtc-simples-nacional",
     engineVersion: version.versaoApp,
     databaseVersion: String(version.versaoDb || ""),
     queriedAt: new Date().toISOString(),

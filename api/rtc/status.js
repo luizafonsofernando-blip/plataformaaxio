@@ -1,9 +1,9 @@
 import { rejectDisallowedOrigin, rejectRateLimited, requireActiveModuleUser, setApiSecurityHeaders } from "../_security.js";
 
 const engines = [
-  { id: "regular", name: "Regime Regular", variable: "RTC_REGULAR_ENGINE_URL" },
-  { id: "simples", name: "Simples Nacional", variable: "RTC_SIMPLES_ENGINE_URL" },
-  { id: "danfse", name: "Gerador DANFSe", variable: "RTC_DANFSE_ENGINE_URL" },
+  { id: "regular", name: "Regime Regular", variable: "RTC_REGULAR_ENGINE_URL", token: "RTC_REGULAR_ENGINE_TOKEN" },
+  { id: "simples", name: "Simples Nacional", variable: "RTC_SIMPLES_ENGINE_URL", token: "RTC_SIMPLES_ENGINE_TOKEN" },
+  { id: "danfse", name: "Gerador DANFSe", variable: "RTC_DANFSE_ENGINE_URL", token: "RTC_DANFSE_ENGINE_TOKEN" },
 ];
 
 export default async function handler(request, response) {
@@ -17,10 +17,10 @@ export default async function handler(request, response) {
   if (!user) return;
   return response.status(200).json({
     phase: "development",
-    engines: engines.map(({ id, name, variable }) => ({
+    engines: engines.map(({ id, name, variable, token }) => ({
       id,
       name,
-      status: process.env[variable] ? "pending_validation" : "not_configured",
+      status: process.env[variable] && process.env[token] ? "pending_validation" : "not_configured",
     })),
   });
 }

@@ -20,6 +20,7 @@ function request(method = "GET", token = "") {
 const originalFetch = globalThis.fetch;
 const originalRateLimit = process.env.LUCE_RATE_LIMIT_ENABLED;
 const originalEngineUrl = process.env.RTC_REGULAR_ENGINE_URL;
+const originalEngineToken = process.env.RTC_REGULAR_ENGINE_TOKEN;
 
 test.before(() => { process.env.LUCE_RATE_LIMIT_ENABLED = "false"; });
 test.after(() => {
@@ -28,6 +29,8 @@ test.after(() => {
   else process.env.LUCE_RATE_LIMIT_ENABLED = originalRateLimit;
   if (originalEngineUrl === undefined) delete process.env.RTC_REGULAR_ENGINE_URL;
   else process.env.RTC_REGULAR_ENGINE_URL = originalEngineUrl;
+  if (originalEngineToken === undefined) delete process.env.RTC_REGULAR_ENGINE_TOKEN;
+  else process.env.RTC_REGULAR_ENGINE_TOKEN = originalEngineToken;
 });
 
 test("RTC status rejects unauthenticated requests and unsupported methods", async () => {
@@ -49,6 +52,7 @@ test("RTC status denies a user without module access", async () => {
 
 test("RTC status only reports configuration readiness, never operational status", async () => {
   process.env.RTC_REGULAR_ENGINE_URL = "https://private-engine.example";
+  process.env.RTC_REGULAR_ENGINE_TOKEN = "test-token";
   globalThis.fetch = async () => ({ ok: true, json: async () => ({ app_metadata: { role: "user", status: "approved", allowed_modules: ["reforma-tributaria"] } }) });
   const result = response();
   await handler(request("GET", "session"), result);

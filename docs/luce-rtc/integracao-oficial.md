@@ -24,6 +24,25 @@ Há limite de tempo, tamanho de resposta e frequência por usuário/IP conforme 
 - Simples Nacional e DANFSe foram inventariados, mas ainda não possuem conectores ativados.
 - Cálculos, validação de XML e geração de documento fiscal continuam desabilitados até homologação específica.
 
+## Gateway de homologação preparado
+
+`infra/rtc-gateway/server.mjs` aceita somente consultas GET explicitamente permitidas dos motores Regular e Simples. Exige `RTC_GATEWAY_TOKEN`, compara o token em tempo constante, impõe timeout e limite de 5 MB, não segue redirects e não encaminha caminhos arbitrários. Há um Dockerfile, mas a imagem **ainda não foi construída nem executada em hospedagem de contêineres**.
+
+O serviço deve ficar atrás de HTTPS/TLS e proteção de rede. `RTC_REGULAR_UPSTREAM`, `RTC_SIMPLES_UPSTREAM` e `RTC_DANFSE_UPSTREAM` apontam para endereços internos dos processos oficiais; nunca para endpoints públicos arbitrários. Configure o gateway com segredo distinto em cada ambiente. `RTC_REGULAR_ENGINE_URL` e `RTC_SIMPLES_ENGINE_URL` no backend do Portal devem apontar para a URL HTTPS externa do gateway; os respectivos tokens ficam apenas no servidor. Não inclua segredos no Git, navegador ou logs.
+
+O gateway **não** encaminha cálculo nem XML/DANFSe. Essas operações exigem primeiro contrato validado, casos oficiais de referência, verificação de XML seguro e autorização específica. O probe DANFSe foi incluído somente para prontidão futura; ele não representa integração funcional de geração.
+
+## Homologação obrigatória dos motores
+
+1. Obter as tags e commits fixados acima diretamente da organização `ReceitaFederal`; verificar licença e dependências de build. Gerar a base SQLite com os scripts Flyway da release do Regime Regular. O Simples requer uma cópia dessa pasta `flyway/` para gerar sua própria base; sem base válida, não iniciar o processo.
+2. Executar testes das duas aplicações Java 21 e do serviço Go no ambiente de build isolado. Guardar checksums de artefatos e imagem, e registrar a versão de base retornada pelos endpoints oficiais.
+3. Iniciar os três processos em rede privada com recursos e persistência apropriados, sem publicação direta das portas. Publicar somente o gateway atrás de TLS, autenticação de serviço e controles de rede; configurar observabilidade e reinício.
+4. Comparar catálogo Regular e atividades Simples com respostas oficiais de referência para pelo menos duas datas de vigência. Testar divergência de versão, banco ausente, timeout, payload grande, erro 4xx/5xx e token incorreto.
+5. Para cálculo, selecionar casos oficiais de entrada/saída e revisão de um profissional fiscal. Para DANFSe, validar XML contra leiaute vigente, comparar PDF de referência e aplicar limites de tamanho. Até isso passar, manter as operações desabilitadas.
+6. Aplicar a migration RTC apenas em banco de homologação; verificar RLS com usuários de organizações distintas e restauração de backup. O plano atual do Supabase principal não suporta branch de banco, portanto é necessário outro ambiente de homologação antes dessa etapa.
+
+Não foi detectada hospedagem de contêineres persistentes vinculada ao Portal, e Docker/Java/Go não estão disponíveis no ambiente local usado. A implantação real dos motores depende da escolha desse ambiente. A Vercel continua adequada para o frontend e APIs curtas, não para manter essas três aplicações em execução contínua.
+
 ## Critério para ativação
 
 1. Implantar os motores oficiais fixados em homologação, preservando licença e avisos.

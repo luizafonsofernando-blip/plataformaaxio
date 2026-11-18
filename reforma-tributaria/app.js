@@ -20,7 +20,7 @@ async function rtcRequest(path, options = {}) {
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const messages = { store_not_configured: "Cadastro ainda não configurado.", store_unavailable: "Cadastro temporariamente indisponível.", bootstrap_forbidden: "Somente o administrador principal pode criar organizações.", invalid_cnpj: "CNPJ inválido.", invalid_name: "Informe um nome válido.", company_exists: "Esta empresa já está cadastrada nesta organização.", company_write_forbidden: "Seu perfil não permite cadastrar empresas.", organization_forbidden: "Você não possui acesso a esta organização." };
+    const messages = { store_not_configured: "Cadastro ainda não configurado.", store_unavailable: "Cadastro temporariamente indisponível.", bootstrap_forbidden: "Somente o administrador principal pode criar organizações.", invalid_cnpj: "CNPJ inválido.", invalid_name: "Informe um nome válido.", company_exists: "Esta empresa já está cadastrada nesta organização.", company_write_forbidden: "Seu perfil não permite cadastrar empresas.", organization_forbidden: "Você não possui acesso a esta organização.", engine_not_configured: "O motor oficial ainda não está configurado.", engine_version_mismatch: "A versão do motor não corresponde à versão homologada.", engine_unavailable: "O motor oficial está indisponível.", engine_timeout: "A consulta excedeu o tempo permitido.", invalid_date: "Informe uma data válida.", engine_invalid_response: "O motor retornou uma resposta incompatível." };
     throw new Error(messages[data.code] || "Não foi possível concluir a operação.");
   }
   return data;
@@ -239,8 +239,35 @@ document.getElementById("catalogForm").addEventListener("submit", async (event) 
 });
 
 document.getElementById("catalogFilter").addEventListener("input", (event) => renderCatalog(event.currentTarget.value));
+document.getElementById("simplesForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = event.currentTarget.querySelector("button");
+  const message = document.getElementById("simplesMessage");
+  button.disabled = true;
+  message.textContent = "Consultando o motor oficial...";
+  try {
+    const date = document.getElementById("simplesDate").value;
+    const data = await rtcRequest(`/api/rtc/simples-activities?data=${encodeURIComponent(date)}`);
+    document.getElementById("simplesRows").replaceChildren(...data.rows.map((activity) => {
+      const row = document.createElement("tr");
+      for (const value of [activity.codigo, activity.descricao, activity.rotuloAnexo || "-", activity.disponivel ? "Disponível" : "Não disponível"]) {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.append(cell);
+      }
+      return row;
+    }));
+    document.getElementById("simplesResults").hidden = false;
+    const source = document.getElementById("simplesSource");
+    source.hidden = false;
+    source.textContent = `Fonte: ${data.source} | motor ${data.engineVersion} | base ${data.databaseVersion || "não informada"} | consulta ${new Date(data.queriedAt).toLocaleString("pt-BR")}`;
+    message.textContent = `${data.rows.length} atividades retornadas.`;
+  } catch (error) { message.textContent = error.message; }
+  finally { button.disabled = false; }
+});
 const now = new Date();
 document.getElementById("operationDate").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+document.getElementById("simplesDate").value = document.getElementById("operationDate").value;
 
 const session = readSession();
 if (session?.access_token) loadStatus(session.access_token).catch((error) => showLogin(error.message));
