@@ -33,7 +33,7 @@
           <p class="eyebrow">Luce Reforma Tributária</p>
           <h1 id="workspaceTitle">Prontidão das integrações</h1>
         </div>
-        <span class="phase">Desenvolvimento e homologação</span>
+        <span class="phase">Beta · cálculos pendentes de homologação</span>
       </div>
       <p id="workspaceMessage" class="message" role="status"></p>
       <table>
@@ -57,6 +57,24 @@
             <button type="submit">Cadastrar empresa</button>
           </form>
           <table><thead><tr><th>CNPJ</th><th>Razão social</th><th>Nome fantasia</th><th>Ações</th></tr></thead><tbody id="companyRows"></tbody></table>
+          <section class="subsection" aria-labelledby="draftTitle">
+            <h3 id="draftTitle">Simulações em rascunho</h3>
+            <p>Rascunhos não contêm cálculo tributário nem resultado fiscal.</p>
+            <form id="draftForm" class="draft-form">
+              <div><label for="draftCompany">Empresa</label><select id="draftCompany" required></select></div>
+              <div><label for="draftName">Cenário</label><input id="draftName" maxlength="120" required></div>
+              <div><label for="draftEngine">Regime</label><select id="draftEngine"><option value="regular">Regime Regular</option><option value="simples">Simples Nacional</option></select></div>
+              <div><label for="draftDate">Data da operação</label><input id="draftDate" type="date" required></div>
+              <div><label for="draftDescription">Descrição do item</label><input id="draftDescription" maxlength="180" required></div>
+              <div><label for="draftAmount">Valor da operação (R$)</label><input id="draftAmount" type="number" min="0" max="1000000000" step="0.01" required></div>
+              <div><label for="draftNcm">NCM (opcional)</label><input id="draftNcm" inputmode="numeric" pattern="[0-9]{8}" maxlength="8"></div>
+              <div><label for="draftNbs">NBS (opcional)</label><input id="draftNbs" inputmode="numeric" pattern="[0-9]{9}" maxlength="9"></div>
+              <button type="submit">Salvar rascunho</button>
+              <button id="newDraft" type="button">Novo cenário</button>
+            </form>
+            <p id="draftMessage" class="message" role="status"></p>
+            <div class="table-scroll"><table><thead><tr><th>Cenário</th><th>Empresa</th><th>Regime</th><th>Alterado em</th><th>Ações</th></tr></thead><tbody id="draftRows"></tbody></table></div>
+          </section>
           <section id="historySection" class="subsection" hidden aria-labelledby="historyTitle">
             <h3 id="historyTitle">Histórico de cálculos</h3>
             <p id="historyMessage" class="message" role="status"></p>

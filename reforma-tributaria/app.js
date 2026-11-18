@@ -7,6 +7,8 @@ const logout = document.getElementById("logout");
 let catalog = [];
 let organizations = [];
 let selectedCompanyId = null;
+let currentCompanies = [];
+let currentDraft = null;
 
 async function rtcRequest(path, options = {}) {
   const token = readSession()?.access_token;
@@ -21,7 +23,7 @@ async function rtcRequest(path, options = {}) {
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const messages = { store_not_configured: "Cadastro ainda não configurado.", store_unavailable: "Cadastro temporariamente indisponível.", bootstrap_forbidden: "Somente o administrador principal pode criar organizações.", invalid_cnpj: "CNPJ inválido.", invalid_name: "Informe um nome válido.", company_exists: "Esta empresa já está cadastrada nesta organização.", company_write_forbidden: "Seu perfil não permite cadastrar empresas.", organization_forbidden: "Você não possui acesso a esta organização.", engine_not_configured: "O motor oficial ainda não está configurado.", engine_version_mismatch: "A versão do motor não corresponde à versão homologada.", engine_unavailable: "O motor oficial está indisponível.", engine_timeout: "A consulta excedeu o tempo permitido.", invalid_date: "Informe uma data válida.", engine_invalid_response: "O motor retornou uma resposta incompatível." };
+    const messages = { module_disabled: "O módulo Beta está temporariamente indisponível.", store_not_configured: "Cadastro ainda não configurado.", store_unavailable: "Cadastro temporariamente indisponível.", bootstrap_forbidden: "Somente o administrador principal pode criar organizações.", invalid_cnpj: "CNPJ inválido.", invalid_name: "Informe um nome válido.", company_exists: "Esta empresa já está cadastrada nesta organização.", company_write_forbidden: "Seu perfil não permite cadastrar empresas.", organization_forbidden: "Você não possui acesso a esta organização.", invalid_draft: "Revise os dados do rascunho.", draft_conflict: "Este rascunho foi alterado. Recarregue-o antes de salvar.", draft_write_forbidden: "Seu perfil não permite salvar rascunhos.", engine_not_configured: "O motor oficial ainda não está configurado.", engine_version_mismatch: "A versão do motor não corresponde à versão homologada.", engine_unavailable: "O motor oficial está indisponível.", engine_timeout: "A consulta excedeu o tempo permitido.", invalid_date: "Informe uma data válida.", engine_invalid_response: "O motor retornou uma resposta incompatível." };
     throw new Error(messages[data.code] || "Não foi possível concluir a operação.");
   }
   return data;
@@ -31,12 +33,23 @@ async function loadCompanies() {
   const organization = organizations.find((item) => item.id === document.getElementById("organizationSelect").value);
   const form = document.getElementById("companyForm");
   form.hidden = !organization || organization.role !== "admin";
+  document.getElementById("draftForm").querySelector('button[type="submit"]').disabled = !organization || organization.role === "viewer";
   document.getElementById("auditSection").hidden = !organization || organization.role !== "admin";
   document.getElementById("historySection").hidden = true;
   document.getElementById("analysisDetail").hidden = true;
   selectedCompanyId = null;
+  currentDraft = null;
+  currentCompanies = [];
   if (!organization) return;
   const data = await rtcRequest(`/api/rtc/companies?organization_id=${encodeURIComponent(organization.id)}`);
+  currentCompanies = data.companies;
+  const select = document.getElementById("draftCompany");
+  select.replaceChildren(...currentCompanies.map((company) => {
+    const option = document.createElement("option");
+    option.value = company.id;
+    option.textContent = `${company.legal_name} · ${company.cnpj}`;
+    return option;
+  }));
   const body = document.getElementById("companyRows");
   body.replaceChildren(...data.companies.map((company) => {
     const row = document.createElement("tr");
@@ -57,7 +70,86 @@ async function loadCompanies() {
     return row;
   }));
   document.getElementById("registryMessage").textContent = data.companies.length ? "" : "Nenhuma empresa cadastrada nesta organização.";
+  if (currentCompanies.length) await loadDrafts();
+  else document.getElementById("draftRows").replaceChildren();
 }
+
+async function loadDrafts() {
+  const organizationId = document.getElementById("organizationSelect").value;
+  const companyId = document.getElementById("draftCompany").value;
+  if (!companyId) return;
+  const data = await rtcRequest(`/api/rtc/drafts?${new URLSearchParams({ organization_id: organizationId, company_id: companyId })}`);
+  document.getElementById("draftRows").replaceChildren(...data.drafts.map((draft) => {
+    const row = document.createElement("tr");
+    for (const value of [draft.title, currentCompanies.find((item) => item.id === draft.company_id)?.legal_name || "-",
+      draft.engine === "regular" ? "Regime Regular" : "Simples Nacional", new Date(draft.updated_at).toLocaleString("pt-BR")]) {
+      const cell = document.createElement("td");
+      cell.textContent = value;
+      row.append(cell);
+    }
+    const actions = document.createElement("td");
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.textContent = "Editar";
+    edit.addEventListener("click", () => {
+      currentDraft = draft;
+      document.getElementById("draftName").value = draft.title;
+      document.getElementById("draftEngine").value = draft.engine;
+      document.getElementById("draftDate").value = draft.operation_date;
+      document.getElementById("draftDescription").value = draft.scenario.items[0]?.description || "";
+      document.getElementById("draftAmount").value = ((draft.scenario.items[0]?.amount_cents || 0) / 100).toFixed(2);
+      document.getElementById("draftNcm").value = draft.scenario.items[0]?.ncm || "";
+      document.getElementById("draftNbs").value = draft.scenario.items[0]?.nbs || "";
+      document.getElementById("draftMessage").textContent = "Rascunho carregado. Nenhum cálculo fiscal foi executado.";
+    });
+    actions.append(edit);
+    row.append(actions);
+    return row;
+  }));
+}
+
+document.getElementById("draftCompany").addEventListener("change", () => {
+  currentDraft = null;
+  loadDrafts().catch((error) => { document.getElementById("draftMessage").textContent = error.message; });
+});
+document.getElementById("newDraft").addEventListener("click", () => {
+  currentDraft = null;
+  document.getElementById("draftForm").reset();
+  document.getElementById("draftMessage").textContent = "Novo cenário. Nenhum cálculo fiscal será executado.";
+});
+document.getElementById("draftForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = form.querySelector('button[type="submit"]');
+  const message = document.getElementById("draftMessage");
+  const amount = Number(document.getElementById("draftAmount").value);
+  const amountCents = Math.round(amount * 100);
+  if (!Number.isSafeInteger(amountCents) || amountCents < 0 || amountCents > 1_000_000_000_00) {
+    message.textContent = "Informe um valor válido.";
+    return;
+  }
+  button.disabled = true;
+  try {
+    const item = { description: document.getElementById("draftDescription").value.trim(), amount_cents: amountCents };
+    if (document.getElementById("draftNcm").value) item.ncm = document.getElementById("draftNcm").value;
+    if (document.getElementById("draftNbs").value) item.nbs = document.getElementById("draftNbs").value;
+    const body = {
+      id: currentDraft?.id || crypto.randomUUID(),
+      organization_id: document.getElementById("organizationSelect").value,
+      company_id: document.getElementById("draftCompany").value,
+      title: document.getElementById("draftName").value.trim(),
+      engine: document.getElementById("draftEngine").value,
+      operation_date: document.getElementById("draftDate").value,
+      scenario: { items: [item] },
+      ...(currentDraft ? { version: currentDraft.version } : {}),
+    };
+    const data = await rtcRequest("/api/rtc/drafts", { method: currentDraft ? "PATCH" : "POST", body: JSON.stringify(body) });
+    currentDraft = data.draft;
+    message.textContent = "Rascunho salvo sem resultado fiscal.";
+    await loadDrafts();
+  } catch (error) { message.textContent = error.message; }
+  finally { button.disabled = false; }
+});
 
 async function loadHistory(company) {
   const organizationId = document.getElementById("organizationSelect").value;

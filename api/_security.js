@@ -55,6 +55,11 @@ function legacyModuleForUser(user) {
 }
 
 export async function requireActiveModuleUser(request, response, moduleId) {
+  if (moduleId === "reforma-tributaria" && process.env.RTC_BETA_ENABLED === "0") {
+    setApiSecurityHeaders(response);
+    response.status(503).json({ code: "module_disabled", error: "Módulo Beta temporariamente indisponível." });
+    return null;
+  }
   const user = await currentSupabaseUser(request);
   if (!user) {
     setApiSecurityHeaders(response);
