@@ -78,6 +78,15 @@ const modules = [
     description: "Prepare PDFs, gere links individuais e acompanhe assinaturas eletrônicas.",
     benefits: ["Links manuais", "Autenticação adicional", "PDF e evidências"],
   },
+  {
+    initials: "RT",
+    icon: "RF",
+    name: "Reforma Tributária",
+    href: "reforma-tributaria/",
+    status: "Em homologação",
+    description: "Consulta classificações tributárias por meio do motor oficial homologado.",
+    benefits: ["CST e cClassTrib", "Fonte identificada", "Versão rastreável"],
+  },
 ];
 
 const siteHeader = document.getElementById("siteHeader");

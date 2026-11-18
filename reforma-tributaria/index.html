@@ -40,6 +40,26 @@
         <thead><tr><th>Motor oficial</th><th>Estado</th></tr></thead>
         <tbody id="engines"></tbody>
       </table>
+      <section class="catalog" aria-labelledby="catalogTitle">
+        <h2 id="catalogTitle">Consulta de CST e cClassTrib</h2>
+        <form id="catalogForm" class="catalog-form">
+          <div>
+            <label for="operationDate">Data da operação</label>
+            <input id="operationDate" name="data" type="date" required>
+          </div>
+          <button type="submit">Consultar</button>
+        </form>
+        <p id="catalogMessage" class="message" role="status"></p>
+        <p id="catalogSource" class="source" hidden></p>
+        <div id="catalogResults" hidden>
+          <label for="catalogFilter">Filtrar resultados</label>
+          <input id="catalogFilter" type="search" placeholder="Código ou descrição">
+          <table>
+            <thead><tr><th>CST</th><th>Descrição</th><th>cClassTrib</th></tr></thead>
+            <tbody id="catalogRows"></tbody>
+          </table>
+        </div>
+      </section>
     </section>
   </main>
   <script src="app.js" defer></script>
