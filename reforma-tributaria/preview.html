@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Previa visual | Luce Reforma Tributaria</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">LUCE</span>
+    <span class="product">Reforma Tributária</span>
+  </header>
+  <main class="workspace preview-workspace">
+    <div class="page-heading">
+      <div><p class="eyebrow">Portal Luce</p><h1>Reforma Tributária</h1></div>
+      <span class="phase">Prévia visual · sem banco</span>
+    </div>
+    <p class="preview-notice" role="status">Esta página serve apenas para avaliar a interface. Não autentica usuários do módulo, não consulta ou grava dados e não executa cálculos fiscais.</p>
+    <nav class="preview-nav" aria-label="Seções da prévia">
+      <a href="#visao-geral">Visão geral</a><a href="#empresas">Empresas</a><a href="#simulador">Simulador</a><a href="#consultas">Consultas</a>
+    </nav>
+    <section id="visao-geral" aria-labelledby="previewOverviewTitle">
+      <h2 id="previewOverviewTitle">Visão geral</h2>
+      <div class="overview" aria-label="Resumo vazio da prévia">
+        <div><strong>0</strong><span>Empresas cadastradas</span></div>
+        <div><strong>0</strong><span>Rascunhos salvos</span></div>
+      </div>
+      <table><thead><tr><th>Motor oficial</th><th>Estado</th></tr></thead><tbody>
+        <tr><td>Regime Regular</td><td>Não conectado nesta prévia</td></tr>
+        <tr><td>Simples Nacional</td><td>Não conectado nesta prévia</td></tr>
+        <tr><td>Gerador DANFSe</td><td>Não conectado nesta prévia</td></tr>
+      </tbody></table>
+    </section>
+    <section id="empresas" class="registry" aria-labelledby="previewCompaniesTitle">
+      <h2 id="previewCompaniesTitle">Empresas</h2>
+      <p>Nenhuma empresa é carregada nesta prévia. O cadastro real exige autenticação e banco Beta isolado.</p>
+      <div class="table-scroll"><table><thead><tr><th>CNPJ</th><th>Razão social</th><th>Nome fantasia</th><th>Ações</th></tr></thead><tbody><tr><td colspan="4">Sem dados nesta prévia.</td></tr></tbody></table></div>
+    </section>
+    <section id="simulador" class="subsection" aria-labelledby="previewSimulatorTitle">
+      <h2 id="previewSimulatorTitle">Simulador</h2>
+      <p>Os campos abaixo são interativos somente para avaliar o preenchimento. O conteúdo será perdido ao sair da página.</p>
+      <form id="previewForm" class="draft-form">
+        <div><label for="previewCompany">Empresa</label><select id="previewCompany" disabled><option>Nenhuma empresa disponível</option></select></div>
+        <div><label for="previewName">Cenário</label><input id="previewName" maxlength="120" placeholder="Nome do cenário"></div>
+        <div><label for="previewEngine">Regime</label><select id="previewEngine"><option>Regime Regular</option><option>Simples Nacional</option></select></div>
+        <div><label for="previewDate">Data da operação</label><input id="previewDate" type="date"></div>
+        <div id="previewItems" class="draft-items" aria-label="Itens da operação"></div>
+        <button id="previewAddItem" type="button">Adicionar item</button>
+        <button type="submit" disabled title="Salvamento indisponível sem banco Beta">Salvar rascunho</button>
+        <button id="previewClear" type="reset">Limpar campos</button>
+      </form>
+      <p class="message" role="status">Salvamento e cálculo fiscal indisponíveis nesta prévia.</p>
+      <div class="draft-filters">
+        <div><label for="previewRegimeFilter">Filtrar por regime</label><select id="previewRegimeFilter" disabled><option>Todos</option></select></div>
+        <div><label for="previewMonthFilter">Filtrar por mês da operação</label><input id="previewMonthFilter" type="month" disabled></div>
+      </div>
+      <div class="table-scroll"><table><thead><tr><th>Cenário</th><th>Empresa</th><th>Regime</th><th>Alterado em</th><th>Ações</th></tr></thead><tbody><tr><td colspan="5">Nenhum rascunho salvo. Esta página não possui persistência.</td></tr></tbody></table></div>
+    </section>
+    <section id="consultas" class="catalog" aria-labelledby="previewCatalogTitle">
+      <h2 id="previewCatalogTitle">Consultas oficiais</h2>
+      <p>CST, cClassTrib, NCM, NBS e atividades do Simples exigem gateway autenticado e motores oficiais. Nenhuma consulta é realizada nesta prévia.</p>
+    </section>
+  </main>
+  <script src="preview.js" defer></script>
+</body>
+</html>

@@ -3,13 +3,27 @@
 Nenhuma migration hospedada, variável Vercel ou deploy foi alterado nesta rodada.
 O código bloqueia os endpoints RTC em `VERCEL_ENV=production`, mesmo com `RTC_BETA_ENABLED=1`.
 
+## Duas modalidades separadas
+
+**A — Prévia visual:** `node infra/rtc-preview/build.mjs` gera `infra/rtc-preview/dist/` com somente `index.html`, `preview.js`, `style.css` e `vercel.json` (CSP e cabeçalhos). Esse diretório pode ser implantado como projeto Vercel estático independente, sem utilizar o build nem as variáveis do portal. Não inclui API, credencial, Supabase, dados reais ou persistência. Os campos aceitam interação local apenas para avaliação visual; salvar e calcular ficam desabilitados. O build normal do portal exclui essa página. Antes de criar ou compartilhar o deployment, habilitar e verificar Vercel Authentication/Deployment Protection para o projeto de prévia e limitar os membros autorizados. A autenticação da Vercel protege a página, mas **não substitui** a autorização do módulo RTC; esta modalidade não serve para testes de dados ou segurança do Supabase. Não há deploy desta modalidade nesta branch local.
+
+**B — Beta funcional:** usa o Portal Luce em Vercel Preview, APIs RTC, Auth/PostgREST/Storage de um **projeto Supabase Beta isolado** e as quatro migrations RTC. Exige os testes reais de RLS, auditoria, concorrência e rollback antes de habilitar `RTC_BETA_ENABLED=1`. O backend aceita apenas administradores de `RTC_BETA_ADMIN_IDS` no Preview e bloqueia o RTC em produção. Os motores e cálculos fiscais permanecem desligados. Não há projeto Beta hospedado nem deploy desta modalidade.
+
 ## Banco de homologação sem Docker
 
-1. **Projeto Supabase separado (recomendado):** fornece PostgreSQL, Auth, PostgREST e Storage iguais aos usados pelo módulo. O plano Free permite dois projetos ativos por proprietário/administrador; as duas vagas atuais têm finalidade própria. Sem pausar um deles ou contratar capacidade adicional, não há vaga livre na conta atual. Não colocar dados reais nem credenciais de produção em um futuro projeto Beta; sua criação depende de decisão e autorização específicas.
+1. **Projeto Supabase separado (recomendado para Beta completa):** fornece PostgreSQL, Auth, PostgREST e Storage iguais aos usados pelo módulo. O plano Free permite dois projetos ativos por proprietário/administrador; as duas vagas atuais têm finalidade própria. Pausar a homologação e-BEF liberaria uma vaga sem apagar dados, mas interromperia esse ambiente e contraria a decisão atual de mantê-lo ativo. Não fazer isso sem autorização expressa. Não colocar dados reais nem credenciais de produção em um futuro projeto Beta.
 2. **PGlite local:** já executa as migrations e testes de SQL/RLS sem Docker e sem custo. Serve para validar regras e concorrência, mas não oferece Auth, PostgREST ou Storage Supabase; sozinho não permite teste HTTP de ponta a ponta nem Preview compartilhado.
-3. **PostgreSQL hospedado gratuito de outro provedor:** evita Docker, mas exigiria substituir/adaptar Auth, RLS via API, Storage e o cliente Supabase. Isso amplia risco e trabalho para a Beta; não é a recomendação.
+3. **PostgreSQL hospedado gratuito de outro provedor:** evita Docker, mas não fornece equivalência de Auth, PostgREST e Storage. Exigiria substituir/adaptar componentes e não homologa o comportamento Supabase existente; não é a recomendação.
+4. **Capacidade paga:** o Supabase Pro começa em US$ 25/mês, com projetos adicionais a partir de US$ 10/mês, sujeitos à configuração de compute e uso. Contratação somente após decisão expressa. Um Supabase autohospedado exige servidor, operação e hardening próprios; não é automaticamente gratuito nem equivale ao serviço gerenciado.
 
 Não reutilizar o projeto de produção nem o projeto de homologação do e-BEF sem autorização específica. Não configurar Preview com chaves de produção.
+
+## Checklist antes de qualquer publicação
+
+1. Modalidade A: autorizar novo projeto Vercel estático que receba apenas `infra/rtc-preview/dist/`; confirmar que o artefato contém só quatro arquivos e não herda variáveis Supabase; ativar Vercel Authentication e conferir o acesso com conta autorizada e não autorizada. Sem essa verificação, não compartilhar a URL.
+2. Modalidade B: autorizar e provisionar projeto Supabase Beta isolado, criar backup inicial, aplicar somente as quatro migrations RTC, executar advisors e testes reais de Auth/RLS/Storage/concorrência. Configurar variáveis apenas no Preview e garantir que a URL do banco não seja a principal nem a do e-BEF.
+3. Para ambos: autorizar push da branch e deployment separadamente. Não apontar domínio de produção nem promover Preview. Verificar logs de erro sem tokens, documentos ou dados fiscais sensíveis.
+4. Rollback A: desabilitar Deployment/retirar acesso ao projeto de prévia; nenhum dado foi gravado. Rollback B: definir `RTC_BETA_ENABLED=0` e publicar novo Preview; preservar banco, eventos e migrations para análise, sem exclusão destrutiva.
 
 ## Prontidão do Preview
 

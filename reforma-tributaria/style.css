@@ -66,6 +66,12 @@ button:disabled { opacity: .52; cursor: not-allowed; }
 .catalog-form input { margin: 7px 0 0; max-width: 190px; }
 .catalog-form button { min-height: 42px; padding: 10px 18px; }
 .source { color: #4b627c; font-size: 13px; }
+.preview-workspace h2 { font-size: 19px; }
+.preview-notice { border-left: 3px solid #795d18; background: #f7edcf; padding: 12px 14px; line-height: 1.5; }
+.preview-nav { display: flex; flex-wrap: wrap; gap: 16px; margin: 18px 0 26px; border-bottom: 1px solid #dce4ed; padding-bottom: 12px; }
+.preview-nav a { color: #0b3370; font-weight: 600; text-decoration: none; }
+.preview-nav a:hover { text-decoration: underline; }
+#previewClear { background: white; color: #0b3370; border: 1px solid #b9c8d8; }
 #catalogFilter { max-width: 320px; margin-top: 7px; }
 details summary { cursor: pointer; color: #0b3370; }
 details ul { padding-left: 18px; margin-bottom: 0; }

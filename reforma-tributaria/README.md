@@ -1,5 +1,7 @@
 # Luce Reforma Tributária
 
+Prévia exclusivamente visual: `node infra/rtc-preview/build.mjs` gera um artefato estático separado em `infra/rtc-preview/dist/`. Ele não autentica no módulo, consulta APIs, persiste rascunhos ou calcula tributos. A proteção por Vercel Authentication precisa ser verificada antes de qualquer publicação autorizada. Ver `docs/luce-rtc/preview-beta.md`.
+
 Fundação Beta do módulo em desenvolvimento. Esta versão permite autenticação pelo endpoint existente do Portal Luce, cadastro de empresas e rascunhos de simulação com múltiplos itens, duplicação, filtros, exclusão auditada, exportação de dados informados e salvamento automático após o primeiro salvamento, histórico de análises já registradas e prontidão dos motores. Também oferece consultas de CST/cClassTrib e NCM/NBS por data, exclusivamente quando o motor oficial do Regime Regular estiver implantado, autenticado e com versão `1.6.1` confirmada. Rascunhos não são cálculos nem resultados fiscais. Ainda não executa cálculos, valida XML ou gera DANFSe.
 
 ## Acesso
