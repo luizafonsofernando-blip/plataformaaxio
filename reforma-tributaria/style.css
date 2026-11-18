@@ -1,13 +1,13 @@
 :root { color-scheme: light; font-family: Arial, Helvetica, sans-serif; color: #142440; background: #f5f7fa; }
 * { box-sizing: border-box; }
 body { margin: 0; }
-button, input, select { font: inherit; }
+button, input, select, textarea { font: inherit; }
 .topbar { min-height: 64px; display: flex; align-items: center; gap: 20px; padding: 0 28px; border-bottom: 1px solid #dce4ed; background: white; }
 .brand { color: #0b3370; font-size: 23px; font-weight: 800; text-decoration: none; }
 .product { border-left: 1px solid #cad5e3; padding-left: 20px; font-weight: 600; }
 .topbar button { margin-left: auto; border: 1px solid #cad5e3; background: white; padding: 9px 15px; cursor: pointer; }
 button { border-radius: 5px; }
-button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid #58a6e7; outline-offset: 2px; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid #58a6e7; outline-offset: 2px; }
 .login-view { min-height: calc(100vh - 64px); display: grid; place-items: center; padding: 28px; }
 .login-panel { width: min(100%, 390px); background: white; border: 1px solid #dce4ed; padding: 28px; box-shadow: 0 12px 30px #14244012; }
 h1 { font-size: 26px; margin: 0 0 24px; }
@@ -15,6 +15,7 @@ h1 { font-size: 26px; margin: 0 0 24px; }
 form { display: grid; gap: 10px; }
 label { font-size: 14px; font-weight: 600; }
 input, select { width: 100%; padding: 11px; margin-bottom: 8px; border: 1px solid #b9c8d8; border-radius: 4px; background: white; }
+textarea { width: 100%; padding: 11px; border: 1px solid #b9c8d8; border-radius: 4px; background: white; resize: vertical; }
 form button { border: 0; padding: 12px; background: #0b3370; color: white; font-weight: 700; cursor: pointer; }
 form button:hover { background: #15549a; }
 .message { min-height: 20px; color: #9b2d31; font-size: 14px; }
@@ -60,6 +61,13 @@ th { font-size: 12px; color: #4b627c; text-transform: uppercase; }
 button:disabled { opacity: .52; cursor: not-allowed; }
 #analysisData { overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: white; border: 1px solid #dce4ed; padding: 14px; max-height: 380px; }
 #codeResult { overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: white; border: 1px solid #dce4ed; padding: 14px; }
+#calculationOutput { overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: white; border: 1px solid #dce4ed; padding: 14px; max-height: 520px; }
+.calculation-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 800px; }
+.calculation-form > div { min-width: 0; }
+.calculation-form input, .calculation-form select { margin-top: 7px; }
+.calculation-payload { grid-column: 1 / -1; }
+.calculation-payload textarea { margin-top: 7px; }
+.calculation-form button { justify-self: start; }
 #reportLinks { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 .catalog h2 { font-size: 19px; margin-bottom: 16px; }
 .catalog-form { display: flex; align-items: end; gap: 12px; margin-bottom: 8px; }
@@ -79,4 +87,4 @@ details li { margin: 7px 0; }
 details li strong { margin-right: 8px; }
 [hidden] { display: none !important; }
 @media (max-width: 800px) { .draft-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } .draft-item { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 600px) { .topbar { padding: 0 16px; gap: 12px; } .product { padding-left: 12px; font-size: 14px; } .workspace { padding: 24px 16px; } .page-heading { display: block; } .phase { display: inline-block; margin-bottom: 12px; } .catalog-form { display: block; } .catalog-form button { margin-top: 8px; } .draft-form, .draft-item, .overview { grid-template-columns: 1fr; } th, td { padding: 10px 8px; } }
+@media (max-width: 600px) { .topbar { padding: 0 16px; gap: 12px; } .product { padding-left: 12px; font-size: 14px; } .workspace { padding: 24px 16px; } .page-heading { display: block; } .phase { display: inline-block; margin-bottom: 12px; } .catalog-form { display: block; } .catalog-form button { margin-top: 8px; } .draft-form, .draft-item, .overview, .calculation-form { grid-template-columns: 1fr; } th, td { padding: 10px 8px; } }

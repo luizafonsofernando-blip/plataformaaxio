@@ -1,8 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { fetchRegularClassifications, fetchRegularCode, RtcEngineError, validOperationDate } from "../server-assets/rtc-official.mjs";
+import { calculateRegularOperation, fetchRegularClassifications, fetchRegularCode, RtcEngineError, validOperationDate } from "../server-assets/rtc-official.mjs";
 import handler from "../api/rtc/classifications.js";
 import codeHandler from "../api/rtc/code.js";
+import calculateHandler from "../api/rtc/calculate.js";
 
 const config = { RTC_REGULAR_ENGINE_URL: "https://engine.example/", RTC_REGULAR_ENGINE_TOKEN: "test-token" };
 const originalFetch = globalThis.fetch;
@@ -68,6 +69,36 @@ test("connector rejects a version mismatch and never queries the catalog", async
   globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ versaoApp: "1.6.2" })); };
   await assert.rejects(fetchRegularClassifications("2026-11-17", config), (error) => error.code === "engine_version_mismatch");
   assert.equal(calls, 1);
+});
+
+test("regular calculation preserves official item states and simulation warning", async () => {
+  const operation = { id: "test", itens: [{ numero: 1 }] };
+  const calls = [];
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url: String(url), options });
+    return new Response(JSON.stringify(calls.length === 1
+      ? { versaoApp: "1.6.1", versaoDb: "2026-11" }
+      : { objetos: [{ estadoItem: "CALCULO_SIMULADO" }], total: {} }),
+    { headers: calls.length === 2 ? { "x-warning-dados-simulados": "6" } : {} });
+  };
+  const result = await calculateRegularOperation(operation, config);
+  assert.equal(result.engineVersion, "1.6.1");
+  assert.equal(result.output.objetos[0].estadoItem, "CALCULO_SIMULADO");
+  assert.equal(result.warning, "6");
+  assert.equal(calls[1].url, "https://engine.example/api/calculadora/observabilidade/regime-geral");
+  assert.equal(calls[1].options.method, "POST");
+  assert.deepEqual(JSON.parse(calls[1].options.body), operation);
+  await assert.rejects(calculateRegularOperation({ itens: [] }, config), (error) => error.code === "invalid_operation");
+});
+
+test("calculation API rejects anonymous users before invoking the engine", async () => {
+  let called = false;
+  globalThis.fetch = async () => { called = true; throw new Error("unexpected"); };
+  const response = { statusCode: 200, setHeader() { return this; },
+    status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } };
+  await calculateHandler({ method: "POST", headers: { host: "localhost:3000" }, body: {} }, response);
+  assert.equal(response.statusCode, 401);
+  assert.equal(called, false);
 });
 
 test("connector permits only the explicit loopback gateway in local development", async () => {

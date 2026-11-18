@@ -23,11 +23,18 @@ function validEngineBase(base, config) {
     && !base.search && !base.hash && base.pathname === "/";
 }
 
-async function getJson(url, token, signal) {
+function engineHeaders(token, config, withBody = false) {
+  const bypass = String(config.RTC_ENGINE_BYPASS_TOKEN || "").trim();
+  return { accept: "application/json", authorization: `Bearer ${token}`,
+    ...(bypass ? { "x-vercel-protection-bypass": bypass } : {}),
+    ...(withBody ? { "content-type": "application/json" } : {}) };
+}
+
+async function getJson(url, token, signal, config) {
   let response;
   try {
     response = await fetch(url, {
-      headers: { accept: "application/json", authorization: `Bearer ${token}` },
+      headers: engineHeaders(token, config),
       signal,
       cache: "no-store",
       redirect: "error",
@@ -58,13 +65,13 @@ export async function fetchRegularClassifications(date, config = process.env) {
   }
   const signal = AbortSignal.timeout(8_000);
   const prefix = new URL("/api/calculadora/dados-abertos/", base);
-  const version = await getJson(new URL("versao", prefix), token, signal);
+  const version = await getJson(new URL("versao", prefix), token, signal, config);
   if (version?.versaoApp !== EXPECTED_REGULAR_VERSION) {
     throw new RtcEngineError("engine_version_mismatch", 503);
   }
   const catalogUrl = new URL("situacoes-tributarias/cbs-ibs", prefix);
   catalogUrl.searchParams.set("data", date);
-  const rows = await getJson(catalogUrl, token, signal);
+  const rows = await getJson(catalogUrl, token, signal, config);
   if (!Array.isArray(rows) || rows.some((row) => typeof row?.codigo !== "string"
     || typeof row?.descricao !== "string"
     || !Array.isArray(row?.classificacoesTributarias)
@@ -95,12 +102,12 @@ export async function fetchRegularCode(kind, code, date, config = process.env) {
   if (!validEngineBase(base, config)) throw new RtcEngineError("engine_not_configured", 503);
   const signal = AbortSignal.timeout(8_000);
   const prefix = new URL("/api/calculadora/dados-abertos/", base);
-  const version = await getJson(new URL("versao", prefix), token, signal);
+  const version = await getJson(new URL("versao", prefix), token, signal, config);
   if (version?.versaoApp !== EXPECTED_REGULAR_VERSION) throw new RtcEngineError("engine_version_mismatch", 503);
   const lookup = new URL(kind, prefix);
   lookup.searchParams.set(kind, code);
   lookup.searchParams.set("data", date);
-  const details = await getJson(lookup, token, signal);
+  const details = await getJson(lookup, token, signal, config);
   if (!details || typeof details !== "object" || Array.isArray(details)
     || typeof details.capitulo !== "string") throw new RtcEngineError("engine_invalid_response", 502);
   return { source: "ReceitaFederal/calculadora-rtc-regime-regular", engineVersion: version.versaoApp,
@@ -121,11 +128,11 @@ export async function fetchSimplesActivities(date, config = process.env) {
   }
   const signal = AbortSignal.timeout(8_000);
   const prefix = new URL("/api/", base);
-  const version = await getJson(new URL("versao", prefix), token, signal);
+  const version = await getJson(new URL("versao", prefix), token, signal, config);
   if (version?.versaoApp !== EXPECTED_SIMPLES_VERSION) throw new RtcEngineError("engine_version_mismatch", 503);
   const catalogUrl = new URL("calculadora/simples-nacional/atividades", prefix);
   catalogUrl.searchParams.set("data", date);
-  const rows = await getJson(catalogUrl, token, signal);
+  const rows = await getJson(catalogUrl, token, signal, config);
   if (!Array.isArray(rows) || rows.some((row) => typeof row?.codigo !== "string" || typeof row?.descricao !== "string"
     || typeof row?.disponivel !== "boolean" || !Array.isArray(row?.tpDocsAdmissiveis))) {
     throw new RtcEngineError("engine_invalid_response", 502);
@@ -138,4 +145,50 @@ export async function fetchSimplesActivities(date, config = process.env) {
     operationDate: date,
     rows,
   };
+}
+
+export async function calculateRegularOperation(operation, config = process.env) {
+  if (!operation || typeof operation !== "object" || Array.isArray(operation)
+    || !Array.isArray(operation.itens) || operation.itens.length < 1 || operation.itens.length > 50
+    || Buffer.byteLength(JSON.stringify(operation), "utf8") > 128_000) {
+    throw new RtcEngineError("invalid_operation", 400);
+  }
+  const endpoint = String(config.RTC_REGULAR_ENGINE_URL || "").trim();
+  const token = String(config.RTC_REGULAR_ENGINE_TOKEN || "").trim();
+  if (!endpoint || !token) throw new RtcEngineError("engine_not_configured", 503);
+  let base;
+  try { base = new URL(endpoint); }
+  catch { throw new RtcEngineError("engine_not_configured", 503); }
+  if (!validEngineBase(base, config)) throw new RtcEngineError("engine_not_configured", 503);
+  const signal = AbortSignal.timeout(20_000);
+  const version = await getJson(new URL("/api/calculadora/dados-abertos/versao", base), token, signal, config);
+  if (version?.versaoApp !== EXPECTED_REGULAR_VERSION) throw new RtcEngineError("engine_version_mismatch", 503);
+  let response;
+  try {
+    response = await fetch(new URL("/api/calculadora/observabilidade/regime-geral", base), {
+      method: "POST", headers: engineHeaders(token, config, true), body: JSON.stringify(operation), signal,
+      cache: "no-store", redirect: "error",
+    });
+  } catch (error) {
+    throw new RtcEngineError(error?.name === "TimeoutError" || error?.name === "AbortError"
+      ? "engine_timeout" : "engine_unavailable", 503);
+  }
+  if (!response.ok) throw new RtcEngineError("engine_rejected_operation", 422);
+  if (Number(response.headers.get("content-length") || 0) > MAX_RESPONSE_BYTES) {
+    throw new RtcEngineError("engine_response_too_large", 502);
+  }
+  const bytes = await response.arrayBuffer();
+  if (bytes.byteLength > MAX_RESPONSE_BYTES) throw new RtcEngineError("engine_response_too_large", 502);
+  let output;
+  try { output = JSON.parse(new TextDecoder().decode(bytes)); }
+  catch { throw new RtcEngineError("engine_invalid_response", 502); }
+  if (!output || !Array.isArray(output.objetos) || !output.total
+    || output.objetos.length !== operation.itens.length
+    || output.objetos.some((item) => typeof item?.estadoItem !== "string")) {
+    throw new RtcEngineError("engine_invalid_response", 502);
+  }
+  return { output, engineVersion: version.versaoApp, databaseVersion: String(version.versaoDb || ""),
+    warning: response.headers.get("x-warning-dados-simulados") || null,
+    source: "ReceitaFederal/calculadora-rtc-regime-regular",
+    sourceCommit: "150cccbe414d4a5edea703e4f7a424af5aa222c7" };
 }

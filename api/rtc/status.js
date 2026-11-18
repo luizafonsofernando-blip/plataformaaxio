@@ -17,6 +17,8 @@ export default async function handler(request, response) {
   if (!user) return;
   return response.status(200).json({
     phase: "development",
+    calculationEnabled: process.env.RTC_CALC_ENABLED === "1"
+      && Boolean(process.env.RTC_REGULAR_ENGINE_URL && process.env.RTC_REGULAR_ENGINE_TOKEN),
     engines: engines.map(({ id, name, variable, token }) => ({
       id,
       name,

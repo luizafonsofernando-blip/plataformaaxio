@@ -98,6 +98,19 @@
           </section>
         </div>
       </section>
+      <section id="calculationSection" class="catalog" hidden aria-labelledby="calculationTitle">
+        <h2 id="calculationTitle">Cálculo de teste · Regime Regular</h2>
+        <p>Resultado do motor oficial em validação. Confira os avisos e cada item antes de qualquer uso fiscal.</p>
+        <form id="calculationForm" class="calculation-form">
+          <div><label for="calculationCompany">Empresa</label><select id="calculationCompany" required></select></div>
+          <div><label for="calculationDate">Data da operação</label><input id="calculationDate" type="date" required></div>
+          <div class="calculation-payload"><label for="calculationOperation">Operação no formato JSON da calculadora oficial</label>
+            <textarea id="calculationOperation" rows="11" spellcheck="false" required></textarea></div>
+          <button type="submit">Executar cálculo de teste</button>
+        </form>
+        <p id="calculationMessage" class="message" role="status"></p>
+        <pre id="calculationOutput" hidden></pre>
+      </section>
       <section class="catalog" aria-labelledby="catalogTitle">
         <h2 id="catalogTitle">Consulta de CST e cClassTrib</h2>
         <form id="catalogForm" class="catalog-form">

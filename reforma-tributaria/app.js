@@ -38,7 +38,7 @@ async function rtcRequest(path, options = {}) {
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const messages = { module_disabled: "O módulo Beta está temporariamente indisponível.", store_not_configured: "Cadastro ainda não configurado.", store_unavailable: "Cadastro temporariamente indisponível.", bootstrap_forbidden: "Somente o administrador principal pode criar organizações.", invalid_cnpj: "CNPJ inválido.", invalid_name: "Informe um nome válido.", company_exists: "Esta empresa já está cadastrada nesta organização.", company_write_forbidden: "Seu perfil não permite cadastrar empresas.", organization_forbidden: "Você não possui acesso a esta organização.", invalid_draft: "Revise os dados do rascunho.", draft_conflict: "Este rascunho foi alterado. Recarregue-o antes de salvar.", draft_write_forbidden: "Seu perfil não permite salvar rascunhos.", invalid_code: "Informe um NCM de 8 dígitos ou NBS de 9 dígitos.", engine_not_configured: "O motor oficial ainda não está configurado.", engine_version_mismatch: "A versão do motor não corresponde à versão homologada.", engine_unavailable: "O motor oficial está indisponível.", engine_timeout: "A consulta excedeu o tempo permitido.", invalid_date: "Informe uma data válida.", engine_invalid_response: "O motor retornou uma resposta incompatível." };
+    const messages = { module_disabled: "O módulo Beta está temporariamente indisponível.", store_not_configured: "Cadastro ainda não configurado.", store_unavailable: "Cadastro temporariamente indisponível.", bootstrap_forbidden: "Somente o administrador principal pode criar organizações.", invalid_cnpj: "CNPJ inválido.", invalid_name: "Informe um nome válido.", company_exists: "Esta empresa já está cadastrada nesta organização.", company_write_forbidden: "Seu perfil não permite cadastrar empresas.", organization_forbidden: "Você não possui acesso a esta organização.", invalid_draft: "Revise os dados do rascunho.", draft_conflict: "Este rascunho foi alterado. Recarregue-o antes de salvar.", draft_write_forbidden: "Seu perfil não permite salvar rascunhos.", invalid_code: "Informe um NCM de 8 dígitos ou NBS de 9 dígitos.", engine_not_configured: "O motor oficial ainda não está configurado.", engine_version_mismatch: "A versão do motor não corresponde à versão homologada.", engine_unavailable: "O motor oficial está indisponível.", engine_timeout: "A consulta excedeu o tempo permitido.", invalid_date: "Informe uma data válida.", engine_invalid_response: "O motor retornou uma resposta incompatível.", invalid_operation: "Revise a operação e a data informadas.", calculation_not_validated: "O cálculo ainda não foi liberado para testes.", calculation_forbidden: "Seu perfil não permite executar cálculos.", calculation_conflict: "Este pedido já foi usado para outra operação.", engine_rejected_operation: "A calculadora oficial rejeitou os dados da operação." };
     throw new Error(messages[data.code] || "Não foi possível concluir a operação.");
   }
   return data;
@@ -64,6 +64,12 @@ async function loadCompanies() {
   document.getElementById("companyCount").textContent = String(currentCompanies.length);
   const select = document.getElementById("draftCompany");
   select.replaceChildren(...currentCompanies.map((company) => {
+    const option = document.createElement("option");
+    option.value = company.id;
+    option.textContent = `${company.legal_name} · ${company.cnpj}`;
+    return option;
+  }));
+  document.getElementById("calculationCompany").replaceChildren(...currentCompanies.map((company) => {
     const option = document.createElement("option");
     option.value = company.id;
     option.textContent = `${company.legal_name} · ${company.cnpj}`;
@@ -523,7 +529,10 @@ async function loadStatus(token) {
   loginView.hidden = true;
   workspace.hidden = false;
   logout.hidden = false;
-  workspaceMessage.textContent = "Nenhum cálculo está disponível antes da homologação dos motores oficiais.";
+  document.getElementById("calculationSection").hidden = !data.calculationEnabled;
+  workspaceMessage.textContent = data.calculationEnabled
+    ? "Cálculos de teste habilitados para administradores. Confira estados e avisos antes de usar os resultados."
+    : "Nenhum cálculo está disponível antes da homologação dos motores oficiais.";
   loadOrganizations().catch((error) => { document.getElementById("registryMessage").textContent = error.message; });
 }
 
@@ -565,6 +574,45 @@ document.getElementById("companyForm").addEventListener("submit", async (event) 
     form.reset();
     await loadCompanies();
   } catch (error) { document.getElementById("registryMessage").textContent = error.message; }
+  finally { button.disabled = false; }
+});
+
+document.getElementById("calculationForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const message = document.getElementById("calculationMessage");
+  const output = document.getElementById("calculationOutput");
+  const button = form.querySelector('button[type="submit"]');
+  output.hidden = true;
+  message.textContent = "";
+  let operation;
+  try { operation = JSON.parse(document.getElementById("calculationOperation").value); }
+  catch { message.textContent = "O JSON da operação não é válido."; return; }
+  const operationDate = document.getElementById("calculationDate").value;
+  if (!operation || typeof operation !== "object" || !String(operation.dhFatoGerador || "").startsWith(operationDate)) {
+    message.textContent = "A data da operação deve coincidir com a data do fato gerador no JSON.";
+    return;
+  }
+  button.disabled = true;
+  message.textContent = "Consultando o motor oficial...";
+  try {
+    const data = await rtcRequest("/api/rtc/calculate", { method: "POST", body: JSON.stringify({
+      organization_id: document.getElementById("organizationSelect").value,
+      company_id: document.getElementById("calculationCompany").value,
+      operation_date: operationDate,
+      correlation_id: crypto.randomUUID(), operation,
+    }) });
+    const analysis = data.analysis;
+    message.textContent = analysis.status === "completed"
+      ? "Resultado calculado pelo motor oficial. Confira os dados antes do uso fiscal."
+      : analysis.status === "unsupported"
+        ? "Há itens simulados ou não suportados. Não utilize este resultado como apuração oficial."
+        : "A operação possui inconsistências. Confira os erros de cada item.";
+    output.textContent = JSON.stringify(analysis.output_data, null, 2);
+    output.hidden = false;
+    const company = currentCompanies.find((item) => item.id === document.getElementById("calculationCompany").value);
+    if (company) await loadHistory(company);
+  } catch (error) { message.textContent = error.message; }
   finally { button.disabled = false; }
 });
 

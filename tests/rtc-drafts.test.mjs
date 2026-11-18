@@ -46,8 +46,8 @@ test('RTC draft API rejects anonymous requests and honors the server kill switch
   }
 });
 
-test('Preview requires explicit Beta enablement and a nonproduction Supabase project', () => {
-  const keys = ['VERCEL_ENV', 'RTC_BETA_ENABLED', 'SUPABASE_URL'];
+test('hosted RTC requires explicit Beta enablement and primary-project opt-in', () => {
+  const keys = ['VERCEL_ENV', 'RTC_BETA_ENABLED', 'RTC_PRIMARY_BETA_ENABLED', 'SUPABASE_URL'];
   const previous = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
   try {
     process.env.VERCEL_ENV = 'preview';
@@ -59,6 +59,9 @@ test('Preview requires explicit Beta enablement and a nonproduction Supabase pro
     assert.equal(rtcBetaReady(), false);
     process.env.SUPABASE_URL = 'https://prznhgwiibcazuwlwvnt.supabase.co/';
     assert.equal(rtcBetaReady(), false);
+    process.env.RTC_PRIMARY_BETA_ENABLED = '1';
+    assert.equal(rtcBetaReady(), true);
+    delete process.env.RTC_PRIMARY_BETA_ENABLED;
     process.env.SUPABASE_URL = 'http://beta-example.supabase.co';
     assert.equal(rtcBetaReady(), false);
     process.env.SUPABASE_URL = 'https://beta-example.supabase.co';
@@ -68,6 +71,9 @@ test('Preview requires explicit Beta enablement and a nonproduction Supabase pro
     assert.equal(rtcBetaReady(), false);
     process.env.RTC_BETA_ENABLED = '1';
     assert.equal(rtcBetaReady(), false);
+    process.env.SUPABASE_URL = 'https://prznhgwiibcazuwlwvnt.supabase.co';
+    process.env.RTC_PRIMARY_BETA_ENABLED = '1';
+    assert.equal(rtcBetaReady(), true);
   } finally {
     for (const key of keys) {
       if (previous[key] === undefined) delete process.env[key];

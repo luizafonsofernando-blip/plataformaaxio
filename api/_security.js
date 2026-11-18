@@ -13,16 +13,20 @@ globalThis.__luceRateLimitBuckets = RATE_LIMIT_BUCKETS;
 export const ACCOUNT_SUSPENDED_MESSAGE = "Sistema em manutenção, em caso de dúvidas contate o suporte";
 
 export function rtcBetaReady() {
-  if (process.env.VERCEL_ENV === "production") return false;
   if (process.env.RTC_BETA_ENABLED === "0") return false;
   if (!process.env.VERCEL_ENV) return true;
   if (process.env.RTC_BETA_ENABLED !== "1") return false;
-  if (process.env.VERCEL_ENV !== "preview") return true;
   try {
     const url = new URL(process.env.SUPABASE_URL || "");
-    return url.protocol === "https:"
-      && url.hostname.endsWith(".supabase.co")
-      && url.hostname !== new URL(DEFAULT_SUPABASE_URL).hostname;
+    if (url.protocol !== "https:" || !url.hostname.endsWith(".supabase.co")) return false;
+    const primary = url.hostname === new URL(DEFAULT_SUPABASE_URL).hostname;
+    if (process.env.VERCEL_ENV === "production") {
+      return primary && process.env.RTC_PRIMARY_BETA_ENABLED === "1";
+    }
+    if (process.env.VERCEL_ENV === "preview") {
+      return !primary || process.env.RTC_PRIMARY_BETA_ENABLED === "1";
+    }
+    return false;
   } catch { return false; }
 }
 
@@ -100,7 +104,7 @@ export async function requireActiveModuleUser(request, response, moduleId) {
     response.status(403).json({ code: "module_forbidden", error: "Acesso não autorizado a este módulo." });
     return null;
   }
-  if (moduleId === "reforma-tributaria" && process.env.VERCEL_ENV === "preview") {
+  if (moduleId === "reforma-tributaria" && ["preview", "production"].includes(process.env.VERCEL_ENV)) {
     const allowedAdmins = String(process.env.RTC_BETA_ADMIN_IDS || "").split(",").map((id) => id.trim().toLowerCase()).filter(Boolean);
     if (role !== "admin" || !allowedAdmins.includes(String(user.id || "").toLowerCase())) {
       setApiSecurityHeaders(response);
