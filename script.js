@@ -78,6 +78,15 @@ const modules = [
     description: "Prepare PDFs, gere links individuais e acompanhe assinaturas eletrônicas.",
     benefits: ["Links manuais", "Autenticação adicional", "PDF e evidências"],
   },
+  {
+    initials: "RT",
+    icon: "RF",
+    name: "Reforma Tributária",
+    href: "https://luce-rtc-visual-preview.vercel.app/",
+    status: "Prévia visual · sem cálculos",
+    description: "Conheça a interface em desenvolvimento. Esta prévia não salva dados nem calcula tributos.",
+    benefits: ["Interface para avaliação", "Sem dados persistidos", "Cálculos pendentes de homologação"],
+  },
 ];
 
 const siteHeader = document.getElementById("siteHeader");
