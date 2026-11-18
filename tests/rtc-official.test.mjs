@@ -23,6 +23,7 @@ test("operation dates must be real calendar dates", () => {
 test("connector fails closed without a gateway or its token", async () => {
   await assert.rejects(fetchRegularClassifications("2026-11-17", {}), (error) => error.code === "engine_not_configured");
   await assert.rejects(fetchRegularClassifications("2026-11-17", { ...config, RTC_REGULAR_ENGINE_URL: "http://engine.example/" }), (error) => error.code === "engine_not_configured");
+  await assert.rejects(fetchRegularClassifications("2026-11-17", { ...config, RTC_REGULAR_ENGINE_URL: "http://localhost:58080/", RTC_LOCAL_ENGINE_HTTP: "1" }), (error) => error.code === "engine_not_configured");
 });
 
 test("connector checks pinned official version before returning classifications", async () => {
@@ -47,6 +48,26 @@ test("connector rejects a version mismatch and never queries the catalog", async
   globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ versaoApp: "1.6.2" })); };
   await assert.rejects(fetchRegularClassifications("2026-11-17", config), (error) => error.code === "engine_version_mismatch");
   assert.equal(calls, 1);
+});
+
+test("connector permits only the explicit loopback gateway in local development", async () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = "development";
+  globalThis.fetch = async (url) => new Response(JSON.stringify(String(url).endsWith("/versao")
+    ? { versaoApp: "1.6.1", versaoDb: "local" }
+    : []));
+  try {
+    const local = await fetchRegularClassifications("2026-11-17", {
+      ...config, RTC_REGULAR_ENGINE_URL: "http://127.0.0.1:58080/", RTC_LOCAL_ENGINE_HTTP: "1",
+    });
+    assert.equal(local.engineVersion, "1.6.1");
+    await assert.rejects(fetchRegularClassifications("2026-11-17", {
+      ...config, RTC_REGULAR_ENGINE_URL: "http://127.0.0.1:58081/", RTC_LOCAL_ENGINE_HTTP: "1",
+    }), (error) => error.code === "engine_not_configured");
+  } finally {
+    if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = originalNodeEnv;
+  }
 });
 
 test("catalog API rejects anonymous requests before calling any engine", async () => {

@@ -6,6 +6,7 @@ const workspaceMessage = document.getElementById("workspaceMessage");
 const logout = document.getElementById("logout");
 let catalog = [];
 let organizations = [];
+let selectedCompanyId = null;
 
 async function rtcRequest(path, options = {}) {
   const token = readSession()?.access_token;
@@ -30,6 +31,10 @@ async function loadCompanies() {
   const organization = organizations.find((item) => item.id === document.getElementById("organizationSelect").value);
   const form = document.getElementById("companyForm");
   form.hidden = !organization || organization.role !== "admin";
+  document.getElementById("auditSection").hidden = !organization || organization.role !== "admin";
+  document.getElementById("historySection").hidden = true;
+  document.getElementById("analysisDetail").hidden = true;
+  selectedCompanyId = null;
   if (!organization) return;
   const data = await rtcRequest(`/api/rtc/companies?organization_id=${encodeURIComponent(organization.id)}`);
   const body = document.getElementById("companyRows");
@@ -40,10 +45,89 @@ async function loadCompanies() {
       cell.textContent = value;
       row.append(cell);
     }
+    const actions = document.createElement("td");
+    const history = document.createElement("button");
+    history.type = "button";
+    history.textContent = "Histórico";
+    history.addEventListener("click", () => loadHistory(company).catch((error) => {
+      document.getElementById("historyMessage").textContent = error.message;
+    }));
+    actions.append(history);
+    row.append(actions);
     return row;
   }));
   document.getElementById("registryMessage").textContent = data.companies.length ? "" : "Nenhuma empresa cadastrada nesta organização.";
 }
+
+async function loadHistory(company) {
+  const organizationId = document.getElementById("organizationSelect").value;
+  selectedCompanyId = company.id;
+  document.getElementById("historySection").hidden = false;
+  document.getElementById("analysisDetail").hidden = true;
+  document.getElementById("historyTitle").textContent = `Histórico de cálculos: ${company.legal_name}`;
+  const data = await rtcRequest(`/api/rtc/history?organization_id=${encodeURIComponent(organizationId)}&company_id=${encodeURIComponent(company.id)}`);
+  document.getElementById("historyRows").replaceChildren(...data.analyses.map((analysis) => {
+    const row = document.createElement("tr");
+    for (const value of [analysis.operation_date, analysis.engine, analysis.status, analysis.engine_version]) {
+      const cell = document.createElement("td");
+      cell.textContent = value;
+      row.append(cell);
+    }
+    const actions = document.createElement("td");
+    const detail = document.createElement("button");
+    detail.type = "button";
+    detail.textContent = "Ver";
+    detail.addEventListener("click", () => loadAnalysis(analysis.id).catch((error) => {
+      document.getElementById("historyMessage").textContent = error.message;
+    }));
+    actions.append(detail);
+    row.append(actions);
+    return row;
+  }));
+  document.getElementById("historyMessage").textContent = data.analyses.length ? "" : "Nenhum cálculo registrado para esta empresa.";
+}
+
+async function loadAnalysis(analysisId) {
+  const organizationId = document.getElementById("organizationSelect").value;
+  const query = new URLSearchParams({ organization_id: organizationId, company_id: selectedCompanyId, analysis_id: analysisId });
+  const data = await rtcRequest(`/api/rtc/history?${query}`);
+  const analysis = data.analyses[0];
+  if (!analysis) throw new Error("Análise não encontrada.");
+  document.getElementById("analysisDetail").hidden = false;
+  document.getElementById("analysisData").textContent = JSON.stringify({
+    data: analysis.operation_date, motor: analysis.engine, versao: analysis.engine_version,
+    regras: analysis.rules_version, fonte: analysis.source_commit, entrada: analysis.input_data, saida: analysis.output_data,
+  }, null, 2);
+  document.getElementById("reportLinks").replaceChildren(...(data.reports || []).map((report) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "Baixar relatório PDF";
+    button.title = `SHA-256: ${report.sha256}`;
+    button.addEventListener("click", async () => {
+      try {
+        const download = await rtcRequest(`/api/rtc/report?id=${encodeURIComponent(report.id)}`);
+        window.location.assign(download.url);
+      } catch (error) { document.getElementById("historyMessage").textContent = error.message; }
+    });
+    return button;
+  }));
+}
+
+document.getElementById("loadAudit").addEventListener("click", async () => {
+  const organizationId = document.getElementById("organizationSelect").value;
+  try {
+    const data = await rtcRequest(`/api/rtc/audit?organization_id=${encodeURIComponent(organizationId)}`);
+    document.getElementById("auditRows").replaceChildren(...data.events.map((event) => {
+      const row = document.createElement("tr");
+      for (const value of [new Date(event.created_at).toLocaleString("pt-BR"), event.event_type, event.actor_id || "Sistema"]) {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.append(cell);
+      }
+      return row;
+    }));
+  } catch (error) { document.getElementById("registryMessage").textContent = error.message; }
+});
 
 async function loadOrganizations() {
   const data = await rtcRequest("/api/rtc/organizations");
@@ -176,7 +260,8 @@ document.getElementById("loginForm").addEventListener("submit", async (event) =>
   button.disabled = true;
   loginMessage.textContent = "";
   try {
-    const response = await fetch("/api/onboarding/login", {
+    const local = ["localhost", "127.0.0.1"].includes(location.hostname);
+    const response = await fetch(local ? "/api/rtc/local-login" : "/api/onboarding/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({

@@ -1,0 +1,43 @@
+services:
+  regular:
+    build:
+      context: ${RTC_SOURCES_ROOT:?Execute prepare-engines.ps1 no mesmo terminal}/regular
+      dockerfile: Dockerfile.luce
+    image: luce-rtc-regular:1.6.1-local
+    restart: unless-stopped
+    networks: [rtc-private]
+
+  simples:
+    build:
+      context: ${RTC_SOURCES_ROOT:?Execute prepare-engines.ps1 no mesmo terminal}/simples
+      dockerfile: Dockerfile.luce
+    image: luce-rtc-simples:0.0.6-local
+    restart: unless-stopped
+    networks: [rtc-private]
+
+  danfse:
+    build:
+      context: ${RTC_SOURCES_ROOT:?Execute prepare-engines.ps1 no mesmo terminal}/danfse
+      dockerfile: Dockerfile
+    image: luce-rtc-danfse:1.0.0-local
+    restart: unless-stopped
+    networks: [rtc-private]
+
+  gateway:
+    build:
+      context: ../rtc-gateway
+    image: luce-rtc-gateway:local
+    environment:
+      RTC_GATEWAY_TOKEN: ${RTC_GATEWAY_TOKEN:?Defina RTC_GATEWAY_TOKEN}
+      RTC_REGULAR_UPSTREAM: http://regular:8080
+      RTC_SIMPLES_UPSTREAM: http://simples:8082
+      RTC_DANFSE_UPSTREAM: http://danfse:8080
+    ports:
+      - "127.0.0.1:58080:8080"
+    depends_on: [regular, simples, danfse]
+    restart: unless-stopped
+    networks: [rtc-private]
+
+networks:
+  rtc-private:
+    internal: true

@@ -45,6 +45,22 @@ export async function activeMembership(client, organizationId, userId) {
   return data;
 }
 
+export async function assertCompanyAccess(client, organizationId, companyId, userId) {
+  if (!validUuid(companyId)) throw new RtcStoreError("invalid_company");
+  const member = await activeMembership(client, organizationId, userId);
+  const { data: company, error: companyError } = await client.from("rtc_companies")
+    .select("id").eq("id", companyId).eq("organization_id", organizationId).maybeSingle();
+  if (companyError) throw new RtcStoreError("store_unavailable", 503);
+  if (!company) throw new RtcStoreError("company_forbidden", 403);
+  if (member.role === "admin") return member;
+  const { data: access, error: accessError } = await client.from("rtc_company_access")
+    .select("company_id").eq("company_id", companyId).eq("organization_id", organizationId)
+    .eq("user_id", userId).maybeSingle();
+  if (accessError) throw new RtcStoreError("store_unavailable", 503);
+  if (!access) throw new RtcStoreError("company_forbidden", 403);
+  return member;
+}
+
 export function rtcApiError(response, error) {
   if (!(error instanceof RtcStoreError)) console.error("RTC store operation failed", error);
   return response.status(error instanceof RtcStoreError ? error.status : 503)

@@ -56,7 +56,22 @@
             <div><label for="companyTradeName">Nome fantasia</label><input id="companyTradeName" name="trade_name" maxlength="180"></div>
             <button type="submit">Cadastrar empresa</button>
           </form>
-          <table><thead><tr><th>CNPJ</th><th>Razão social</th><th>Nome fantasia</th></tr></thead><tbody id="companyRows"></tbody></table>
+          <table><thead><tr><th>CNPJ</th><th>Razão social</th><th>Nome fantasia</th><th>Ações</th></tr></thead><tbody id="companyRows"></tbody></table>
+          <section id="historySection" class="subsection" hidden aria-labelledby="historyTitle">
+            <h3 id="historyTitle">Histórico de cálculos</h3>
+            <p id="historyMessage" class="message" role="status"></p>
+            <table><thead><tr><th>Data</th><th>Motor</th><th>Status</th><th>Versão</th><th>Ações</th></tr></thead><tbody id="historyRows"></tbody></table>
+            <div id="analysisDetail" hidden>
+              <h4>Detalhes da análise</h4>
+              <pre id="analysisData"></pre>
+              <div id="reportLinks"></div>
+            </div>
+          </section>
+          <section id="auditSection" class="subsection" hidden aria-labelledby="auditTitle">
+            <h3 id="auditTitle">Auditoria</h3>
+            <button id="loadAudit" type="button">Atualizar eventos</button>
+            <table><thead><tr><th>Data</th><th>Evento</th><th>Responsável</th></tr></thead><tbody id="auditRows"></tbody></table>
+          </section>
         </div>
       </section>
       <section class="catalog" aria-labelledby="catalogTitle">

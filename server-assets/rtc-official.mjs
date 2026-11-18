@@ -16,6 +16,13 @@ export function validOperationDate(value) {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
+function validEngineBase(base, config) {
+  const local = config.RTC_LOCAL_ENGINE_HTTP === "1" && process.env.NODE_ENV !== "production"
+    && base.protocol === "http:" && base.hostname === "127.0.0.1" && base.port === "58080";
+  return (base.protocol === "https:" || local) && !base.username && !base.password
+    && !base.search && !base.hash && base.pathname === "/";
+}
+
 async function getJson(url, token, signal) {
   let response;
   try {
@@ -46,7 +53,7 @@ export async function fetchRegularClassifications(date, config = process.env) {
   let base;
   try { base = new URL(endpoint); }
   catch { throw new RtcEngineError("engine_not_configured", 503); }
-  if (base.protocol !== "https:" || base.username || base.password || base.search || base.hash || base.pathname !== "/") {
+  if (!validEngineBase(base, config)) {
     throw new RtcEngineError("engine_not_configured", 503);
   }
   const signal = AbortSignal.timeout(8_000);
@@ -82,7 +89,7 @@ export async function fetchSimplesActivities(date, config = process.env) {
   let base;
   try { base = new URL(endpoint); }
   catch { throw new RtcEngineError("engine_not_configured", 503); }
-  if (base.protocol !== "https:" || base.username || base.password || base.search || base.hash || base.pathname !== "/") {
+  if (!validEngineBase(base, config)) {
     throw new RtcEngineError("engine_not_configured", 503);
   }
   const signal = AbortSignal.timeout(8_000);
