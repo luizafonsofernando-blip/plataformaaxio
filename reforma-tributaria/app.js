@@ -91,6 +91,8 @@ async function loadDrafts() {
     const edit = document.createElement("button");
     edit.type = "button";
     edit.textContent = "Editar";
+    edit.disabled = !draft.editable;
+    if (!draft.editable) edit.title = "Somente o criador pode editar este rascunho.";
     edit.addEventListener("click", () => {
       currentDraft = draft;
       document.getElementById("draftName").value = draft.title;

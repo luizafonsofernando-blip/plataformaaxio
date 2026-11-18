@@ -12,6 +12,19 @@ const RATE_LIMIT_BUCKETS = globalThis.__luceRateLimitBuckets || new Map();
 globalThis.__luceRateLimitBuckets = RATE_LIMIT_BUCKETS;
 export const ACCOUNT_SUSPENDED_MESSAGE = "Sistema em manutenção, em caso de dúvidas contate o suporte";
 
+export function rtcBetaReady() {
+  if (process.env.RTC_BETA_ENABLED === "0") return false;
+  if (!process.env.VERCEL_ENV) return true;
+  if (process.env.RTC_BETA_ENABLED !== "1") return false;
+  if (process.env.VERCEL_ENV !== "preview") return true;
+  try {
+    const url = new URL(process.env.SUPABASE_URL || "");
+    return url.protocol === "https:"
+      && url.hostname.endsWith(".supabase.co")
+      && url.hostname !== new URL(DEFAULT_SUPABASE_URL).hostname;
+  } catch { return false; }
+}
+
 export function isSuspendedUser(user) {
   return String(user?.app_metadata?.status || "").trim().toLowerCase() === "suspended";
 }
@@ -55,7 +68,7 @@ function legacyModuleForUser(user) {
 }
 
 export async function requireActiveModuleUser(request, response, moduleId) {
-  if (moduleId === "reforma-tributaria" && process.env.RTC_BETA_ENABLED === "0") {
+  if (moduleId === "reforma-tributaria" && !rtcBetaReady()) {
     setApiSecurityHeaders(response);
     response.status(503).json({ code: "module_disabled", error: "Módulo Beta temporariamente indisponível." });
     return null;

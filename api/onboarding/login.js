@@ -1,4 +1,4 @@
-import { ACCOUNT_SUSPENDED_MESSAGE, clientIpHash, isSuspendedUser, rejectDisallowedOrigin, rejectLargeRequest, rejectRateLimited, requestAuditMetadata, requireActiveModuleUser, setApiSecurityHeaders, sha256 } from "../_security.js";
+import { ACCOUNT_SUSPENDED_MESSAGE, clientIpHash, isSuspendedUser, rejectDisallowedOrigin, rejectLargeRequest, rejectRateLimited, requestAuditMetadata, requireActiveModuleUser, rtcBetaReady, setApiSecurityHeaders, sha256 } from "../_security.js";
 
 const SUPABASE_USER_PAGE_LIMIT = 100;
 const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
@@ -333,6 +333,9 @@ export default async function handler(request, response) {
   const identifier = String(request.body?.identifier || "").trim().toLowerCase();
   const password = String(request.body?.password || "");
   const targetProfile = requestedProfile(request.body?.profile);
+  if (targetProfile === "reforma-tributaria" && !rtcBetaReady()) {
+    return json(response, 503, { code: "module_disabled" });
+  }
   const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
   const isAlias = /^[\p{L}\p{N} ._-]{3,80}$/u.test(identifier);
   if ((!isEmail && !isAlias) || !password || password.length > 128) {

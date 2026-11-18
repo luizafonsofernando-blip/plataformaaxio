@@ -23,7 +23,7 @@ export default async function handler(request, response) {
         .eq('organization_id', organizationId).eq('company_id', companyId)
         .order('updated_at', { ascending: false }).limit(100);
       if (error) throw new RtcStoreError('store_unavailable', 503);
-      return response.status(200).json({ drafts: data });
+      return response.status(200).json({ drafts: data.map((item) => ({ ...item, editable: item.created_by === user.id })) });
     }
     if (member.role === 'viewer') throw new RtcStoreError('draft_write_forbidden', 403);
     const draft = validateDraft(body);
@@ -34,11 +34,14 @@ export default async function handler(request, response) {
       if (error?.code === '23505') {
         const { data: existing, error: readError } = await client.from('rtc_simulation_drafts').select(columns)
           .eq('id', draft.id).eq('organization_id', organizationId).eq('company_id', companyId).maybeSingle();
-        if (readError || !existing || existing.created_by !== user.id) throw new RtcStoreError('draft_conflict', 409);
-        return response.status(200).json({ draft: existing });
+        if (readError || !existing || existing.created_by !== user.id
+          || existing.title !== draft.title || existing.engine !== draft.engine
+          || existing.operation_date !== draft.operation_date
+          || JSON.stringify(existing.scenario) !== JSON.stringify(draft.scenario)) throw new RtcStoreError('draft_conflict', 409);
+        return response.status(200).json({ draft: { ...existing, editable: true } });
       }
       if (error) throw new RtcStoreError('store_unavailable', 503);
-      return response.status(201).json({ draft: data });
+      return response.status(201).json({ draft: { ...data, editable: true } });
     }
     if (!validUuid(draft.id) || !Number.isSafeInteger(body.version) || body.version < 1) throw new RtcStoreError('invalid_draft');
     const { data, error } = await client.from('rtc_simulation_drafts')
@@ -48,6 +51,6 @@ export default async function handler(request, response) {
       .eq('created_by', user.id).eq('version', body.version).select(columns).maybeSingle();
     if (error) throw new RtcStoreError('store_unavailable', 503);
     if (!data) throw new RtcStoreError('draft_conflict', 409);
-    return response.status(200).json({ draft: data });
+    return response.status(200).json({ draft: { ...data, editable: true } });
   } catch (error) { return rtcApiError(response, error); }
 }
