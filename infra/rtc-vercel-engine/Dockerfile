@@ -20,7 +20,9 @@ ENV JAVA_HOME=/opt/java/openjdk \
     PATH=/opt/java/openjdk/bin:$PATH \
     SPRING_PROFILES_ACTIVE=offline \
     RTC_REGULAR_UPSTREAM=http://127.0.0.1:8081 \
-    PORT=8080
+    RTC_GATEWAY_COLD_WAIT_MS=24000 \
+    PORT=8080 \
+    JAVA_TOOL_OPTIONS="-XX:TieredStopAtLevel=1 -Xms64m -Xmx512m"
 WORKDIR /opt/rtc
 USER node
 EXPOSE 8080

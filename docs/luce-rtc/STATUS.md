@@ -18,20 +18,24 @@ Data: 18/11/2026. Branch: `feat/luce-rtc-on-current-portal`.
 - O Portal de producao nao foi alterado nesta rodada. O link visual estatico existente nao realiza calculos nem persiste dados.
 - O Preview do Portal foi tentado com `RTC_BETA_ENABLED=1`, `RTC_PRIMARY_BETA_ENABLED=1`, `RTC_BETA_ADMIN_IDS` restrito ao Admin01 e `RTC_CALC_ENABLED=0`, mas o deploy falhou pelo limite de 12 funcoes serverless do plano Vercel. Essas variaveis afetam somente novos deploys Preview; producao permanece com a Beta desligada. A solucao incremental e isolar as APIs RTC em um projeto Vercel dedicado e rotea-las pelo Portal, sem remover APIs existentes.
 - Uma tentativa de implantacao a partir do diretorio pai criou acidentalmente o projeto auxiliar `rtc-vercel-engine`, cujo deploy falhou. Ele nao contem dados nem credenciais RTC. O projeto correto do motor e `luce-rtc-engine-regular`.
+- O limite de funcoes foi contornado sem remover APIs: o projeto dedicado `luce-rtc-beta` empacota 11 rotas RTC e o login compartilhado do Onboarding, totalizando 12 funcoes. Seu Preview protegido e `https://luce-rtc-beta-ehbp8yhgf-axion7.vercel.app`; o Production inicial existe, mas permanece bloqueado por `RTC_BETA_ENABLED` ausente. A rota de status recusou acesso anonimo com HTTP 401.
+- O motor oficial em Preview passou no health check apos inicializacao a frio e respondeu a uma operacao de referencia com estado `CALCULO_SIMULADO`. Token do gateway e bypass da Vercel foram rotacionados; tres bypasses temporarios foram revogados. O calculo nao esta liberado no aplicativo (`RTC_CALC_ENABLED=0`).
+- A organizacao real `Luce Sistemas` foi criada no Supabase principal e o Admin01 recebeu automaticamente membership `admin`. Nenhuma empresa ficticia foi criada.
+- Para concluir o teste autenticado, falta configurar `SUPABASE_SERVICE_ROLE_KEY` no projeto Vercel `luce-rtc-beta` (Preview), diretamente no painel da Vercel. Nao enviar o segredo por chat. Em seguida: redeploy do Preview, teste de login/organizacao/rascunhos, ativacao controlada do calculo, teste de persistencia, configuracao Production, link no Portal e publicacao final.
 - Testes locais: `check:rtc` (36 aprovados), `check:sign`, `check` e `check:orthography` aprovados. Ainda faltam testes autenticados ponta a ponta contra a implantacao hospedada.
 
 ## Preparado, nao operacional neste ambiente
 
 - Previa visual isolada em `infra/rtc-preview/dist/`: somente HTML, CSS, JS e configuracao de cabeçalhos; sem API, banco, gravacao ou calculo. O build normal do Portal exclui essa pagina. Projeto Vercel separado publicado em `https://luce-rtc-visual-preview.vercel.app` com SSO para todas as URLs; CLI confirmou estado Ready. Nao foi inspecionada visualmente em navegador autenticado.
-- Adaptadores de leitura dos catalogos oficiais de CST/cClassTrib, NCM/NBS e atividades do Simples. Exigem gateway autenticado, motores iniciados e versoes fixadas. Respostas simuladas sao usadas somente nos testes automatizados.
-- Gateway local e scripts para fontes oficiais Regular, Simples e DANFSe. Java, Go e conteineres nao foram executados neste ambiente.
-- Vercel Preview com flag `RTC_BETA_ENABLED` e bloqueio do projeto Supabase principal. Nao ha Preview publicado nem projeto Supabase Beta hospedado autorizado.
+- Adaptadores de leitura dos catalogos oficiais de CST/cClassTrib, NCM/NBS e atividades do Simples. O Regime Regular foi executado em Preview protegido; o Simples ainda exige motor iniciado. Versoes sao fixadas.
+- Gateway local e scripts para fontes oficiais Regular, Simples e DANFSe. O conteiner Java Regular foi executado no Vercel Preview; os demais motores nao foram hospedados.
+- Vercel Preview RTC isolado, com `RTC_BETA_ENABLED=1`, `RTC_PRIMARY_BETA_ENABLED=1` e lista explicita de administradores. O acesso ao Supabase principal foi autorizado e a estrutura RTC foi aplicada; a chave de escrita do projeto dedicado ainda falta.
 
 ## Bloqueios e limites
 
 - Os dois projetos gratuitos Supabase estao ocupados: producao e homologacao do e-BEF. O principal recebeu apenas as migrations RTC autorizadas; o e-BEF permaneceu intacto. PGlite cobre SQL/RLS localmente, mas nao substitui Auth, PostgREST ou Storage reais.
-- O banco principal agora contem as estruturas RTC, mas ainda nao houve validacao autenticada de rascunhos e uploads ponta a ponta por HTTP nem teste visual autenticado no navegador.
+- O banco principal contem as estruturas RTC e a organizacao Luce, mas ainda nao houve validacao autenticada de rascunhos e uploads ponta a ponta por HTTP nem teste visual autenticado no navegador.
 - Nenhum calculo fiscal, aliquota, base de calculo, memoria, XML ou DANFSe deve ser apresentado como homologado. Os motores oficiais ainda exigem execucao e casos de referencia revisados por profissional fiscal.
-- Nenhum push ao GitHub ou deploy do Portal Luce nesta rodada. O motor foi enviado apenas a um Preview protegido da Vercel; a Beta funcional nao foi publicada.
+- Nenhum push ao GitHub ou deploy do Portal Luce nesta rodada. O motor e o aplicativo RTC dedicado foram enviados a Previews protegidos da Vercel; a Beta funcional nao foi liberada.
 
 Ver `preview-beta.md`, `homologacao-local.md` e `integracao-oficial.md` para configuracao, testes e rollback.

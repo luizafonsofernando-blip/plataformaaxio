@@ -16,6 +16,21 @@ const MAX_BYTES = 5_000_000;
 const MAX_INPUT_BYTES = 128_000;
 const REGULAR_CALCULATION_PATH = "/api/calculadora/observabilidade/regime-geral";
 
+async function waitForRegular(base, fetchImpl, timeoutMs = 0) {
+  const deadline = Date.now() + timeoutMs;
+  do {
+    try {
+      const result = await fetchImpl(new URL("/api/calculadora/dados-abertos/versao", base), {
+        signal: AbortSignal.timeout(2_000), redirect: "error", headers: { accept: "application/json" },
+      });
+      if (result.ok && (await result.json())?.versaoApp === "1.6.1") return true;
+    } catch { /* The official engine is still starting. */ }
+    if (Date.now() >= deadline) break;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  } while (Date.now() < deadline);
+  return false;
+}
+
 export function authorized(header, secret) {
   if (!secret || typeof header !== "string" || !header.startsWith("Bearer ")) return false;
   const candidate = Buffer.from(header.slice(7));
@@ -31,11 +46,7 @@ export function createGateway(config = process.env, fetchImpl = fetch) {
       try {
         const base = config.RTC_REGULAR_UPSTREAM;
         if (!base) throw new Error("missing upstream");
-        const result = await fetchImpl(new URL("/api/calculadora/dados-abertos/versao", base), {
-          signal: AbortSignal.timeout(5_000), redirect: "error", headers: { accept: "application/json" },
-        });
-        const version = result.ok ? await result.json() : null;
-        if (version?.versaoApp !== "1.6.1") throw new Error("version unavailable");
+        if (!await waitForRegular(base, fetchImpl, Number(config.RTC_GATEWAY_COLD_WAIT_MS || 0))) throw new Error("version unavailable");
         response.writeHead(200, { "Content-Type": "application/json" }).end('{"ready":true}');
       } catch { response.writeHead(503, { "Content-Type": "application/json" }).end('{"ready":false}'); }
       return;
@@ -60,6 +71,10 @@ export function createGateway(config = process.env, fetchImpl = fetch) {
     const base = config[upstreamVariable];
     if (!base) { response.writeHead(503).end(); return; }
     try {
+      if (upstreamVariable === "RTC_REGULAR_UPSTREAM" && Number(config.RTC_GATEWAY_COLD_WAIT_MS || 0) > 0
+        && !await waitForRegular(base, fetchImpl, Number(config.RTC_GATEWAY_COLD_WAIT_MS))) {
+        response.writeHead(503).end(); return;
+      }
       let body;
       if (calculation) {
         if (!String(request.headers["content-type"] || "").startsWith("application/json")) {
