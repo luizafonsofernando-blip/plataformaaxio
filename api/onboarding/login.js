@@ -5,7 +5,7 @@ const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
 const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
 const LUCE_EMAIL_DOMAIN = "lucesolutions.com.br";
 const LEGACY_EMAIL_DOMAIN = ["axi", "onsolutions.com.br"].join("");
-const VALID_MODULE_IDS = new Set(["onboarding", "property", "comunicados", "review-folha", "radar-legislativo", "contratos", "ebef"]);
+const VALID_MODULE_IDS = new Set(["onboarding", "property", "comunicados", "review-folha", "radar-legislativo", "contratos", "ebef", "luce-sign"]);
 const MAX_BODY_BYTES = 4_000;
 
 function json(response, status, body) {
@@ -257,6 +257,7 @@ function legacyProfileForModule(moduleId) {
 
 async function applyRequestedProfileIfNeeded(user, serviceRoleKey, moduleId) {
   if (!serviceRoleKey || !user?.id || !moduleId) return user;
+  if (moduleId === "luce-sign") return user;
   const targetProfile = legacyProfileForModule(moduleId);
   if (user?.user_metadata?.profile === targetProfile) return user;
   const userMetadata = {

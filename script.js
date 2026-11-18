@@ -69,6 +69,15 @@ const modules = [
       "Preenchimento assistido",
     ],
   },
+  {
+    initials: "LS",
+    icon: "CT",
+    name: "Luce Sign",
+    href: "luce-sign/",
+    status: "Disponível para testes",
+    description: "Prepare PDFs, gere links individuais e acompanhe assinaturas eletrônicas.",
+    benefits: ["Links manuais", "Autenticação adicional", "PDF e evidências"],
+  },
 ];
 
 const siteHeader = document.getElementById("siteHeader");

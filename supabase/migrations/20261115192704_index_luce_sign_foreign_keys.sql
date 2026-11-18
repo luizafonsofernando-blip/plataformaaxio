@@ -1,0 +1,13 @@
+create index if not exists sign_documents_created_by_idx on public.sign_documents (created_by);
+create index if not exists sign_documents_updated_by_idx on public.sign_documents (updated_by);
+create index if not exists sign_organizations_created_by_idx on public.sign_organizations (created_by);
+create index if not exists sign_signers_created_by_idx on public.sign_signers (created_by);
+create index if not exists sign_signers_organization_idx on public.sign_signers (organization_id);
+create index if not exists sign_signers_document_org_idx on public.sign_signers (document_id, organization_id);
+create index if not exists sign_fields_organization_idx on public.sign_fields (organization_id);
+create index if not exists sign_fields_document_org_idx on public.sign_fields (document_id, organization_id);
+create index if not exists sign_fields_signer_document_org_idx on public.sign_fields (signer_id, document_id, organization_id);
+create index if not exists sign_events_actor_idx on public.sign_events (actor_id);
+create index if not exists sign_events_organization_idx on public.sign_events (organization_id);
+create index if not exists sign_events_document_org_idx on public.sign_events (document_id, organization_id);
+create index if not exists sign_events_signer_document_org_idx on public.sign_events (signer_id, document_id, organization_id);

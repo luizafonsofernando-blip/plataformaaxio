@@ -24,6 +24,7 @@ const LUCE_MODULES = [
   { id: "radar-legislativo", label: "Radar Legislativo" },
   { id: "contratos", label: "Contratos" },
   { id: "ebef", label: "E-BEF" },
+  { id: "luce-sign", label: "Luce Sign" },
 ];
 const VALID_MODULE_IDS = new Set(LUCE_MODULES.map((module) => module.id));
 const PENDING_CLEANUP_CUTOFF = new Date("2026-07-25T03:00:00.000Z");

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102a50">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Luce Sign | Portal Luce</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="../assets/logo-luce-simbolo-20260808.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="loginView" class="login-layout">
+    <div class="login-brand"><strong>LUCE</strong><span>SIGN</span></div>
+    <section class="login-panel" aria-labelledby="loginTitle">
+      <p class="kicker">PORTAL LUCE</p>
+      <h1 id="loginTitle">Acessar Luce Sign</h1>
+      <form id="loginForm">
+        <label>E-mail ou usuário<input name="identifier" autocomplete="username" required></label>
+        <label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
+        <button class="primary" type="submit">Entrar</button>
+      </form>
+      <p id="loginMessage" class="message" role="alert"></p>
+      <a href="../">Voltar ao Portal Luce</a>
+    </section>
+  </main>
+
+  <div id="appView" class="app-layout" hidden>
+    <aside class="sidebar">
+      <a class="wordmark" href="../" aria-label="Portal Luce"><strong>LUCE</strong><span>SIGN</span></a>
+      <div class="sidebar-group">GESTÃO DOCUMENTAL</div>
+      <nav aria-label="Luce Sign">
+        <button type="button" data-view="overview" class="active">Visão geral</button>
+        <button type="button" data-view="documents">Documentos</button>
+        <button type="button" data-view="new">Novo documento</button>
+        <button type="button" data-view="settings">Organizações</button>
+      </nav>
+      <p class="sidebar-foot">Portal Luce</p>
+    </aside>
+    <div class="workspace">
+      <header class="topbar">
+        <button class="mobile-menu" id="menuButton" type="button" aria-label="Abrir menu" aria-expanded="false">☰</button>
+        <label class="org-switcher">Organização<select id="organizationSelect" aria-label="Organização atual"></select></label>
+        <div class="account"><span id="accountName"></span><button id="logoutButton" type="button">Sair</button></div>
+      </header>
+      <main class="content" id="content" aria-live="polite"></main>
+    </div>
+  </div>
+  <div id="notice" class="notice" role="status" hidden></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

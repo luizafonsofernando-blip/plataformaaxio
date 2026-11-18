@@ -1,0 +1,13 @@
+alter function public.sign_accept_signature(uuid, text, text, text, inet, text) set search_path = '';
+alter function public.sign_add_organization_owner() set search_path = '';
+alter function public.sign_chain_event() set search_path = '';
+alter function public.sign_claim_finalization(uuid) set search_path = '';
+alter function public.sign_complete_document(uuid, timestamptz, text, text, text, text, text) set search_path = '';
+alter function public.sign_protect_original_pdf() set search_path = '';
+alter function public.sign_record_document_event() set search_path = '';
+alter function public.sign_record_signer_event() set search_path = '';
+alter function public.sign_reject_event_mutation() set search_path = '';
+alter function public.sign_reject_otp(uuid, text, inet, text) set search_path = '';
+alter function public.sign_take_rate_limit(text, integer, integer) set search_path = '';
+alter function public.sign_verify_event_chain(uuid) set search_path = '';
+alter function public.sign_verify_otp(uuid, text, text, inet, text) set search_path = '';
