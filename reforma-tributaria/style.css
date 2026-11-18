@@ -68,6 +68,8 @@ button:disabled { opacity: .52; cursor: not-allowed; }
 .calculation-payload { grid-column: 1 / -1; }
 .calculation-payload textarea { margin-top: 7px; }
 .calculation-form button { justify-self: start; }
+#loadCalculationExample { background: white; color: #0b3370; border: 1px solid #b9c8d8; }
+#loadCalculationExample:hover { background: #edf5fc; }
 #reportLinks { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 .catalog h2 { font-size: 19px; margin-bottom: 16px; }
 .catalog-form { display: flex; align-items: end; gap: 12px; margin-bottom: 8px; }

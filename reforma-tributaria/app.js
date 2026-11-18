@@ -577,6 +577,18 @@ document.getElementById("companyForm").addEventListener("submit", async (event) 
   finally { button.disabled = false; }
 });
 
+document.getElementById("loadCalculationExample").addEventListener("click", async () => {
+  const message = document.getElementById("calculationMessage");
+  try {
+    const response = await fetch("example-operation.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("Exemplo indisponível.");
+    const example = await response.json();
+    document.getElementById("calculationDate").value = example.dhFatoGerador.slice(0, 10);
+    document.getElementById("calculationOperation").value = JSON.stringify(example, null, 2);
+    message.textContent = "Exemplo simulado carregado. Revise os dados antes de executar.";
+  } catch { message.textContent = "Não foi possível carregar o exemplo."; }
+});
+
 document.getElementById("calculationForm").addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
