@@ -23,7 +23,7 @@ Há limite de tempo, tamanho de resposta e frequência por usuário/IP conforme 
 - Docker, Java e Go não estão disponíveis no ambiente local inspecionado. A execução dos motores deve ocorrer em ambiente de contêiner isolado, com dependências e bases oficiais fixadas por versão.
 - Não há ambiente RTC de homologação ou gateway autenticado configurado. Nenhuma variável RTC foi adicionada à produção.
 - Não houve teste de ponta a ponta com o motor real, nem comparação de respostas com casos de referência oficiais.
-- Simples Nacional e DANFSe foram inventariados, mas ainda não possuem conectores ativados.
+- Atividades do Simples Nacional possuem adaptador de leitura protegido, dependente do motor oficial em execução; o gerador DANFSe permanece inventariado e sem geração ativada.
 - Cálculos, validação de XML e geração de documento fiscal continuam desabilitados até homologação específica.
 - A infraestrutura local separada foi preparada em `infra/rtc-local/` com três serviços em rede privada e gateway em loopback. O checkout dos commits oficiais passou, mas o build e a execução dos contêineres continuam pendentes de Docker Desktop/Podman. Consulte `homologacao-local.md` antes de executar; não vincule esse projeto aos Supabase hospedados.
 

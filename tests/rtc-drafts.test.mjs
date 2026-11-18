@@ -32,6 +32,9 @@ test('RTC draft API rejects anonymous requests and honors the server kill switch
     const anonymous = response();
     await handler(request, anonymous);
     assert.equal(anonymous.statusCode, 401);
+    const anonymousDelete = response();
+    await handler({ ...request, method: 'DELETE', body: { id: draftId, version: 1 } }, anonymousDelete);
+    assert.equal(anonymousDelete.statusCode, 401);
     process.env.RTC_BETA_ENABLED = '0';
     const disabled = response();
     await handler(request, disabled);
@@ -63,6 +66,8 @@ test('Preview requires explicit Beta enablement and a nonproduction Supabase pro
     process.env.VERCEL_ENV = 'production';
     delete process.env.RTC_BETA_ENABLED;
     assert.equal(rtcBetaReady(), false);
+    process.env.RTC_BETA_ENABLED = '1';
+    assert.equal(rtcBetaReady(), false);
   } finally {
     for (const key of keys) {
       if (previous[key] === undefined) delete process.env[key];
@@ -90,7 +95,8 @@ test('RTC draft migration preserves tenant isolation and audit', async () => {
     `);
     await db.query('insert into auth.users(id) values ($1), ($2), ($3)', [admin, outsider, intruder]);
     for (const file of ['20261118001814_create_luce_rtc_foundation.sql',
-      '20261118003754_create_luce_rtc_reports.sql', '20261118010000_create_luce_rtc_simulation_drafts.sql']) {
+      '20261118003754_create_luce_rtc_reports.sql', '20261118010000_create_luce_rtc_simulation_drafts.sql',
+      '20261118104859_rtc_draft_delete_audit.sql']) {
       await db.exec(await readFile(new URL(`../supabase/migrations/${file}`, import.meta.url), 'utf8'));
     }
     const org = (await db.query("insert into public.rtc_organizations(name, created_by) values('Org A', $1) returning id", [admin])).rows[0].id;
@@ -115,9 +121,14 @@ test('RTC draft migration preserves tenant isolation and audit', async () => {
     assert.equal((await db.query('select count(*)::int as total from public.rtc_simulation_drafts')).rows[0].total, 1);
     assert.equal((await db.query('select company_id from public.rtc_simulation_drafts')).rows[0].company_id, company);
     await assert.rejects(db.query("update public.rtc_simulation_drafts set title='Invasão'"), /permission denied/);
+    await assert.rejects(db.query('delete from public.rtc_simulation_drafts'), /permission denied/);
     await db.query("select set_config('request.jwt.claim.sub', $1, false)", [intruder]);
     assert.equal((await db.query('select count(*)::int as total from public.rtc_simulation_drafts')).rows[0].total, 0);
     await db.query("select set_config('request.jwt.claim.sub', $1, false)", [admin]);
     assert.equal((await db.query('select count(*)::int as total from public.rtc_simulation_drafts')).rows[0].total, 2);
+    await db.exec('reset role');
+    assert.equal((await db.query('delete from public.rtc_simulation_drafts where id=$1 and version=1 returning id', [draftId])).rows.length, 0);
+    assert.equal((await db.query('delete from public.rtc_simulation_drafts where id=$1 and version=2 returning id', [draftId])).rows.length, 1);
+    assert.equal((await db.query("select count(*)::int as total from public.rtc_audit_events where event_type='simulation_draft_deleted' and actor_id=$1", [admin])).rows[0].total, 1);
   } finally { await db.close(); }
 });

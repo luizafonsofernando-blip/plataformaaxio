@@ -13,6 +13,7 @@ globalThis.__luceRateLimitBuckets = RATE_LIMIT_BUCKETS;
 export const ACCOUNT_SUSPENDED_MESSAGE = "Sistema em manutenção, em caso de dúvidas contate o suporte";
 
 export function rtcBetaReady() {
+  if (process.env.VERCEL_ENV === "production") return false;
   if (process.env.RTC_BETA_ENABLED === "0") return false;
   if (!process.env.VERCEL_ENV) return true;
   if (process.env.RTC_BETA_ENABLED !== "1") return false;
@@ -98,6 +99,14 @@ export async function requireActiveModuleUser(request, response, moduleId) {
     setApiSecurityHeaders(response);
     response.status(403).json({ code: "module_forbidden", error: "Acesso não autorizado a este módulo." });
     return null;
+  }
+  if (moduleId === "reforma-tributaria" && process.env.VERCEL_ENV === "preview") {
+    const allowedAdmins = String(process.env.RTC_BETA_ADMIN_IDS || "").split(",").map((id) => id.trim().toLowerCase()).filter(Boolean);
+    if (role !== "admin" || !allowedAdmins.includes(String(user.id || "").toLowerCase())) {
+      setApiSecurityHeaders(response);
+      response.status(403).json({ code: "module_forbidden", error: "Acesso Beta restrito a administradores autorizados." });
+      return null;
+    }
   }
   return user;
 }

@@ -7,7 +7,7 @@ const columns = 'id, company_id, title, engine, operation_date, scenario, versio
 export default async function handler(request, response) {
   setApiSecurityHeaders(response);
   if (rejectDisallowedOrigin(request, response)) return;
-  if (!['GET', 'POST', 'PATCH'].includes(request.method)) return response.status(405).json({ code: 'method_not_allowed' });
+  if (!['GET', 'POST', 'PATCH', 'DELETE'].includes(request.method)) return response.status(405).json({ code: 'method_not_allowed' });
   if (rejectLargeRequest(request, response, 32768)) return;
   if (await rejectRateLimited(request, response, { action: 'rtc_drafts', limit: 30, windowSeconds: 60 })) return;
   const user = await requireActiveModuleUser(request, response, 'reforma-tributaria');
@@ -26,6 +26,17 @@ export default async function handler(request, response) {
       return response.status(200).json({ drafts: data.map((item) => ({ ...item, editable: item.created_by === user.id })) });
     }
     if (member.role === 'viewer') throw new RtcStoreError('draft_write_forbidden', 403);
+    if (request.method === 'DELETE') {
+      if (!validUuid(body.id) || !Number.isSafeInteger(body.version) || body.version < 1) {
+        throw new RtcStoreError('invalid_draft');
+      }
+      const { data, error } = await client.from('rtc_simulation_drafts').delete()
+        .eq('id', body.id).eq('organization_id', organizationId).eq('company_id', companyId)
+        .eq('created_by', user.id).eq('version', body.version).select('id').maybeSingle();
+      if (error) throw new RtcStoreError('store_unavailable', 503);
+      if (!data) throw new RtcStoreError('draft_conflict', 409);
+      return response.status(200).json({ deleted: true });
+    }
     const draft = validateDraft(body);
     if (request.method === 'POST') {
       const { data, error } = await client.from('rtc_simulation_drafts').insert({

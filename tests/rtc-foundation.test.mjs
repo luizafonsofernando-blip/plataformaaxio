@@ -60,3 +60,35 @@ test("RTC status only reports configuration readiness, never operational status"
   assert.deepEqual(result.body.engines.map(({ status }) => status), ["pending_validation", "not_configured", "not_configured"]);
   assert.ok(!JSON.stringify(result.body).includes("private-engine.example"));
 });
+
+test("RTC Preview is limited to explicitly listed administrators", async () => {
+  const keys = ["VERCEL_ENV", "RTC_BETA_ENABLED", "SUPABASE_URL", "RTC_BETA_ADMIN_IDS"];
+  const previous = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
+  try {
+    process.env.VERCEL_ENV = "preview";
+    process.env.RTC_BETA_ENABLED = "1";
+    process.env.SUPABASE_URL = "https://rtc-beta-example.supabase.co";
+    globalThis.fetch = async () => ({ ok: true, json: async () => ({ id: "admin-beta", app_metadata: { role: "admin", status: "approved" } }) });
+    delete process.env.RTC_BETA_ADMIN_IDS;
+    const unconfigured = response();
+    await handler(request("GET", "session"), unconfigured);
+    assert.equal(unconfigured.statusCode, 403);
+    process.env.RTC_BETA_ADMIN_IDS = "other-admin";
+    const unlisted = response();
+    await handler(request("GET", "session"), unlisted);
+    assert.equal(unlisted.statusCode, 403);
+    process.env.RTC_BETA_ADMIN_IDS = "admin-beta";
+    const listed = response();
+    await handler(request("GET", "session"), listed);
+    assert.equal(listed.statusCode, 200);
+    globalThis.fetch = async () => ({ ok: true, json: async () => ({ id: "admin-beta", app_metadata: { role: "user", status: "approved", allowed_modules: ["reforma-tributaria"] } }) });
+    const nonAdmin = response();
+    await handler(request("GET", "session"), nonAdmin);
+    assert.equal(nonAdmin.statusCode, 403);
+  } finally {
+    for (const key of keys) {
+      if (previous[key] === undefined) delete process.env[key];
+      else process.env[key] = previous[key];
+    }
+  }
+});

@@ -53,8 +53,11 @@ th { font-size: 12px; color: #4b627c; text-transform: uppercase; }
 #addDraftItem { background: white; color: #0b3370; border: 1px solid #b9c8d8; }
 #newDraft { background: white; color: #0b3370; border: 1px solid #b9c8d8; }
 .table-scroll { overflow-x: auto; }
+.draft-actions { display: flex; flex-wrap: wrap; gap: 6px; min-width: 224px; }
+.draft-actions button { white-space: nowrap; }
 .subsection button, .registry td button { border: 1px solid #b9c8d8; background: white; color: #0b3370; padding: 7px 10px; cursor: pointer; }
 .subsection button:hover, .registry td button:hover { background: #edf5fc; }
+button:disabled { opacity: .52; cursor: not-allowed; }
 #analysisData { overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: white; border: 1px solid #dce4ed; padding: 14px; max-height: 380px; }
 #codeResult { overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: white; border: 1px solid #dce4ed; padding: 14px; }
 #reportLinks { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }

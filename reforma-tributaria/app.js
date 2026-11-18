@@ -15,6 +15,15 @@ let autoSaveTimer;
 let saveQueue = Promise.resolve();
 let autoSaveBlocked = false;
 let pendingDraftId = null;
+let draftRevision = 0;
+let savedDraftRevision = 0;
+let activeDraftCompanyId = null;
+let activeOrganizationId = null;
+
+function canDiscardDraftChanges() {
+  return draftRevision <= savedDraftRevision
+    || window.confirm("Há alterações não salvas neste cenário. Deseja descartá-las?");
+}
 
 async function rtcRequest(path, options = {}) {
   const token = readSession()?.access_token;
@@ -37,6 +46,7 @@ async function rtcRequest(path, options = {}) {
 
 async function loadCompanies() {
   const organization = organizations.find((item) => item.id === document.getElementById("organizationSelect").value);
+  activeOrganizationId = organization?.id || null;
   const form = document.getElementById("companyForm");
   form.hidden = !organization || organization.role !== "admin";
   document.getElementById("draftForm").hidden = !organization || organization.role === "viewer";
@@ -59,6 +69,7 @@ async function loadCompanies() {
     option.textContent = `${company.legal_name} · ${company.cnpj}`;
     return option;
   }));
+  activeDraftCompanyId = select.value;
   const body = document.getElementById("companyRows");
   body.replaceChildren(...data.companies.map((company) => {
     const row = document.createElement("tr");
@@ -111,12 +122,14 @@ function renderDrafts() {
       row.append(cell);
     }
     const actions = document.createElement("td");
+    actions.className = "draft-actions";
     const edit = document.createElement("button");
     edit.type = "button";
     edit.textContent = "Editar";
     edit.disabled = !draft.editable;
     if (!draft.editable) edit.title = "Somente o criador pode editar este rascunho.";
     edit.addEventListener("click", () => {
+      if (!canDiscardDraftChanges()) return;
       loadDraftIntoForm(draft, true);
       document.getElementById("draftMessage").textContent = "Rascunho carregado. Nenhum cálculo fiscal foi executado.";
     });
@@ -126,11 +139,44 @@ function renderDrafts() {
     duplicate.textContent = "Duplicar";
     duplicate.disabled = document.getElementById("draftForm").querySelector('button[type="submit"]').disabled;
     duplicate.addEventListener("click", async () => {
+      if (!canDiscardDraftChanges()) return;
       loadDraftIntoForm(draft, false);
       document.getElementById("draftName").value = `${draft.title} (cópia)`.slice(0, 120);
       await queueDraftSave(false);
     });
     actions.append(duplicate);
+    const exportButton = document.createElement("button");
+    exportButton.type = "button";
+    exportButton.textContent = "Exportar dados";
+    exportButton.title = "Baixar somente os dados informados, sem cálculo fiscal";
+    exportButton.addEventListener("click", () => exportDraft(draft));
+    actions.append(exportButton);
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.textContent = "Excluir";
+    remove.disabled = !draft.editable;
+    remove.addEventListener("click", async () => {
+      if (!window.confirm(`Excluir o rascunho "${draft.title}"? Esta ação será registrada na auditoria.`)) return;
+      remove.disabled = true;
+      try {
+        await rtcRequest("/api/rtc/drafts", { method: "DELETE", body: JSON.stringify({
+          id: draft.id, version: draft.version,
+          organization_id: document.getElementById("organizationSelect").value,
+          company_id: draft.company_id,
+        }) });
+        if (currentDraft?.id === draft.id) {
+          cancelAutoSave();
+          currentDraft = null;
+          document.getElementById("draftName").value = "";
+        }
+        await loadDrafts();
+        document.getElementById("draftMessage").textContent = "Rascunho excluído.";
+      } catch (error) {
+        document.getElementById("draftMessage").textContent = error.message;
+        remove.disabled = false;
+      }
+    });
+    actions.append(remove);
     row.append(actions);
     return row;
   }));
@@ -141,6 +187,29 @@ function cancelAutoSave() {
   draftEpoch += 1;
   autoSaveBlocked = false;
   pendingDraftId = null;
+  draftRevision = 0;
+  savedDraftRevision = 0;
+}
+
+function exportDraft(draft) {
+  const payload = {
+    tipo: "cenario_sem_calculo_fiscal",
+    id: draft.id,
+    empresa: currentCompanies.find((item) => item.id === draft.company_id)?.legal_name || "",
+    titulo: draft.title,
+    regime: draft.engine,
+    data_operacao: draft.operation_date,
+    itens: draft.scenario.items,
+    versao_rascunho: draft.version,
+    alterado_em: draft.updated_at,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `cenario-rtc-${draft.id}.json`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function addDraftItem(item = {}) {
@@ -177,6 +246,7 @@ function addDraftItem(item = {}) {
   remove.addEventListener("click", () => {
     if (container.childElementCount > 1) row.remove();
     document.getElementById("addDraftItem").disabled = container.childElementCount >= 50;
+    draftRevision += 1;
     scheduleAutoSave();
   });
   row.append(remove);
@@ -216,6 +286,7 @@ function queueDraftSave(automatic) {
   const epoch = draftEpoch;
   saveQueue = saveQueue.catch(() => {}).then(async () => {
     if (epoch !== draftEpoch || automatic && (!currentDraft || autoSaveBlocked)) return;
+    const savingRevision = draftRevision;
     const message = document.getElementById("draftMessage");
     const button = form.querySelector('button[type="submit"]');
     button.disabled = true;
@@ -236,8 +307,10 @@ function queueDraftSave(automatic) {
       currentDraft = data.draft;
       pendingDraftId = null;
       autoSaveBlocked = false;
+      savedDraftRevision = savingRevision;
       message.textContent = "Rascunho salvo sem resultado fiscal.";
       await loadDrafts();
+      if (draftRevision !== savingRevision) scheduleAutoSave();
     } catch (error) {
       if (epoch === draftEpoch) {
         autoSaveBlocked = true;
@@ -257,11 +330,22 @@ function scheduleAutoSave() {
 }
 
 document.getElementById("draftCompany").addEventListener("change", () => {
+  const select = document.getElementById("draftCompany");
+  if (!canDiscardDraftChanges()) {
+    select.value = activeDraftCompanyId;
+    return;
+  }
+  activeDraftCompanyId = select.value;
   cancelAutoSave();
   currentDraft = null;
+  document.getElementById("draftName").value = "";
+  document.getElementById("draftItems").replaceChildren();
+  addDraftItem();
+  document.getElementById("draftMessage").textContent = "Empresa alterada. Inicie um novo cenário ou carregue um rascunho.";
   loadDrafts().catch((error) => { document.getElementById("draftMessage").textContent = error.message; });
 });
 document.getElementById("newDraft").addEventListener("click", () => {
+  if (!canDiscardDraftChanges()) return;
   cancelAutoSave();
   currentDraft = null;
   const companyId = document.getElementById("draftCompany").value;
@@ -271,13 +355,18 @@ document.getElementById("newDraft").addEventListener("click", () => {
   addDraftItem();
   document.getElementById("draftMessage").textContent = "Novo cenário. Nenhum cálculo fiscal será executado.";
 });
-document.getElementById("addDraftItem").addEventListener("click", () => { addDraftItem(); scheduleAutoSave(); });
-document.getElementById("draftForm").addEventListener("input", scheduleAutoSave);
+document.getElementById("addDraftItem").addEventListener("click", () => { addDraftItem(); draftRevision += 1; scheduleAutoSave(); });
+document.getElementById("draftForm").addEventListener("input", () => { draftRevision += 1; scheduleAutoSave(); });
 document.getElementById("draftRegimeFilter").addEventListener("change", renderDrafts);
 document.getElementById("draftMonthFilter").addEventListener("change", renderDrafts);
 document.getElementById("draftForm").addEventListener("submit", (event) => {
   event.preventDefault();
   queueDraftSave(false);
+});
+window.addEventListener("beforeunload", (event) => {
+  if (draftRevision <= savedDraftRevision) return;
+  event.preventDefault();
+  event.returnValue = "";
 });
 addDraftItem();
 
@@ -439,6 +528,10 @@ async function loadStatus(token) {
 }
 
 document.getElementById("organizationSelect").addEventListener("change", () => {
+  if (!canDiscardDraftChanges()) {
+    document.getElementById("organizationSelect").value = activeOrganizationId;
+    return;
+  }
   loadCompanies().catch((error) => { document.getElementById("registryMessage").textContent = error.message; });
 });
 
