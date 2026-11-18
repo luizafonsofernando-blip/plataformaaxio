@@ -16,6 +16,8 @@ Data: 18/11/2026. Branch: `feat/luce-rtc-on-current-portal`.
 - O motor oficial Regime Regular 1.6.1 foi empacotado em conteiner e publicado em Preview protegido no projeto Vercel `luce-rtc-engine-regular`. Um caso de referencia retornou CBS de R$ 42,24 e IBS de R$ 0,48, com `CALCULO_SIMULADO` e aviso oficial de dados simulados. Isso nao e homologacao fiscal.
 - A API `/api/rtc/calculate` e a interface de teste existem no codigo, mas a flag `RTC_CALC_ENABLED` permanece desligada. Em novos testes, a inicializacao a frio do Java excedeu o tempo de resposta da Vercel e o health check nao se manteve pronto. Nao publicar a Beta funcional ate corrigir a estabilidade e testar o fluxo autenticado completo.
 - O Portal de producao nao foi alterado nesta rodada. O link visual estatico existente nao realiza calculos nem persiste dados.
+- O Preview do Portal foi tentado com `RTC_BETA_ENABLED=1`, `RTC_PRIMARY_BETA_ENABLED=1`, `RTC_BETA_ADMIN_IDS` restrito ao Admin01 e `RTC_CALC_ENABLED=0`, mas o deploy falhou pelo limite de 12 funcoes serverless do plano Vercel. Essas variaveis afetam somente novos deploys Preview; producao permanece com a Beta desligada. A solucao incremental e isolar as APIs RTC em um projeto Vercel dedicado e rotea-las pelo Portal, sem remover APIs existentes.
+- Uma tentativa de implantacao a partir do diretorio pai criou acidentalmente o projeto auxiliar `rtc-vercel-engine`, cujo deploy falhou. Ele nao contem dados nem credenciais RTC. O projeto correto do motor e `luce-rtc-engine-regular`.
 - Testes locais: `check:rtc` (36 aprovados), `check:sign`, `check` e `check:orthography` aprovados. Ainda faltam testes autenticados ponta a ponta contra a implantacao hospedada.
 
 ## Preparado, nao operacional neste ambiente
