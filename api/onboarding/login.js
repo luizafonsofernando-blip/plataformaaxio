@@ -1,11 +1,11 @@
-import { ACCOUNT_SUSPENDED_MESSAGE, clientIpHash, isSuspendedUser, rejectDisallowedOrigin, rejectLargeRequest, rejectRateLimited, requestAuditMetadata, requireActiveModuleUser, setApiSecurityHeaders, sha256 } from "../_security.js";
+import { ACCOUNT_SUSPENDED_MESSAGE, clientIpHash, isSuspendedUser, rejectDisallowedOrigin, rejectLargeRequest, rejectRateLimited, requestAuditMetadata, requireActiveModuleUser, rtcBetaReady, setApiSecurityHeaders, sha256 } from "../_security.js";
 
 const SUPABASE_USER_PAGE_LIMIT = 100;
 const DEFAULT_SUPABASE_URL = "https://prznhgwiibcazuwlwvnt.supabase.co";
 const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_gQNx5ZW2OTr5J7jNgTQoOg_1n4ffmG4";
 const LUCE_EMAIL_DOMAIN = "lucesolutions.com.br";
 const LEGACY_EMAIL_DOMAIN = ["axi", "onsolutions.com.br"].join("");
-const VALID_MODULE_IDS = new Set(["onboarding", "property", "comunicados", "review-folha", "radar-legislativo", "contratos", "ebef", "luce-sign"]);
+const VALID_MODULE_IDS = new Set(["onboarding", "property", "comunicados", "review-folha", "radar-legislativo", "contratos", "ebef", "luce-sign", "reforma-tributaria"]);
 const MAX_BODY_BYTES = 4_000;
 
 function json(response, status, body) {
@@ -257,7 +257,7 @@ function legacyProfileForModule(moduleId) {
 
 async function applyRequestedProfileIfNeeded(user, serviceRoleKey, moduleId) {
   if (!serviceRoleKey || !user?.id || !moduleId) return user;
-  if (moduleId === "luce-sign") return user;
+  if (moduleId === "luce-sign" || moduleId === "reforma-tributaria") return user;
   const targetProfile = legacyProfileForModule(moduleId);
   if (user?.user_metadata?.profile === targetProfile) return user;
   const userMetadata = {
@@ -333,6 +333,9 @@ export default async function handler(request, response) {
   const identifier = String(request.body?.identifier || "").trim().toLowerCase();
   const password = String(request.body?.password || "");
   const targetProfile = requestedProfile(request.body?.profile);
+  if (targetProfile === "reforma-tributaria" && !rtcBetaReady()) {
+    return json(response, 503, { code: "module_disabled" });
+  }
   const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
   const isAlias = /^[\p{L}\p{N} ._-]{3,80}$/u.test(identifier);
   if ((!isEmail && !isAlias) || !password || password.length > 128) {

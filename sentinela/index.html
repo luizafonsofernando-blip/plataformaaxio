@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <meta name="referrer" content="no-referrer">
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <link rel="apple-touch-icon" href="/assets/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/auth-luce.css">
+    <link rel="stylesheet" href="/sentinela/sentinela.css">
+    <link rel="stylesheet" href="/sentinela/sentinela-premium.css?v=20260905-2">
+    <link rel="stylesheet" href="/sentinela/sentinela-compliance.css?v=20260905-1">
+    <link rel="stylesheet" href="/sentinela/sentinela-assisted.css?v=20260906-1">
+    <title>Luce Sentinela | Centro de Comando Fiscal</title>
+    <script src="/sentinela/sentinela-config.js"></script>
+    <script src="/assets/module-auth.js" defer></script>
+    <script src="/assets/vendor/lucide.min.js" defer></script>
+    <script src="/assets/vendor/xlsx.mini.min.js" defer></script>
+    <script src="/assets/vendor/pptxgen.bundle.js" defer></script>
+    <script src="/sentinela/sentinela-compliance.js?v=20260905-1" defer></script>
+    <script src="/sentinela/sentinela-assisted.js?v=20260906-1" defer></script>
+    <script src="/sentinela/sentinela.js" defer></script>
+  </head>
+  <body class="module-auth-locked">
+    <div class="app-shell" id="appShell">
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="/" aria-label="Voltar ao ecossistema Luce">
+          <img src="/assets/logo-luce-symbol-clean.svg" alt="">
+          <span><strong>SENTINELA</strong><small>Centro de comando fiscal</small></span>
+        </a>
+        <nav aria-label="Navegação do Sentinela">
+          <button class="nav-item active" data-view="dashboard" type="button"><span aria-hidden="true"><i data-lucide="layout-dashboard"></i></span>Visão geral</button>
+          <button class="nav-item" data-view="today" type="button"><span aria-hidden="true"><i data-lucide="list-checks"></i></span>O que fazer hoje <b id="navTodayCount">0</b></button>
+          <button class="nav-item" data-view="companies" type="button"><span aria-hidden="true"><i data-lucide="building-2"></i></span>Empresas</button>
+          <button class="nav-item" data-view="occurrences" type="button"><span aria-hidden="true"><i data-lucide="shield-alert"></i></span>Ocorrências <b id="navOccurrenceCount">0</b></button>
+          <button class="nav-item" data-view="tasks" type="button"><span aria-hidden="true"><i data-lucide="clipboard-check"></i></span>Tarefas</button>
+          <button class="nav-item" data-view="documents" type="button"><span aria-hidden="true"><i data-lucide="files"></i></span>Documentos</button>
+          <button class="nav-item" data-view="integrations" type="button"><span aria-hidden="true"><i data-lucide="unplug"></i></span>Integrações</button>
+          <button class="nav-item" data-view="compliance" data-permission="compliance.view" type="button"><span aria-hidden="true"><i data-lucide="shield-check"></i></span>Compliance <b id="navComplianceCount">0</b></button>
+        </nav>
+        <div class="sidebar-foot">
+          <span class="system-health"><i></i> Ambiente protegido</span>
+          <button class="logout-button" id="logoutButton" type="button">Sair</button>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <button class="icon-button mobile-menu" id="mobileMenu" type="button" aria-label="Abrir menu" title="Abrir menu"><i data-lucide="menu"></i></button>
+          <div class="page-location"><span id="pageEyebrow">Operação fiscal</span><strong id="pageTitle">Visão geral</strong></div>
+          <label class="global-search">
+            <i data-lucide="search" aria-hidden="true"></i>
+            <input id="globalSearch" type="search" placeholder="Buscar por empresa, CNPJ, ocorrência ou tarefa" autocomplete="off">
+          </label>
+          <button class="notification-button" id="notificationButton" type="button" aria-label="Notificações" title="Notificações">
+            <i data-lucide="bell" aria-hidden="true"></i><b id="notificationCount">0</b>
+          </button>
+          <div class="user-menu"><span id="userInitials">LU</span><div><strong id="userName">Usuário Luce</strong><small id="userRole">Analista</small></div></div>
+        </header>
+
+        <section class="content" id="content">
+          <div class="loading-state" id="loadingState"><span></span><strong>Carregando o centro de comando...</strong></div>
+          <div class="error-state hidden" id="errorState"><strong>Não foi possível carregar o Sentinela.</strong><p id="errorMessage"></p><button class="button secondary" id="retryButton" type="button">Tentar novamente</button></div>
+
+          <section class="view active" data-page="dashboard">
+            <div class="page-head">
+              <div><p class="eyebrow">Situação do escritório</p><h1>Centro de comando fiscal</h1><p>Prioridades, riscos e dados atualizados em uma única visão operacional.</p></div>
+              <div class="head-actions"><span class="freshness" id="freshness">Atualizando...</span><button class="button primary" data-open="company" type="button"><i data-lucide="plus"></i>Nova empresa</button></div>
+            </div>
+            <div class="metric-grid">
+              <button class="metric-card" data-filter-status="all" type="button"><span>Empresas monitoradas</span><strong id="metricCompanies">0</strong><small>Base da organização</small></button>
+              <button class="metric-card success" data-filter-status="regular" type="button"><span>Regulares</span><strong id="metricRegular">0</strong><small>Sem pendências conhecidas</small></button>
+              <button class="metric-card warning" data-filter-status="attention" type="button"><span>Em atenção</span><strong id="metricAttention">0</strong><small>Prevenção necessária</small></button>
+              <button class="metric-card danger" data-filter-status="critical" type="button"><span>Críticas</span><strong id="metricCritical">0</strong><small>Ação imediata</small></button>
+              <button class="metric-card neutral" data-filter-status="not_checked" type="button"><span>Não consultadas</span><strong id="metricUnchecked">0</strong><small>Aguardando fonte oficial</small></button>
+            </div>
+            <div class="dashboard-grid">
+              <article class="panel priority-panel">
+                <div class="panel-head"><div><p class="eyebrow">Prioridade operacional</p><h2>O que precisa ser feito hoje</h2></div><button class="text-button" data-go="today" type="button">Ver tudo</button></div>
+                <div class="table-wrap"><table><thead><tr><th>Empresa / tarefa</th><th>Risco</th><th>Prazo</th><th>Responsável</th><th>Status</th></tr></thead><tbody id="dashboardTaskRows"></tbody></table></div>
+              </article>
+              <article class="panel risk-panel">
+                <div class="panel-head"><div><p class="eyebrow">Distribuição</p><h2>Mapa de risco</h2></div></div>
+                <div class="risk-bars" id="riskBars"></div>
+                <div class="risk-legend"><span><i class="green"></i>Regular</span><span><i class="yellow"></i>Atenção</span><span><i class="orange"></i>Relevante</span><span><i class="red"></i>Crítico</span><span><i class="gray"></i>Não consultado</span></div>
+              </article>
+              <article class="panel activity-panel">
+                <div class="panel-head"><div><p class="eyebrow">Monitoramento</p><h2>Saúde das integrações</h2></div><button class="text-button" data-go="integrations" type="button">Abrir matriz</button></div>
+                <div id="integrationSummary" class="integration-summary"></div>
+              </article>
+              <article class="panel occurrence-panel">
+                <div class="panel-head"><div><p class="eyebrow">Exceções</p><h2>Ocorrências recentes</h2></div><button class="text-button" data-go="occurrences" type="button">Analisar</button></div>
+                <div class="compact-list" id="recentOccurrences"></div>
+              </article>
+            </div>
+          </section>
+
+          <section class="view" data-page="today">
+            <div class="page-head"><div><p class="eyebrow">Prioridade diária</p><h1>O que precisa ser feito hoje</h1><p>Tarefas abertas, vencidas ou com prazo próximo.</p></div><button class="button primary" data-open="task" type="button"><i data-lucide="plus"></i>Nova tarefa</button></div>
+            <div class="filter-bar"><select id="todayPriority"><option value="all">Todas as prioridades</option><option value="critical">Crítica</option><option value="high">Alta</option><option value="normal">Normal</option><option value="low">Baixa</option></select><select id="todayStatus"><option value="active">Pendentes</option><option value="all">Todos os status</option><option value="done">Concluídas</option></select></div>
+            <article class="panel"><div class="table-wrap"><table><thead><tr><th>Tarefa</th><th>Empresa</th><th>Prioridade</th><th>Prazo</th><th>Responsável</th><th>Status</th><th></th></tr></thead><tbody id="todayRows"></tbody></table></div></article>
+          </section>
+
+          <section class="view" data-page="companies">
+            <div class="page-head"><div><p class="eyebrow">Carteira monitorada</p><h1>Empresas</h1><p>Cadastro central e situação fiscal por cliente.</p></div><div class="head-actions"><button class="button secondary" data-open="import" data-permission="companies.import" type="button"><i data-lucide="file-up"></i>Importar planilha</button><button class="button primary" data-open="company" data-permission="companies.write" type="button"><i data-lucide="plus"></i>Nova empresa</button></div></div>
+            <div class="filter-bar"><input id="companySearch" type="search" placeholder="Buscar empresa ou CNPJ"><select id="companyStatus"><option value="all">Todos os status</option><option value="regular">Regular</option><option value="attention">Atenção</option><option value="relevant">Pendência relevante</option><option value="critical">Crítico</option><option value="not_checked">Não consultado</option></select></div>
+            <article class="panel"><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>CNPJ</th><th>Regime</th><th>Localidade</th><th>Status fiscal</th><th>Última consulta</th><th></th></tr></thead><tbody id="companyRows"></tbody></table></div></article>
+          </section>
+
+          <section class="view" data-page="occurrences">
+            <div class="page-head"><div><p class="eyebrow">Tratamento de exceções</p><h1>Ocorrências</h1><p>Origem, risco, prazo, responsável e resolução documentada.</p></div><button class="button primary" data-open="occurrence" type="button"><i data-lucide="plus"></i>Nova ocorrência</button></div>
+            <div class="filter-bar"><select id="occurrenceSeverity"><option value="all">Todos os riscos</option><option value="critical">Crítico</option><option value="relevant">Relevante</option><option value="attention">Atenção</option></select><select id="occurrenceStatus"><option value="active">Em aberto</option><option value="all">Todos os status</option><option value="resolved">Resolvidas</option></select></div>
+            <div class="card-list" id="occurrenceCards"></div>
+          </section>
+
+          <section class="view" data-page="tasks">
+            <div class="page-head"><div><p class="eyebrow">Workflow</p><h1>Tarefas</h1><p>Acompanhe responsabilidades, prazos e conclusões.</p></div><button class="button primary" data-open="task" type="button"><i data-lucide="plus"></i>Nova tarefa</button></div>
+            <div class="task-board" id="taskBoard"></div>
+          </section>
+
+          <section class="view" data-page="documents">
+            <div class="page-head"><div><p class="eyebrow">Evidências</p><h1>Central de documentos</h1><p>Metadados de certidões, guias, recibos e documentos fiscais.</p></div><button class="button primary" data-open="document" type="button"><i data-lucide="file-plus-2"></i>Registrar documento</button></div>
+            <article class="panel"><div class="table-wrap"><table><thead><tr><th>Documento</th><th>Empresa</th><th>Categoria</th><th>Origem</th><th>Emissão</th><th>Validade</th><th></th></tr></thead><tbody id="documentRows"></tbody></table></div></article>
+          </section>
+
+          <section class="view" data-page="integrations">
+            <div class="page-head"><div><p class="eyebrow">Connector Hub</p><h1>Integrações e cobertura</h1><p>Transparência sobre fontes, ambientes, homologação e atualização.</p></div></div>
+            <div class="notice info"><strong>Nenhuma integração é apresentada como operacional sem validação real.</strong><span>Credenciais e contratos permanecem exclusivamente no backend.</span></div>
+            <div class="integration-grid" id="integrationCards"></div>
+            <section class="assisted-monitoring" aria-labelledby="assistedMonitoringTitle">
+              <div class="section-heading"><div><p class="eyebrow">Operação sem API contratada</p><h2 id="assistedMonitoringTitle">Monitoramento oficial assistido</h2><p>Importe evidências obtidas nos canais oficiais. O Sentinela valida, registra, compara e transforma exceções em ações.</p></div></div>
+              <div class="assisted-action-grid">
+                <article class="assisted-action-card"><i data-lucide="badge-check" aria-hidden="true"></i><div><h3>CND Federal / CPEND</h3><p>Registre a certidão, acompanhe validade e receba alertas de vencimento.</p></div><button class="button secondary" data-assisted-open="federal-cnd" data-permission="integrations.operate" type="button">Importar CND</button></article>
+                <article class="assisted-action-card"><i data-lucide="file-search" aria-hidden="true"></i><div><h3>Situação Fiscal</h3><p>Processe o relatório oficial e gere ocorrências quando houver pendências.</p></div><button class="button secondary" data-assisted-open="federal-situation" data-permission="integrations.operate" type="button">Importar relatório</button></article>
+                <article class="assisted-action-card"><i data-lucide="mail-warning" aria-hidden="true"></i><div><h3>Caixa Postal</h3><p>Registre o alerta recebido por e-mail sem confundi-lo com o conteúdo sigiloso.</p></div><button class="button secondary" data-assisted-open="federal-mailbox" data-permission="integrations.operate" type="button">Registrar alerta</button></article>
+              </div>
+              <article class="panel assisted-history-panel"><div class="panel-head"><div><p class="eyebrow">Rastreabilidade</p><h2>Processamentos assistidos recentes</h2></div></div><div id="assistedIntakeList" class="compact-list"></div></article>
+            </section>
+            <div class="dashboard-grid technical-grid">
+              <article class="panel"><div class="panel-head"><div><p class="eyebrow">Execução</p><h2>Fila de conectores</h2></div></div><div id="connectorJobList" class="compact-list"></div></article>
+              <article class="panel"><div class="panel-head"><div><p class="eyebrow">Automação</p><h2>Motor de regras</h2></div></div><div id="ruleList" class="compact-list"></div></article>
+            </div>
+          </section>
+
+          <section class="view compliance-view" data-page="compliance">
+            <div class="page-head compliance-page-head">
+              <div><p class="eyebrow">Monitoramento e regularidade</p><h1>Compliance</h1><p>Controle operacional, evolução e comprovação das providências fiscais.</p></div>
+              <div class="head-actions">
+                <button class="button secondary" id="complianceImportButton" data-permission="compliance.create" type="button"><i data-lucide="file-scan"></i>Importar fonte</button>
+                <button class="button primary" id="complianceNewCaseButton" data-permission="compliance.create" type="button"><i data-lucide="plus"></i>Nova ocorrência</button>
+              </div>
+            </div>
+
+            <nav class="compliance-tabs" aria-label="Áreas do Compliance">
+              <button class="active" data-compliance-tab="dashboard" type="button">Dashboard</button>
+              <button data-compliance-tab="companies" type="button">Empresas</button>
+              <button data-compliance-tab="cases" type="button">Ocorrências</button>
+              <button data-compliance-tab="internal" type="button">Controle interno</button>
+              <button data-compliance-tab="external" type="button">Controle externo</button>
+              <button data-compliance-tab="maed" type="button">MAED</button>
+              <button data-compliance-tab="responsibles" type="button">Responsáveis</button>
+              <button data-compliance-tab="priorities" type="button">Prioridades</button>
+              <button data-compliance-tab="outreach" type="button">Acionamentos</button>
+              <button data-compliance-tab="reports" type="button">Relatórios</button>
+              <button data-compliance-tab="history" type="button">Histórico</button>
+              <button data-compliance-tab="settings" data-permission="compliance.admin" type="button">Configurações</button>
+            </nav>
+
+            <div class="compliance-panel active" data-compliance-panel="dashboard">
+              <div class="compliance-metrics" id="complianceMetrics"></div>
+              <div class="compliance-dashboard-grid">
+                <article class="panel"><div class="panel-head"><div><p class="eyebrow">Evolução</p><h2>Base inicial e situação atual</h2></div><select id="compliancePeriod"><option value="since_start">Desde o início</option><option value="month">Mês atual</option><option value="previous_month">Mês anterior</option><option value="quarter">Trimestre</option><option value="semester">Semestre</option><option value="year">Ano</option><option value="custom">Período personalizado</option></select></div><div class="compliance-period-custom hidden" id="complianceCustomPeriod"><label>De<input id="compliancePeriodStart" type="date"></label><label>Até<input id="compliancePeriodEnd" type="date"></label></div><div id="complianceEvolution" class="compliance-evolution"></div></article>
+                <article class="panel"><div class="panel-head"><div><p class="eyebrow">Ação</p><h2>O que precisa de atenção</h2></div></div><div id="complianceAttention" class="compact-list"></div></article>
+              </div>
+            </div>
+
+            <div class="compliance-panel" data-compliance-panel="companies">
+              <div class="filter-bar"><input id="complianceCompanySearch" type="search" placeholder="Buscar empresa ou CNPJ"><select id="complianceCompanyState"><option value="all">Todas as situações</option><option value="open">Com ocorrências abertas</option><option value="regular">Sem ocorrência aberta</option></select></div>
+              <article class="panel"><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>CNPJ</th><th>Analisadas</th><th>Em aberto</th><th>Resolvidas</th><th>Responsável</th><th>Situação</th><th></th></tr></thead><tbody id="complianceCompanyRows"></tbody></table></div></article>
+            </div>
+
+            <div class="compliance-panel" data-compliance-panel="cases">
+              <div class="filter-bar"><input id="complianceCaseSearch" type="search" placeholder="Buscar ocorrência, empresa ou competência"><select id="complianceCaseStatus"><option value="active">Em aberto</option><option value="all">Todos os status</option><option value="resolved">Resolvidas</option><option value="closed">Encerradas</option></select><select id="complianceCasePriority"><option value="all">Todas as prioridades</option><option value="critical">Crítica</option><option value="high">Alta</option><option value="normal">Normal</option><option value="low">Baixa</option></select></div>
+              <article class="panel"><div class="table-wrap"><table><thead><tr><th>Empresa / ocorrência</th><th>Origem</th><th>Competência</th><th>Prioridade</th><th>Responsável</th><th>Status</th><th></th></tr></thead><tbody id="complianceCaseRows"></tbody></table></div></article>
+            </div>
+
+            <div class="compliance-panel" data-compliance-panel="internal"><article class="panel"><div class="panel-head"><div><p class="eyebrow">Controle interno</p><h2>Obrigações e providências internas</h2></div></div><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>Obrigação</th><th>Competência</th><th>Departamento</th><th>Responsável</th><th>Status</th></tr></thead><tbody id="complianceInternalRows"></tbody></table></div></article></div>
+            <div class="compliance-panel" data-compliance-panel="external"><article class="panel"><div class="panel-head"><div><p class="eyebrow">Controle externo</p><h2>Comunicação, cobrança e retorno</h2></div></div><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>Imposto / obrigação</th><th>Tarefa no Gestta</th><th>Valor</th><th>Responsável</th><th>Status</th></tr></thead><tbody id="complianceExternalRows"></tbody></table></div></article></div>
+            <div class="compliance-panel" data-compliance-panel="maed"><article class="panel"><div class="panel-head"><div><p class="eyebrow">Multas</p><h2>Controle de MAED</h2></div></div><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>Obrigação</th><th>Competência</th><th>Valor</th><th>Vencimento</th><th>Status</th></tr></thead><tbody id="complianceMaedRows"></tbody></table></div></article></div>
+            <div class="compliance-panel" data-compliance-panel="responsibles"><div class="compliance-summary-grid" id="complianceResponsibleCards"></div></div>
+            <div class="compliance-panel" data-compliance-panel="priorities"><div class="notice info"><strong>A prioridade sempre apresenta uma justificativa operacional.</strong><span>Prazo, natureza, valor e risco expresso são avaliados separadamente; a atribuição de responsável não encerra a ocorrência.</span></div><div class="card-list" id="compliancePriorityCards"></div></div>
+            <div class="compliance-panel" data-compliance-panel="outreach"><div class="page-inline-actions"><p>Registre solicitações, responsáveis, prazos e retornos sem perder a trilha histórica.</p><button class="button primary" id="complianceNewOutreachButton" data-permission="compliance.create" type="button"><i data-lucide="message-square-plus"></i>Novo acionamento</button></div><article class="panel"><div class="table-wrap"><table><thead><tr><th>Empresa / ocorrência</th><th>Público</th><th>Acionado</th><th>Solicitação</th><th>Data</th><th>Prazo</th><th>Retorno</th></tr></thead><tbody id="complianceOutreachRows"></tbody></table></div></article></div>
+
+            <div class="compliance-panel" data-compliance-panel="reports">
+              <div class="report-toolbar"><div><label for="complianceReportType">Relatório</label><select id="complianceReportType"><option value="management">Geral consolidado</option><option value="executive">Apresentação executiva</option><option value="evolution">Evolução</option><option value="open">Pendências em aberto</option><option value="resolved">Pendências resolvidas</option><option value="company">Por empresa</option><option value="responsibles">Por responsável</option><option value="department">Por departamento</option><option value="internal">Controle interno</option><option value="external">Controle externo</option><option value="maed">MAED</option><option value="response_time">Tempo de resposta</option><option value="priorities">Empresas prioritárias</option><option value="monthly">Mensal</option><option value="quarterly">Trimestral</option><option value="semiannual">Semestral</option><option value="annual">Anual</option></select></div><div class="report-actions"><button class="button secondary" data-compliance-export="csv" data-permission="compliance.export" type="button">CSV</button><button class="button secondary" data-compliance-export="xlsx" data-permission="compliance.export" type="button">Excel</button><button class="button secondary" data-compliance-export="word" data-permission="compliance.export" type="button">Word</button><button class="button secondary" data-compliance-export="pptx" data-permission="compliance.export" type="button">PowerPoint</button><button class="button primary" data-compliance-export="pdf" data-permission="compliance.export" type="button">PDF</button></div></div>
+              <article class="panel report-preview" id="complianceReportPreview"></article>
+            </div>
+            <div class="compliance-panel" data-compliance-panel="history"><div class="timeline-list" id="complianceHistory"></div></div>
+            <div class="compliance-panel" data-compliance-panel="settings"><div class="notice info"><strong>Configurações administrativas do Compliance</strong><span>Categorias e regras permanecem vinculadas à organização e protegidas pelas permissões do Sentinela.</span></div><div class="compliance-summary-grid" id="complianceCategoryCards"></div></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <aside class="notification-drawer" id="notificationDrawer" aria-hidden="true">
+      <div class="drawer-head"><div><p class="eyebrow">Central</p><h2>Notificações</h2></div><button class="icon-button" data-close-drawer type="button" aria-label="Fechar" title="Fechar"><i data-lucide="x"></i></button></div>
+      <div id="notificationList" class="notification-list"></div>
+    </aside>
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+    <dialog class="form-dialog" id="companyDialog">
+      <form method="dialog" data-form="company">
+        <header><div><p class="eyebrow">Cadastro central</p><h2>Nova empresa</h2></div><button class="icon-button" value="cancel" aria-label="Fechar" title="Fechar"><i data-lucide="x"></i></button></header>
+        <div class="form-grid">
+          <label>CNPJ<input name="cnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" required></label>
+          <button class="button secondary lookup-button" id="lookupCnpj" type="button">Buscar dados públicos</button>
+          <label class="wide">Razão social<input name="legal_name" maxlength="180" required></label>
+          <label>Nome fantasia<input name="trade_name" maxlength="180"></label>
+          <label>Regime tributário<select name="tax_regime"><option value="">Não informado</option><option>Simples Nacional</option><option>Lucro Presumido</option><option>Lucro Real</option><option>MEI</option></select></label>
+          <label>Cidade<input name="city" maxlength="120"></label>
+          <label>UF<input name="state" maxlength="2"></label>
+          <label>Responsável interno<input name="internal_owner" maxlength="160"></label>
+          <label>E-mail<input name="email" type="email" maxlength="254"></label>
+          <label>Telefone<input name="phone" maxlength="30"></label>
+          <label>Inscrição estadual<input name="state_registration" maxlength="80"></label>
+          <label>Inscrição municipal<input name="municipal_registration" maxlength="80"></label>
+          <label>Status inicial<select name="fiscal_status"><option value="not_checked">Não consultado</option><option value="regular">Regular</option><option value="attention">Atenção</option><option value="relevant">Pendência relevante</option><option value="critical">Crítico</option></select></label>
+          <label>Situação do cadastro<select name="onboarding_status"><option value="ready">Pronto para monitoramento</option><option value="draft">Rascunho</option><option value="review">Revisão necessária</option><option value="inactive">Inativo</option></select></label>
+          <label class="wide">Observações<textarea name="notes" rows="3" maxlength="5000"></textarea></label>
+        </div>
+        <footer><span class="form-message" role="status"></span><button class="button secondary" value="cancel">Cancelar</button><button class="button primary" type="submit" value="default">Salvar empresa</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="form-dialog" id="importDialog">
+      <form method="dialog" data-form="import">
+        <header><div><p class="eyebrow">Entrada de carteira</p><h2>Importar empresas</h2></div><button class="icon-button" value="cancel" aria-label="Fechar" title="Fechar"><i data-lucide="x"></i></button></header>
+        <div class="import-content">
+          <p>Selecione um arquivo CSV ou XLSX. Use as colunas <strong>CNPJ</strong>, <strong>Razão Social</strong>, Nome Fantasia, Regime Tributário, Cidade, UF, Responsável, E-mail e Telefone.</p>
+          <label class="import-dropzone">Arquivo da carteira<input name="file" type="file" accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" required><span>Selecionar planilha</span></label>
+          <div class="import-preview hidden" id="importPreview"></div>
+        </div>
+        <footer><span class="form-message" role="status"></span><button class="button secondary" value="cancel">Cancelar</button><button class="button primary" type="submit" value="default">Importar empresas</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="form-dialog" id="occurrenceDialog">
+      <form method="dialog" data-form="occurrence">
+        <header><div><p class="eyebrow">Exceção fiscal</p><h2>Nova ocorrência</h2></div><button class="icon-button" value="cancel" aria-label="Fechar" title="Fechar"><i data-lucide="x"></i></button></header>
+        <div class="form-grid">
+          <label class="wide">Empresa<select name="company_id" data-company-select><option value="">Sem empresa vinculada</option></select></label>
+          <label class="wide">Título<input name="title" maxlength="180" required></label>
+          <label>Risco<select name="severity"><option value="attention">Atenção</option><option value="relevant">Relevante</option><option value="critical">Crítico</option><option value="regular">Regular</option></select></label>
+          <label>Departamento<input name="department" maxlength="120" placeholder="Fiscal"></label>
+          <label>Prazo<input name="due_at" type="datetime-local"></label>
+          <label>Responsável<input name="assigned_name" maxlength="160"></label>
+          <label class="wide">Descrição<textarea name="description" rows="4" maxlength="5000"></textarea></label>
+        </div>
+        <footer><span class="form-message" role="status"></span><button class="button secondary" value="cancel">Cancelar</button><button class="button primary" type="submit" value="default">Criar ocorrência</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="form-dialog" id="taskDialog">
+      <form method="dialog" data-form="task">
+        <header><div><p class="eyebrow">Workflow</p><h2>Nova tarefa</h2></div><button class="icon-button" value="cancel" aria-label="Fechar" title="Fechar"><i data-lucide="x"></i></button></header>
+        <div class="form-grid">
+          <label class="wide">Empresa<select name="company_id" data-company-select><option value="">Sem empresa vinculada</option></select></label>
+          <label class="wide">Tarefa<input name="title" maxlength="180" required></label>
+          <label>Prioridade<select name="priority"><option value="normal">Normal</option><option value="high">Alta</option><option value="critical">Crítica</option><option value="low">Baixa</option></select></label>
+          <label>Prazo<input name="due_at" type="datetime-local"></label>
+          <label class="wide">Responsável<input name="assigned_name" maxlength="160"></label>
+        </div>
+        <footer><span class="form-message" role="status"></span><button class="button secondary" value="cancel">Cancelar</button><button class="button primary" type="submit" value="default">Criar tarefa</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="form-dialog" id="documentDialog">
+      <form method="dialog" data-form="document">
+        <header><div><p class="eyebrow">Evidência</p><h2>Registrar documento</h2></div><button class="icon-button" value="cancel" aria-label="Fechar" title="Fechar"><i data-lucide="x"></i></button></header>
+        <div class="form-grid">
+          <label class="wide">Empresa<select name="company_id" data-company-select><option value="">Sem empresa vinculada</option></select></label>
+          <label class="wide">Nome do documento<input name="name" maxlength="200" required></label>
+          <label>Categoria<select name="category"><option value="certificate">Certidão</option><option value="guide">Guia</option><option value="receipt">Recibo</option><option value="declaration">Declaração</option><option value="evidence">Comprovante</option></select></label>
+          <label>Origem<input name="source" maxlength="100" value="manual"></label>
+          <label>Data de emissão<input name="issued_at" type="date"></label>
+          <label>Data de validade<input name="expires_at" type="date"></label>
+          <label class="wide">Arquivo privado<input name="file" type="file" accept=".pdf,.docx,.xlsx,.png,.jpg,.jpeg,.webp,.txt,.csv" required><small>PDF, Word, Excel ou imagem, com até 4 MB.</small></label>
+        </div>
+        <footer><span class="form-message" role="status"></span><button class="button secondary" value="cancel">Cancelar</button><button class="button primary" type="submit" value="default">Registrar documento</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="form-dialog assisted-dialog" id="assistedIntakeDialog">
+      <form method="dialog" id="assistedIntakeForm">
+        <header><div><p class="eyebrow">Fonte oficial assistida</p><h2 id="assistedDialogTitle">Processar documento</h2></div><button class="icon-button" value="cancel" aria-label="Fechar" title="Fechar"><i data-lucide="x"></i></button></header>
+        <div class="form-grid">
+          <input name="source_code" type="hidden">
+          <label class="wide">Empresa<select name="company_id" id="assistedCompany"><option value="">Sem empresa vinculada</option></select><small id="assistedCompanyHint"></small></label>
+          <label class="wide">Arquivo oficial<input name="file" id="assistedFile" type="file" required><small id="assistedFileHint">PDF com até 4 MB.</small></label>
+          <label>Situação identificada<select name="official_status"><option value="unknown">Revisar manualmente</option><option value="regular">Regular</option><option value="attention">Atenção</option><option value="relevant">Pendência relevante</option><option value="critical">Crítico</option></select></label>
+          <label>Data da consulta/emissão<input name="issued_at" type="date"></label>
+          <label>Validade<input name="expires_at" type="date"></label>
+          <div class="wide assisted-preview hidden" id="assistedPreview" role="status"></div>
+        </div>
+        <footer><span class="form-message" role="status"></span><button class="button secondary" value="cancel">Cancelar</button><button class="button secondary" id="assistedPreviewButton" type="submit">Analisar arquivo</button><button class="button primary hidden" id="assistedConfirmButton" type="button">Confirmar e registrar</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="form-dialog detail-dialog" id="companyDetailDialog">
+      <div class="detail-shell">
+        <header><div><p class="eyebrow">Ficha Fiscal 360°</p><h2 id="detailCompanyName">Empresa</h2></div><button class="icon-button" data-close-detail type="button" aria-label="Fechar" title="Fechar"><i data-lucide="x"></i></button></header>
+        <div id="companyDetailContent" class="detail-content"></div>
+      </div>
+    </dialog>
+
+    <dialog class="form-dialog" id="commentDialog">
+      <form method="dialog" data-form="comment">
+        <header><div><p class="eyebrow">Histórico operacional</p><h2>Novo comentário</h2></div><button class="icon-button" value="cancel" aria-label="Fechar" title="Fechar"><i data-lucide="x"></i></button></header>
+        <input name="occurrence_id" type="hidden">
+        <div class="form-grid"><label class="wide">Comentário<textarea name="body" rows="5" maxlength="5000" required></textarea></label></div>
+        <footer><span class="form-message" role="status"></span><button class="button secondary" value="cancel">Cancelar</button><button class="button primary" type="submit" value="default">Registrar</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="form-dialog" id="complianceCaseDialog">
+      <form method="dialog" id="complianceCaseForm">
+        <header><div><p class="eyebrow">Compliance</p><h2>Nova ocorrência</h2></div><button class="icon-button" data-compliance-close="#complianceCaseDialog" type="button" aria-label="Fechar" title="Fechar"><i data-lucide="x"></i></button></header>
+        <div class="form-grid">
+          <label class="wide">Empresa<select name="company_id" data-company-select><option value="">Sem empresa vinculada</option></select></label>
+          <label class="wide">Título<input name="title" maxlength="180" required></label>
+          <label>Origem<select name="origin"><option value="internal">Controle interno</option><option value="external">Controle externo</option><option value="maed">MAED</option><option value="manual">Manual</option></select></label>
+          <label>Categoria<select name="category_code" id="complianceCategorySelect"></select></label>
+          <label>Obrigação<input name="obligation" maxlength="240"></label>
+          <label>Competência<input name="competence" maxlength="120" placeholder="08/2026"></label>
+          <label>Prioridade<select name="priority"><option value="normal">Normal</option><option value="high">Alta</option><option value="critical">Crítica</option><option value="low">Baixa</option></select></label>
+          <label>Status<select name="status"><option value="identified">Identificada</option><option value="analysis">Em análise</option><option value="assigned">Atribuída</option><option value="action_requested">Providência solicitada</option><option value="waiting_responsible">Aguardando responsável</option><option value="waiting_client">Aguardando cliente</option><option value="waiting_payment">Aguardando pagamento</option><option value="waiting_agency">Aguardando órgão externo</option><option value="regularizing">Em regularização</option><option value="resolved">Resolvida</option><option value="closed">Encerrada</option></select></label>
+          <label>Responsável<input name="assigned_name" maxlength="160"></label>
+          <label>Departamento<input name="department" maxlength="120"></label>
+          <label>Valor<input name="amount" inputmode="decimal" placeholder="0,00"></label>
+          <label>Prazo interno<input name="internal_due_at" type="datetime-local"></label>
+          <label class="wide">Justificativa da prioridade<textarea name="priority_reason" rows="2" maxlength="1000"></textarea></label>
+          <label class="wide">Descrição<textarea name="description" rows="3" maxlength="5000"></textarea></label>
+          <label class="wide">Próxima ação<textarea name="next_action" rows="2" maxlength="2000"></textarea></label>
+        </div>
+        <footer><span class="form-message" role="status"></span><button class="button secondary" data-compliance-close="#complianceCaseDialog" type="button">Cancelar</button><button class="button primary" type="submit">Salvar ocorrência</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="form-dialog compliance-company-dialog" id="complianceCompanyDialog">
+      <form method="dialog" id="complianceCompanyForm">
+        <header><div><p class="eyebrow">Ficha de Compliance</p><h2 id="complianceCompanyTitle">Empresa</h2></div><button class="icon-button" data-compliance-close="#complianceCompanyDialog" type="button" aria-label="Fechar" title="Fechar"><i data-lucide="x"></i></button></header>
+        <input name="company_id" type="hidden">
+        <nav class="compliance-company-tabs" aria-label="Seções da ficha de Compliance">
+          <button class="active" data-compliance-company-tab="overview" type="button">Visão geral</button><button data-compliance-company-tab="cases" type="button">Ocorrências</button><button data-compliance-company-tab="internal" type="button">Controle interno</button><button data-compliance-company-tab="external" type="button">Controle externo</button><button data-compliance-company-tab="debts" type="button">Débitos</button><button data-compliance-company-tab="maed" type="button">MAED</button><button data-compliance-company-tab="outreach" type="button">Acionamentos</button><button data-compliance-company-tab="documents" type="button">Documentos</button><button data-compliance-company-tab="history" type="button">Histórico</button><button data-compliance-company-tab="reports" type="button">Relatórios</button>
+        </nav>
+        <div class="compliance-company-panel active" data-compliance-company-panel="overview">
+          <div class="form-grid">
+            <label>Situação do monitoramento<select name="monitoring_status"><option value="active">Ativo</option><option value="paused">Pausado</option><option value="inactive">Inativo</option></select></label>
+            <label>Responsável pela tratativa<input name="treatment_owner_name" maxlength="160"></label>
+            <label>Responsável pelo monitoramento<input name="monitoring_owner_name" maxlength="160"></label>
+            <label>Responsável pelo cliente<input name="client_contact_name" maxlength="160"></label>
+            <label>E-mail do contato<input name="client_contact_email" type="email" maxlength="254"></label>
+            <label>Telefone do contato<input name="client_contact_phone" maxlength="40"></label>
+            <label class="wide">Observações<textarea name="notes" rows="4" maxlength="5000"></textarea></label>
+          </div>
+        </div>
+        <div class="compliance-company-panel" data-compliance-company-panel="detail"><div id="complianceCompanyDetail" class="compliance-company-detail"></div></div>
+        <footer><span class="form-message" role="status"></span><button class="button secondary" data-compliance-close="#complianceCompanyDialog" type="button">Fechar</button><button class="button primary" data-compliance-profile-save data-permission="compliance.edit" type="submit">Salvar ficha</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="form-dialog" id="complianceOutreachDialog">
+      <form method="dialog" id="complianceOutreachForm">
+        <header><div><p class="eyebrow">Acionamento</p><h2>Registrar providência</h2></div><button class="icon-button" data-compliance-close="#complianceOutreachDialog" type="button" aria-label="Fechar" title="Fechar"><i data-lucide="x"></i></button></header>
+        <div class="form-grid">
+          <label class="wide">Ocorrência<select name="case_id" id="complianceOutreachCase" required></select></label>
+          <label>Público<select name="audience"><option value="internal">Responsável interno</option><option value="client">Cliente</option><option value="external_agency">Órgão externo</option><option value="other">Outro</option></select></label>
+          <label>Nome da pessoa acionada<input name="contacted_name" maxlength="160" required></label>
+          <label>Data do acionamento<input name="requested_at" type="datetime-local"></label>
+          <label>Prazo para retorno<input name="response_due_at" type="datetime-local"></label>
+          <label class="wide">Solicitação<textarea name="request_summary" rows="4" maxlength="3000" required></textarea></label>
+        </div>
+        <footer><span class="form-message" role="status"></span><button class="button secondary" data-compliance-close="#complianceOutreachDialog" type="button">Cancelar</button><button class="button primary" type="submit">Registrar acionamento</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="form-dialog compliance-import-dialog" id="complianceImportDialog">
+      <form method="dialog" id="complianceImportForm">
+        <header><div><p class="eyebrow">Importação controlada</p><h2>Incorporar fonte de Compliance</h2></div><button class="icon-button" data-compliance-close="#complianceImportDialog" type="button" aria-label="Fechar" title="Fechar"><i data-lucide="x"></i></button></header>
+        <div class="import-content">
+          <p>Envie o Relatório Geral ou a Apresentação Executiva. Cada fonte será conciliada em uma prévia e somente integrará o snapshot e as ocorrências após sua confirmação explícita.</p>
+          <label class="import-dropzone">Fonte institucional<input name="file" type="file" accept=".docx,.pdf,.pptx,.xlsx,.ods,.csv" required><span>Word, PDF, PowerPoint, Excel, ODS ou CSV, até 4 MB</span></label>
+          <div class="compliance-import-preview hidden" id="complianceImportPreview"></div>
+        </div>
+        <footer><span class="form-message" role="status"></span><button class="button secondary" id="complianceCancelImport" type="button">Cancelar</button><button class="button secondary" id="compliancePreviewImport" type="submit">Gerar prévia</button><button class="button primary hidden" id="complianceConfirmImport" type="button">Confirmar importação</button></footer>
+      </form>
+    </dialog>
+
+    <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /src
+COPY . .
+RUN mvn flyway:migrate -Dflyway.configFiles=./flyway/flyway-pro.conf --batch-mode --errors \
+    && mvn clean package -DskipTests --batch-mode --errors
+
+FROM eclipse-temurin:21-jre
+WORKDIR /opt/rtc
+COPY --from=build /src/target/api-simples-nacional.jar ./app.jar
+COPY --from=build /src/calculadora/db/calculadora-pro.db ./calculadora/db/calculadora-pro.db
+COPY --from=build /src/LICENSE ./LICENSE
+ENV SPRING_PROFILES_ACTIVE=offline
+USER 10001
+EXPOSE 8082
+ENTRYPOINT ["java", "-jar", "app.jar"]

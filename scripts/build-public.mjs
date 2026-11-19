@@ -1,10 +1,10 @@
-import { cp, mkdir, readdir } from 'node:fs/promises';
+import { cp, mkdir, readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { scanFile } from './scan-secrets.mjs';
 
 const publicDirs = [
   'app', 'assets', 'comunicados-orteconte', 'contratos', 'ebef',
-  'property', 'radar-legislativo', 'radar-sindical', 'review-folha', 'luce-sign'
+  'property', 'radar-legislativo', 'radar-sindical', 'review-folha', 'luce-sign', 'reforma-tributaria'
 ];
 const publicFiles = ['index.html', 'luce-logo.svg', 'luce-property-demo.html', 'script.js', 'styles.css'];
 const output = '.luce-public';
@@ -20,10 +20,13 @@ async function verify(path) {
 }
 
 await mkdir(output, { recursive: true });
+await rm(join(output, 'reforma-tributaria', 'preview.html'), { force: true });
+await rm(join(output, 'reforma-tributaria', 'preview.js'), { force: true });
 for (const entry of [...publicDirs, ...publicFiles]) {
   await cp(entry, join(output, entry), {
     recursive: true,
     filter: path => !internal.test(path.split(/[\\/]/).at(-1))
+      && !/(?:^|[\\/])reforma-tributaria[\\/]preview\.(?:html|js)$/i.test(path)
   });
 }
 await verify(output);
